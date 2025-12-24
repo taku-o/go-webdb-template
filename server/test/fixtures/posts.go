@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/example/go-db-prj-sample/internal/model"
-	"github.com/example/go-db-prj-sample/internal/service"
+	"github.com/example/go-webdb-template/internal/model"
+	"github.com/example/go-webdb-template/internal/service"
 )
 
 // CreateTestPost creates a test post using the service layer

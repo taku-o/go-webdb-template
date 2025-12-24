@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/example/go-db-prj-sample/internal/model"
-	"github.com/example/go-db-prj-sample/internal/service"
+	"github.com/example/go-webdb-template/internal/model"
+	"github.com/example/go-webdb-template/internal/service"
 	"github.com/gorilla/mux"
 )
 

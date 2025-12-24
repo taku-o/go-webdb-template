@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/go-db-prj-sample/internal/config"
+	"github.com/example/go-webdb-template/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 )
 

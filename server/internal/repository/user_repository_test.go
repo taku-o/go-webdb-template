@@ -1,158 +1,158 @@
 package repository_test
 
 import (
-	"database/sql"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/example/go-db-prj-sample/internal/model"
-	"github.com/example/go-db-prj-sample/internal/repository"
+	"github.com/example/go-webdb-template/internal/model"
+	"github.com/example/go-webdb-template/internal/repository"
+	"github.com/example/go-webdb-template/test/testutil"
 )
 
-func setupTestDB(t *testing.T) *sql.DB {
-	db, err := sql.Open("sqlite3", ":memory:")
-	require.NoError(t, err)
-
-	// Create schema
-	schema := `
-		CREATE TABLE IF NOT EXISTS users (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT NOT NULL,
-			email TEXT NOT NULL UNIQUE,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
-	`
-	_, err = db.Exec(schema)
-	require.NoError(t, err)
-
-	return db
-}
-
 func TestUserRepository_Create(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	dbManager := testutil.SetupTestShards(t, 2)
+	defer testutil.CleanupTestDB(dbManager)
 
-	repo := repository.NewUserRepository(nil)
+	repo := repository.NewUserRepository(dbManager)
+	ctx := context.Background()
 
-	user := &model.User{
+	req := &model.CreateUserRequest{
 		Name:  "Test User",
 		Email: "test@example.com",
 	}
 
-	err := repo.Create(db, user)
+	user, err := repo.Create(ctx, req)
 	assert.NoError(t, err)
+	assert.NotNil(t, user)
 	assert.NotZero(t, user.ID)
+	assert.Equal(t, "Test User", user.Name)
+	assert.Equal(t, "test@example.com", user.Email)
 	assert.NotZero(t, user.CreatedAt)
 	assert.NotZero(t, user.UpdatedAt)
 }
 
 func TestUserRepository_GetByID(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	dbManager := testutil.SetupTestShards(t, 2)
+	defer testutil.CleanupTestDB(dbManager)
 
-	repo := repository.NewUserRepository(nil)
+	repo := repository.NewUserRepository(dbManager)
+	ctx := context.Background()
 
-	// Insert test data
-	result, err := db.Exec(
-		"INSERT INTO users (name, email) VALUES (?, ?)",
-		"Test User", "test@example.com",
-	)
+	// Create test user first
+	req := &model.CreateUserRequest{
+		Name:  "Test User",
+		Email: "test@example.com",
+	}
+	created, err := repo.Create(ctx, req)
 	require.NoError(t, err)
-	id, _ := result.LastInsertId()
 
 	// Test retrieval
-	user, err := repo.GetByID(db, id)
+	user, err := repo.GetByID(ctx, created.ID)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.Equal(t, int64(id), user.ID)
+	assert.Equal(t, created.ID, user.ID)
 	assert.Equal(t, "Test User", user.Name)
 	assert.Equal(t, "test@example.com", user.Email)
 }
 
 func TestUserRepository_GetByID_NotFound(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	dbManager := testutil.SetupTestShards(t, 2)
+	defer testutil.CleanupTestDB(dbManager)
 
-	repo := repository.NewUserRepository(nil)
+	repo := repository.NewUserRepository(dbManager)
+	ctx := context.Background()
 
 	// Test retrieval of non-existent user
-	user, err := repo.GetByID(db, 999)
+	user, err := repo.GetByID(ctx, 999)
 	assert.Error(t, err)
 	assert.Nil(t, user)
 }
 
 func TestUserRepository_Update(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	dbManager := testutil.SetupTestShards(t, 2)
+	defer testutil.CleanupTestDB(dbManager)
 
-	repo := repository.NewUserRepository(nil)
+	repo := repository.NewUserRepository(dbManager)
+	ctx := context.Background()
 
-	// Insert test data
-	result, err := db.Exec(
-		"INSERT INTO users (name, email) VALUES (?, ?)",
-		"Original Name", "original@example.com",
-	)
+	// Create test user first
+	createReq := &model.CreateUserRequest{
+		Name:  "Original Name",
+		Email: "original@example.com",
+	}
+	created, err := repo.Create(ctx, createReq)
 	require.NoError(t, err)
-	id, _ := result.LastInsertId()
 
 	// Update user
-	user := &model.User{
-		ID:    id,
+	updateReq := &model.UpdateUserRequest{
 		Name:  "Updated Name",
 		Email: "updated@example.com",
 	}
-
-	err = repo.Update(db, user)
+	updated, err := repo.Update(ctx, created.ID, updateReq)
 	assert.NoError(t, err)
-
-	// Verify update
-	updated, err := repo.GetByID(db, id)
-	require.NoError(t, err)
+	assert.NotNil(t, updated)
 	assert.Equal(t, "Updated Name", updated.Name)
 	assert.Equal(t, "updated@example.com", updated.Email)
+
+	// Verify update
+	user, err := repo.GetByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Updated Name", user.Name)
+	assert.Equal(t, "updated@example.com", user.Email)
 }
 
 func TestUserRepository_Delete(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	dbManager := testutil.SetupTestShards(t, 2)
+	defer testutil.CleanupTestDB(dbManager)
 
-	repo := repository.NewUserRepository(nil)
+	repo := repository.NewUserRepository(dbManager)
+	ctx := context.Background()
 
-	// Insert test data
-	result, err := db.Exec(
-		"INSERT INTO users (name, email) VALUES (?, ?)",
-		"Test User", "test@example.com",
-	)
+	// Create test user first
+	req := &model.CreateUserRequest{
+		Name:  "Test User",
+		Email: "test@example.com",
+	}
+	created, err := repo.Create(ctx, req)
 	require.NoError(t, err)
-	id, _ := result.LastInsertId()
 
 	// Delete user
-	err = repo.Delete(db, id)
+	err = repo.Delete(ctx, created.ID)
 	assert.NoError(t, err)
 
 	// Verify deletion
-	user, err := repo.GetByID(db, id)
+	user, err := repo.GetByID(ctx, created.ID)
 	assert.Error(t, err)
 	assert.Nil(t, user)
 }
 
-func TestUserRepository_GetAll(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+func TestUserRepository_List(t *testing.T) {
+	dbManager := testutil.SetupTestShards(t, 2)
+	defer testutil.CleanupTestDB(dbManager)
 
-	// Insert multiple users
-	_, err := db.Exec("INSERT INTO users (name, email) VALUES (?, ?)", "User 1", "user1@example.com")
+	repo := repository.NewUserRepository(dbManager)
+	ctx := context.Background()
+
+	// Create test users
+	req1 := &model.CreateUserRequest{
+		Name:  "User 1",
+		Email: "user1@example.com",
+	}
+	_, err := repo.Create(ctx, req1)
 	require.NoError(t, err)
-	_, err = db.Exec("INSERT INTO users (name, email) VALUES (?, ?)", "User 2", "user2@example.com")
+
+	req2 := &model.CreateUserRequest{
+		Name:  "User 2",
+		Email: "user2@example.com",
+	}
+	_, err = repo.Create(ctx, req2)
 	require.NoError(t, err)
 
-	// Mock dbManager that returns the same connection for all shards
-	// For this test, we'll test the single-shard GetAll functionality
-	// Full cross-shard testing should be in integration tests
-
-	// This is a simplified test - full cross-shard tests should be in integration tests
+	// List users
+	users, err := repo.List(ctx, 10, 0)
+	assert.NoError(t, err)
+	assert.Len(t, users, 2)
 }

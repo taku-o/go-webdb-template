@@ -1,4 +1,4 @@
-module github.com/example/go-db-prj-sample
+module github.com/example/go-webdb-template
 
 go 1.23.4
 

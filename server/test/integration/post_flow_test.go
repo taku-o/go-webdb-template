@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/example/go-db-prj-sample/internal/model"
-	"github.com/example/go-db-prj-sample/internal/repository"
-	"github.com/example/go-db-prj-sample/internal/service"
-	"github.com/example/go-db-prj-sample/test/fixtures"
-	"github.com/example/go-db-prj-sample/test/testutil"
+	"github.com/example/go-webdb-template/internal/model"
+	"github.com/example/go-webdb-template/internal/repository"
+	"github.com/example/go-webdb-template/internal/service"
+	"github.com/example/go-webdb-template/test/fixtures"
+	"github.com/example/go-webdb-template/test/testutil"
 )
 
 func TestPostCRUDFlow(t *testing.T) {

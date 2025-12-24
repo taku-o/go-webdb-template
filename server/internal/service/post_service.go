@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/example/go-db-prj-sample/internal/model"
-	"github.com/example/go-db-prj-sample/internal/repository"
+	"github.com/example/go-webdb-template/internal/model"
+	"github.com/example/go-webdb-template/internal/repository"
 )
 
 // PostService は投稿のビジネスロジックを担当

@@ -2,12 +2,12 @@
 
 ## 概要
 
-このドキュメントは、go-db-prj-sampleプロジェクトのひな形作成計画を記録したものです。
+このドキュメントは、go-webdb-templateプロジェクトのひな形作成計画を記録したものです。
 
 ## プロジェクト構造
 
 ```
-go-db-prj-sample/
+go-webdb-template/
 ├── server/                      # Golangサーバー
 │   ├── cmd/
 │   │   └── server/

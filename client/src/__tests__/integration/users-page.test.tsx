@@ -9,14 +9,14 @@ const server = setupServer(
     return res(
       ctx.json([
         {
-          id: 1,
+          id: '1',
           name: 'User 1',
           email: 'user1@example.com',
           created_at: '2024-01-15T10:00:00Z',
           updated_at: '2024-01-15T10:00:00Z',
         },
         {
-          id: 2,
+          id: '2',
           name: 'User 2',
           email: 'user2@example.com',
           created_at: '2024-01-15T11:00:00Z',
@@ -31,7 +31,7 @@ const server = setupServer(
     return res(
       ctx.status(201),
       ctx.json({
-        id: 3,
+        id: '3',
         name: body.name,
         email: body.email,
         created_at: '2024-01-15T12:00:00Z',

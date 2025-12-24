@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/example/go-db-prj-sample/internal/db"
+	"github.com/example/go-webdb-template/internal/db"
 )
 
 func TestHashBasedSharding_GetShardID(t *testing.T) {
