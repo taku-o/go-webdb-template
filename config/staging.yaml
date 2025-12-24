@@ -1,0 +1,45 @@
+server:
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+
+database:
+  shards:
+    - id: 1
+      driver: postgres
+      host: staging-db-shard1.example.com
+      port: 5432
+      name: app_db_shard1
+      user: staging_user
+      password: ${DB_PASSWORD_SHARD1}  # 環境変数から読み込み
+      max_connections: 25
+      max_idle_connections: 10
+      connection_max_lifetime: 600s
+    - id: 2
+      driver: postgres
+      host: staging-db-shard2.example.com
+      port: 5432
+      name: app_db_shard2
+      user: staging_user
+      password: ${DB_PASSWORD_SHARD2}  # 環境変数から読み込み
+      max_connections: 25
+      max_idle_connections: 10
+      connection_max_lifetime: 600s
+
+logging:
+  level: info
+  format: json
+  output: stdout
+
+cors:
+  allowed_origins:
+    - https://staging.example.com
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed_headers:
+    - Content-Type
+    - Authorization

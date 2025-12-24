@@ -1,0 +1,288 @@
+# Architecture Documentation
+
+## Overview
+
+This project implements a database-sharded web application using Go for the backend and Next.js for the frontend. The architecture follows a layered design pattern with clear separation of concerns.
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Client Layer                         │
+│                      (Next.js 14 + React)                    │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTP/REST
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Server Layer (Go)                       │
+│                                                               │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │                    API Layer                            │ │
+│  │  • HTTP Handlers (user_handler, post_handler)          │ │
+│  │  • Request validation                                  │ │
+│  │  • Response formatting                                 │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+│                         │                                     │
+│  ┌──────────────────────▼─────────────────────────────────┐ │
+│  │                 Service Layer                           │ │
+│  │  • Business logic                                       │ │
+│  │  • Transaction management                               │ │
+│  │  • Cross-shard operations                               │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+│                         │                                     │
+│  ┌──────────────────────▼─────────────────────────────────┐ │
+│  │               Repository Layer                          │ │
+│  │  • Data access abstraction                              │ │
+│  │  • CRUD operations                                      │ │
+│  │  • Query builders                                       │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+│                         │                                     │
+│  ┌──────────────────────▼─────────────────────────────────┐ │
+│  │                  DB Layer                               │ │
+│  │  • Connection management                                │ │
+│  │  • Sharding strategy                                    │ │
+│  │  • Connection pooling                                   │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+└─────────────────────────┼───────────────────────────────────┘
+                          │
+         ┌────────────────┴────────────────┐
+         ▼                                  ▼
+    ┌─────────┐                        ┌─────────┐
+    │ Shard 1 │                        │ Shard 2 │
+    └─────────┘                        └─────────┘
+```
+
+## Layer Responsibilities
+
+### 1. API Layer (`internal/api`)
+**Location**: `internal/api/handler/`, `internal/api/router/`
+
+**Responsibilities**:
+- HTTP request handling
+- Request validation and parsing
+- Response serialization
+- CORS configuration
+- Error handling and HTTP status code mapping
+
+**Key Components**:
+- `UserHandler`: User-related endpoints
+- `PostHandler`: Post-related endpoints
+- `Router`: Route definitions and middleware
+
+### 2. Service Layer (`internal/service`)
+**Location**: `internal/service/`
+
+**Responsibilities**:
+- Business logic implementation
+- Transaction coordination
+- Cross-shard operations
+- Data transformation
+- Input validation
+
+**Key Components**:
+- `UserService`: User business logic
+- `PostService`: Post business logic
+
+### 3. Repository Layer (`internal/repository`)
+**Location**: `internal/repository/`
+
+**Responsibilities**:
+- Data access abstraction
+- SQL query construction
+- CRUD operations
+- Result mapping to domain models
+
+**Key Components**:
+- `UserRepository`: User data access
+- `PostRepository`: Post data access
+
+### 4. DB Layer (`internal/db`)
+**Location**: `internal/db/`
+
+**Responsibilities**:
+- Database connection management
+- Sharding strategy implementation
+- Connection pooling
+- Shard routing
+
+**Key Components**:
+- `Manager`: Multi-shard connection manager
+- `Connection`: Single database connection wrapper
+- `ShardingStrategy`: Shard selection logic
+- `HashBasedSharding`: Hash-based sharding implementation
+
+## Data Flow
+
+### Example: Creating a User
+
+```
+1. Client → API Layer
+   POST /api/users
+   Body: {"name": "John", "email": "john@example.com"}
+
+2. API Layer → Service Layer
+   UserHandler.CreateUser()
+   ↓
+   UserService.CreateUser(CreateUserRequest)
+
+3. Service Layer → Repository Layer
+   Validates business rules
+   ↓
+   UserRepository.Create(user)
+
+4. Repository Layer → DB Layer
+   Constructs SQL query
+   ↓
+   DBManager.GetConnectionByKey(userID)
+
+5. DB Layer
+   Calculates shard ID using hash(userID)
+   ↓
+   Returns connection to appropriate shard
+
+6. Repository Layer
+   Executes INSERT statement
+   ↓
+   Returns created user
+
+7. Service Layer → API Layer
+   Returns User
+   ↓
+   UserHandler formats response
+
+8. API Layer → Client
+   HTTP 201 Created
+   Body: {"id": 1, "name": "John", "email": "john@example.com", ...}
+```
+
+## Configuration Management
+
+**Location**: `internal/config/`
+
+The application uses environment-based configuration with YAML files:
+
+- `config/develop.yaml`: Development environment (SQLite)
+- `config/staging.yaml`: Staging environment (PostgreSQL)
+- `config/production.yaml`: Production environment (PostgreSQL/MySQL)
+
+Environment selection is controlled by the `APP_ENV` environment variable:
+
+```go
+env := os.Getenv("APP_ENV")
+if env == "" {
+    env = "develop"
+}
+```
+
+## Database Sharding
+
+See [Sharding.md](./Sharding.md) for detailed information about the sharding strategy.
+
+### Key Points:
+- Hash-based sharding using `user_id` as the shard key
+- Automatic shard selection via `DBManager.GetConnectionByKey()`
+- Cross-shard queries supported for read operations
+- Each shard contains a complete schema
+
+## Error Handling
+
+### HTTP Error Responses
+
+```go
+// API Layer
+w.WriteHeader(http.StatusBadRequest)
+json.NewEncoder(w).Encode(map[string]string{
+    "error": "Invalid request",
+})
+```
+
+### Error Propagation
+
+1. **Repository Layer**: Returns Go errors
+2. **Service Layer**: Wraps errors with context
+3. **API Layer**: Converts errors to HTTP status codes
+4. **Client**: Displays user-friendly error messages
+
+## Security Considerations
+
+1. **CORS**: Configured in router to allow specific origins
+2. **Input Validation**: Performed at both API and Service layers
+3. **SQL Injection Prevention**: Using parameterized queries
+4. **Environment Variables**: Sensitive data stored in config files (excluded from git)
+
+## Scalability
+
+### Horizontal Scaling
+- Add more shards by updating configuration
+- Shard count is configurable
+- Each shard can be on a separate database server
+
+### Vertical Scaling
+- Connection pooling configured per shard
+- Database-specific optimizations (indexes, query optimization)
+
+### Caching Strategy
+- Future enhancement: Add Redis/Memcached layer between Service and Repository
+
+## Deployment
+
+### Development
+```bash
+APP_ENV=develop go run cmd/server/main.go
+```
+
+### Staging
+```bash
+APP_ENV=staging go run cmd/server/main.go
+```
+
+### Production
+```bash
+APP_ENV=production ./server
+```
+
+## Monitoring and Logging
+
+### Current Implementation
+- Basic error logging to stderr
+- Database connection status logging
+
+### Future Enhancements
+- Structured logging (e.g., logrus, zap)
+- Request tracing
+- Performance metrics
+- Health check endpoints
+
+## Testing Strategy
+
+See [Testing.md](./Testing.md) for comprehensive testing documentation.
+
+### Testing Layers
+- Unit tests for each layer
+- Integration tests for multi-layer interactions
+- E2E tests for complete workflows
+
+## Dependencies
+
+### Server Dependencies
+- `github.com/spf13/viper`: Configuration management
+- `github.com/gorilla/mux`: HTTP routing
+- `github.com/mattn/go-sqlite3`: SQLite driver (development)
+- `github.com/lib/pq`: PostgreSQL driver (production)
+- `github.com/rs/cors`: CORS middleware
+
+### Client Dependencies
+- `next`: React framework
+- `react`, `react-dom`: UI library
+- TypeScript: Type safety
+
+## Future Improvements
+
+1. **Authentication & Authorization**: JWT-based auth
+2. **Rate Limiting**: API rate limiting middleware
+3. **Caching**: Redis integration
+4. **Message Queue**: Async processing with RabbitMQ/Kafka
+5. **Service Discovery**: For multi-instance deployments
+6. **API Versioning**: /v1, /v2 endpoints
+7. **GraphQL**: Alternative to REST API
+8. **WebSocket**: Real-time updates

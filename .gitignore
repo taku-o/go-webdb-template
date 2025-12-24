@@ -1,0 +1,59 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+vendor/
+
+# Server binary
+server/server
+
+# Database files
+*.db
+*.db-journal
+server/data/
+
+# Config files (production secrets)
+config/production.yaml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+client/.next/
+client/out/
+client/build/
+client/dist/
+
+# Node
+client/node_modules/
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+client/.pnpm-debug.log*
+
+# Testing
+client/coverage/
+client/.nyc_output/
+client/playwright-report/
+client/test-results/
+
+# Misc
+*.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
