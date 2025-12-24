@@ -418,6 +418,70 @@ Thoroughly test:
 
 1. **Global ID Generation**: Use a distributed ID generator (Snowflake, UUID)
 2. **Consistent Hashing**: Easier shard management
-3. **Read Replicas**: Add read replicas for each shard
+3. **Read Replicas**: Add read replicas for each shard (GORM版で実装済み)
 4. **Shard Rebalancing Tool**: Automate data migration
 5. **Query Router**: Dedicated routing layer for shard selection
+
+## GORM Support
+
+### Writer/Reader Separation
+
+GORM版のRepositoryは`gorm.io/plugin/dbresolver`を使用してWriter/Reader分離をサポートしています。
+
+**設定例** (`config/production.yaml`):
+```yaml
+database:
+  shards:
+    - id: 1
+      driver: postgres
+      writer_dsn: host=prod-db-shard1-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard1-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+        - host=prod-db-shard1-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+      reader_policy: round_robin
+```
+
+**機能**:
+- **Write操作**: Create, Update, Delete → Writer DBに送信
+- **Read操作**: Select, Find → Reader DBに送信
+- **複数Reader**: 複数のReader DSNを設定可能
+- **ロードバランシング**: `random`または`round_robin`ポリシー
+- **後方互換性**: 従来の`dsn`設定も引き続きサポート
+
+**使用例**:
+```go
+// GORMManager を使用
+gormManager, err := db.NewGORMManager(cfg)
+defer gormManager.CloseAll()
+
+// Repository層での使用
+userRepo := repository.NewUserRepositoryGORM(gormManager)
+
+// Write操作 → Writer DBに送信
+user, err := userRepo.Create(ctx, req)
+
+// Read操作 → Reader DBに送信
+user, err := userRepo.GetByID(ctx, id)
+```
+
+**利点**:
+- Writeの負荷とReadの負荷を分離
+- Read性能のスケールアウトが容易
+- Readerの追加だけで読み込み性能を向上可能
+- 既存のsharding戦略と組み合わせて使用可能
+
+### GORM Migration Path
+
+現在は`database/sql`版のRepositoryを使用していますが、GORM版も完全に実装されています。
+
+**移行手順**:
+1. Service層をInterface化
+2. main.goでGORMManagerを使用
+3. GORMRepositoryをインジェクト
+4. Writer/Reader分離の設定を追加
+
+**現状**:
+- GORM版Repository: 実装済み ✅
+- Writer/Reader分離: 実装済み ✅
+- テスト: すべてパス ✅
+- Service層Interface化: 未実装 (将来タスク)

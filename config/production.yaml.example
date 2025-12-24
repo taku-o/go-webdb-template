@@ -12,6 +12,11 @@ database:
       name: app_db_shard1
       user: prod_user
       password: ${DB_PASSWORD_SHARD1}  # 環境変数から読み込み
+      writer_dsn: host=prod-db-shard1-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard1-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+        - host=prod-db-shard1-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+      reader_policy: round_robin
       max_connections: 50
       max_idle_connections: 20
       connection_max_lifetime: 600s
@@ -22,6 +27,11 @@ database:
       name: app_db_shard2
       user: prod_user
       password: ${DB_PASSWORD_SHARD2}  # 環境変数から読み込み
+      writer_dsn: host=prod-db-shard2-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard2-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
+        - host=prod-db-shard2-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
+      reader_policy: round_robin
       max_connections: 50
       max_idle_connections: 20
       connection_max_lifetime: 600s

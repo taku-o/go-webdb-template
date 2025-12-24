@@ -10,12 +10,12 @@ import (
 
 // PostService は投稿のビジネスロジックを担当
 type PostService struct {
-	postRepo *repository.PostRepository
-	userRepo *repository.UserRepository
+	postRepo repository.PostRepositoryInterface
+	userRepo repository.UserRepositoryInterface
 }
 
 // NewPostService は新しいPostServiceを作成
-func NewPostService(postRepo *repository.PostRepository, userRepo *repository.UserRepository) *PostService {
+func NewPostService(postRepo repository.PostRepositoryInterface, userRepo repository.UserRepositoryInterface) *PostService {
 	return &PostService{
 		postRepo: postRepo,
 		userRepo: userRepo,

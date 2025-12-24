@@ -93,8 +93,12 @@ This project implements a database-sharded web application using Go for the back
 - Result mapping to domain models
 
 **Key Components**:
-- `UserRepository`: User data access
-- `PostRepository`: Post data access
+- `UserRepository`: User data access (database/sql版)
+- `PostRepository`: Post data access (database/sql版)
+- `UserRepositoryGORM`: User data access (GORM版)
+- `PostRepositoryGORM`: Post data access (GORM版)
+
+**Note**: 現在は`database/sql`版のRepositoryを使用していますが、GORM版のRepositoryも実装済みです。将来的にService層をInterface化することで、GORM版への切り替えが可能です。
 
 ### 4. DB Layer (`internal/db`)
 **Location**: `internal/db/`
@@ -104,12 +108,21 @@ This project implements a database-sharded web application using Go for the back
 - Sharding strategy implementation
 - Connection pooling
 - Shard routing
+- Writer/Reader分離 (GORM版)
 
 **Key Components**:
-- `Manager`: Multi-shard connection manager
-- `Connection`: Single database connection wrapper
+- `Manager`: Multi-shard connection manager (database/sql版)
+- `Connection`: Single database connection wrapper (database/sql版)
+- `GORMManager`: Multi-shard GORM connection manager (GORM版)
+- `GORMConnection`: Single GORM connection wrapper with Writer/Reader support
 - `ShardingStrategy`: Shard selection logic
-- `HashBasedSharding`: Hash-based sharding implementation
+- `HashBasedSharding`: Hash-based sharding implementation (FNV-1a)
+
+**GORM Features**:
+- Writer/Reader分離: `gorm.io/plugin/dbresolver`を使用したRead/Write分離
+- 接続管理: Writer用とReader用のDSNを個別に設定可能
+- ポリシー設定: `random`または`round_robin`のReader選択ポリシー
+- 後方互換性: 従来のDSN設定でも動作
 
 ## Data Flow
 
@@ -270,6 +283,11 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 - `github.com/mattn/go-sqlite3`: SQLite driver (development)
 - `github.com/lib/pq`: PostgreSQL driver (production)
 - `github.com/rs/cors`: CORS middleware
+- `gorm.io/gorm`: GORM ORM library (v1.25.12)
+- `gorm.io/driver/sqlite`: GORM SQLite driver
+- `gorm.io/driver/postgres`: GORM PostgreSQL driver
+- `gorm.io/plugin/dbresolver`: GORM Writer/Reader分離プラグイン
+- `gorm.io/sharding`: GORM sharding plugin (将来使用予定)
 
 ### Client Dependencies
 - `next`: React framework

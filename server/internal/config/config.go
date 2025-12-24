@@ -41,6 +41,11 @@ type ShardConfig struct {
 	MaxConnections        int           `mapstructure:"max_connections"`
 	MaxIdleConnections    int           `mapstructure:"max_idle_connections"`
 	ConnectionMaxLifetime time.Duration `mapstructure:"connection_max_lifetime"`
+
+	// Writer/Reader分離用の設定
+	WriterDSN    string   `mapstructure:"writer_dsn"`    // Writer接続用DSN
+	ReaderDSNs   []string `mapstructure:"reader_dsns"`   // Reader接続用DSNリスト
+	ReaderPolicy string   `mapstructure:"reader_policy"` // "random" or "round_robin"
 }
 
 // LoggingConfig はロギング設定
@@ -113,4 +118,22 @@ func (s *ShardConfig) GetDSN() string {
 	default:
 		return ""
 	}
+}
+
+// GetWriterDSN はWriter接続用DSNを取得
+func (s *ShardConfig) GetWriterDSN() string {
+	if s.WriterDSN != "" {
+		return s.WriterDSN
+	}
+	// 後方互換性: 既存のDSNをWriterとして使用
+	return s.GetDSN()
+}
+
+// GetReaderDSNs はReader接続用DSNリストを取得
+func (s *ShardConfig) GetReaderDSNs() []string {
+	if len(s.ReaderDSNs) > 0 {
+		return s.ReaderDSNs
+	}
+	// 後方互換性: Writerと同じDSNをReaderとして使用（開発環境用）
+	return []string{s.GetWriterDSN()}
 }
