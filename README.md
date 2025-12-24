@@ -12,6 +12,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 ## 特徴
 
 - ✅ **Sharding対応**: Hash-based shardingで複数DBへデータ分散
+- ✅ **GORM対応**: Writer/Reader分離をサポート (GORM v1.25.12)
 - ✅ **レイヤー分離**: API層、Service層、Repository層、DB層で責務を明確化
 - ✅ **環境別設定**: develop/staging/production環境で設定切り替え
 - ✅ **型安全**: TypeScriptによる型定義
@@ -85,6 +86,37 @@ shard_id = hash(user_id) % shard_count + 1
 
 - 同一ユーザーのデータは常に同じShardに配置
 - クロスシャードクエリは各Shardから並列取得してマージ
+
+詳細は [Sharding.md](docs/Sharding.md) を参照してください。
+
+## GORM対応
+
+Writer/Reader分離をサポートするGORM版のRepositoryを実装しています。
+
+### Writer/Reader分離の設定例
+
+`config/production.yaml`:
+```yaml
+database:
+  shards:
+    - id: 1
+      driver: postgres
+      writer_dsn: host=writer.example.com port=5432 user=app password=xxx dbname=db sslmode=require
+      reader_dsns:
+        - host=reader1.example.com port=5432 user=app password=xxx dbname=db sslmode=require
+        - host=reader2.example.com port=5432 user=app password=xxx dbname=db sslmode=require
+      reader_policy: round_robin
+```
+
+### 主要な依存パッケージ
+
+- `gorm.io/gorm` v1.25.12
+- `gorm.io/driver/sqlite`
+- `gorm.io/driver/postgres`
+- `gorm.io/plugin/dbresolver` (Writer/Reader分離)
+- `gorm.io/sharding` (将来使用予定)
+
+詳細は [Architecture.md](docs/Architecture.md) を参照してください。
 
 ## ライセンス
 

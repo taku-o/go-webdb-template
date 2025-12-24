@@ -8,9 +8,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 	_ "github.com/mattn/go-sqlite3"
+	"gorm.io/gorm"
 
 	"github.com/example/go-webdb-template/internal/config"
 	"github.com/example/go-webdb-template/internal/db"
+	"github.com/example/go-webdb-template/internal/model"
 )
 
 // SetupTestShards creates temporary file-based multi-shard databases for testing
@@ -89,5 +91,53 @@ func GetTestConfig() *config.Config {
 			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders: []string{"*"},
 		},
+	}
+}
+
+// SetupTestGORMShards creates temporary file-based multi-shard GORM databases for testing
+func SetupTestGORMShards(t *testing.T, shardCount int) *db.GORMManager {
+	// Create temporary directory for test databases
+	tmpDir := t.TempDir()
+
+	shards := make([]config.ShardConfig, shardCount)
+	for i := 0; i < shardCount; i++ {
+		dbPath := filepath.Join(tmpDir, fmt.Sprintf("test_gorm_shard_%d.db", i+1))
+		shards[i] = config.ShardConfig{
+			ID:          i + 1,
+			Driver:      "sqlite3",
+			DSN:         dbPath,
+			WriterDSN:   dbPath,
+			ReaderDSNs:  []string{dbPath},
+			ReaderPolicy: "random",
+		}
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+
+	// Initialize schema on all shards using GORM AutoMigrate
+	for i := 1; i <= shardCount; i++ {
+		database, err := manager.GetGORM(i)
+		require.NoError(t, err)
+		InitGORMSchema(t, database)
+	}
+
+	return manager
+}
+
+// InitGORMSchema initializes the database schema for testing using GORM AutoMigrate
+func InitGORMSchema(t *testing.T, database *gorm.DB) {
+	err := database.AutoMigrate(&model.User{}, &model.Post{})
+	require.NoError(t, err)
+}
+
+// CleanupTestGORMDB closes all GORM database connections
+func CleanupTestGORMDB(manager *db.GORMManager) {
+	if manager != nil {
+		manager.CloseAll()
 	}
 }

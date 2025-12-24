@@ -25,22 +25,22 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// DB Managerの初期化
-	dbManager, err := db.NewManager(cfg)
+	// GORM DB Managerの初期化
+	gormManager, err := db.NewGORMManager(cfg)
 	if err != nil {
-		log.Fatalf("Failed to create DB manager: %v", err)
+		log.Fatalf("Failed to create GORM manager: %v", err)
 	}
-	defer dbManager.CloseAll()
+	defer gormManager.CloseAll()
 
 	// すべてのShardへの接続確認
-	if err := dbManager.PingAll(); err != nil {
+	if err := gormManager.PingAll(); err != nil {
 		log.Fatalf("Failed to ping databases: %v", err)
 	}
-	log.Println("Successfully connected to all database shards")
+	log.Println("Successfully connected to all database shards (GORM)")
 
-	// Repository層の初期化
-	userRepo := repository.NewUserRepository(dbManager)
-	postRepo := repository.NewPostRepository(dbManager)
+	// Repository層の初期化（GORM版を使用）
+	userRepo := repository.NewUserRepositoryGORM(gormManager)
+	postRepo := repository.NewPostRepositoryGORM(gormManager)
 
 	// Service層の初期化
 	userService := service.NewUserService(userRepo)

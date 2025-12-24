@@ -48,4 +48,5 @@ Cursor、Claude Code上で動作する。
 ここまでの作業をcommitしてください。
 
 ## 実装開始
+/kiro:spec-impl 0003-gorm-introduction
 ```
