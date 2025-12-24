@@ -1,0 +1,37 @@
+server:
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+
+database:
+  shards:
+    - id: 1
+      driver: sqlite3
+      dsn: ./data/shard1.db
+      max_connections: 10
+      max_idle_connections: 5
+      connection_max_lifetime: 300s
+    - id: 2
+      driver: sqlite3
+      dsn: ./data/shard2.db
+      max_connections: 10
+      max_idle_connections: 5
+      connection_max_lifetime: 300s
+
+logging:
+  level: debug
+  format: json
+  output: stdout
+
+cors:
+  allowed_origins:
+    - http://localhost:3000
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed_headers:
+    - Content-Type
+    - Authorization
