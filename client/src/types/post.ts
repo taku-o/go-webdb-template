@@ -1,6 +1,6 @@
 export interface Post {
-  id: number
-  user_id: number
+  id: string
+  user_id: string
   title: string
   content: string
   created_at: string
@@ -8,7 +8,7 @@ export interface Post {
 }
 
 export interface CreatePostRequest {
-  user_id: number
+  user_id: string
   title: string
   content: string
 }
@@ -19,10 +19,10 @@ export interface UpdatePostRequest {
 }
 
 export interface UserPost {
-  post_id: number
+  post_id: string
   post_title: string
   post_content: string
-  user_id: number
+  user_id: string
   user_name: string
   user_email: string
   created_at: string

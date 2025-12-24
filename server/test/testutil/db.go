@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/example/go-db-prj-sample/internal/config"
-	"github.com/example/go-db-prj-sample/internal/db"
+	"github.com/example/go-webdb-template/internal/config"
+	"github.com/example/go-webdb-template/internal/db"
 )
 
 // SetupTestShards creates temporary file-based multi-shard databases for testing
@@ -75,5 +75,19 @@ func InitSchema(t *testing.T, database *sql.DB) {
 func CleanupTestDB(manager *db.Manager) {
 	if manager != nil {
 		manager.CloseAll()
+	}
+}
+
+// GetTestConfig returns a test configuration
+func GetTestConfig() *config.Config {
+	return &config.Config{
+		Server: config.ServerConfig{
+			Port: 8080,
+		},
+		CORS: config.CORSConfig{
+			AllowedOrigins: []string{"*"},
+			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"*"},
+		},
 	}
 }

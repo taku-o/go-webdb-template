@@ -47,7 +47,7 @@ export default function UsersPage() {
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('本当に削除しますか？')) return
 
     try {

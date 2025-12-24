@@ -4,18 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/example/go-db-prj-sample/internal/api/handler"
-	"github.com/example/go-db-prj-sample/internal/api/router"
-	"github.com/example/go-db-prj-sample/internal/repository"
-	"github.com/example/go-db-prj-sample/internal/service"
-	"github.com/example/go-db-prj-sample/test/testutil"
+	"github.com/example/go-webdb-template/internal/api/handler"
+	"github.com/example/go-webdb-template/internal/api/router"
+	"github.com/example/go-webdb-template/internal/repository"
+	"github.com/example/go-webdb-template/internal/service"
+	"github.com/example/go-webdb-template/test/testutil"
 )
 
 func setupTestServer(t *testing.T) *httptest.Server {
@@ -27,15 +29,16 @@ func setupTestServer(t *testing.T) *httptest.Server {
 
 	// Initialize layers
 	userRepo := repository.NewUserRepository(dbManager)
-	userService := service.NewUserService(userRepo, dbManager)
+	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
-	postRepo := repository.NewPostRepository(dbManager, userRepo)
-	postService := service.NewPostService(postRepo, dbManager)
+	postRepo := repository.NewPostRepository(dbManager)
+	postService := service.NewPostService(postRepo, userRepo)
 	postHandler := handler.NewPostHandler(postService)
 
-	// Setup router
-	r := router.SetupRouter(userHandler, postHandler)
+	// Setup router with test config
+	cfg := testutil.GetTestConfig()
+	r := router.NewRouter(userHandler, postHandler, cfg)
 
 	return httptest.NewServer(r)
 }
@@ -66,12 +69,23 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	assert.Equal(t, "E2E Test User", user["name"])
 	assert.Equal(t, "e2e@example.com", user["email"])
 
-	userID := int(user["id"].(float64))
+	userIDStr := user["id"].(string)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	require.NoError(t, err)
 
 	// Retrieve user
 	resp, err = http.Get(server.URL + fmt.Sprintf("/api/users/%d", userID))
 	require.NoError(t, err)
 	defer resp.Body.Close()
+
+	// Debug: print response if not OK
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		t.Logf("Expected 200 but got %d, body: %s, userID: %d", resp.StatusCode, string(body), userID)
+		// Re-create reader for subsequent decode
+		resp.Body = io.NopCloser(bytes.NewBuffer(body))
+	}
+
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var retrieved map[string]interface{}
@@ -97,7 +111,9 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 
 	var user map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&user)
-	userID := int(user["id"].(float64))
+	userIDStr := user["id"].(string)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	require.NoError(t, err)
 
 	// Update user
 	updateReq := map[string]string{
@@ -150,11 +166,13 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 
 	var user map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&user)
-	userID := int(user["id"].(float64))
+	userIDStr := user["id"].(string)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	require.NoError(t, err)
 
 	// Create post
 	postReq := map[string]interface{}{
-		"user_id": userID,
+		"user_id": fmt.Sprintf("%d", userID),
 		"title":   "Test Post",
 		"content": "Test content",
 	}
@@ -166,7 +184,9 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 
 	var post map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&post)
-	postID := int(post["id"].(float64))
+	postIDStr := post["id"].(string)
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	require.NoError(t, err)
 	assert.Equal(t, "Test Post", post["title"])
 
 	// Get post
@@ -188,8 +208,12 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 	// Find our post in the results
 	found := false
 	for _, up := range userPosts {
-		if int(up["post_id"].(float64)) == postID {
-			assert.Equal(t, float64(userID), up["user_id"].(float64))
+		upPostIDStr := up["post_id"].(string)
+		upPostID, _ := strconv.ParseInt(upPostIDStr, 10, 64)
+		if upPostID == postID {
+			upUserIDStr := up["user_id"].(string)
+			upUserID, _ := strconv.ParseInt(upUserIDStr, 10, 64)
+			assert.Equal(t, userID, upUserID)
 			assert.Equal(t, "Post Test User", up["user_name"])
 			assert.Equal(t, "Test Post", up["post_title"])
 			found = true

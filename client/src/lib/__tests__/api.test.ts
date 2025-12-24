@@ -13,7 +13,7 @@ describe('apiClient', () => {
   describe('User API', () => {
     it('creates a user', async () => {
       const mockUser: User = {
-        id: 1,
+        id: '1',
         name: 'Test User',
         email: 'test@example.com',
         created_at: '2024-01-15T10:00:00Z',
@@ -46,14 +46,14 @@ describe('apiClient', () => {
     it('gets all users', async () => {
       const mockUsers: User[] = [
         {
-          id: 1,
+          id: '1',
           name: 'User 1',
           email: 'user1@example.com',
           created_at: '2024-01-15T10:00:00Z',
           updated_at: '2024-01-15T10:00:00Z',
         },
         {
-          id: 2,
+          id: '2',
           name: 'User 2',
           email: 'user2@example.com',
           created_at: '2024-01-15T11:00:00Z',
@@ -95,7 +95,7 @@ describe('apiClient', () => {
         status: 204,
       })
 
-      await apiClient.deleteUser(1)
+      await apiClient.deleteUser('1')
 
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/users/1',
@@ -109,8 +109,8 @@ describe('apiClient', () => {
   describe('Post API', () => {
     it('creates a post', async () => {
       const mockPost: Post = {
-        id: 1,
-        user_id: 1,
+        id: '1',
+        user_id: '1',
         title: 'Test Post',
         content: 'Test content',
         created_at: '2024-01-15T12:00:00Z',
@@ -123,7 +123,7 @@ describe('apiClient', () => {
       })
 
       const createRequest: CreatePostRequest = {
-        user_id: 1,
+        user_id: '1',
         title: 'Test Post',
         content: 'Test content',
       }
@@ -143,8 +143,8 @@ describe('apiClient', () => {
     it('gets all posts', async () => {
       const mockPosts: Post[] = [
         {
-          id: 1,
-          user_id: 1,
+          id: '1',
+          user_id: '1',
           title: 'Post 1',
           content: 'Content 1',
           created_at: '2024-01-15T12:00:00Z',
@@ -168,7 +168,7 @@ describe('apiClient', () => {
         status: 204,
       })
 
-      await apiClient.deletePost(1, 1)
+      await apiClient.deletePost('1', '1')
 
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/posts/1?user_id=1',

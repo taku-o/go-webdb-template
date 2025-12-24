@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/go-db-prj-sample/internal/db"
-	"github.com/example/go-db-prj-sample/internal/model"
+	"github.com/example/go-webdb-template/internal/db"
+	"github.com/example/go-webdb-template/internal/model"
 )
 
 // UserRepository はユーザーのデータアクセスを担当

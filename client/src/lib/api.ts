@@ -40,7 +40,7 @@ class ApiClient {
     return this.request<User[]>(`/api/users?limit=${limit}&offset=${offset}`)
   }
 
-  async getUser(id: number): Promise<User> {
+  async getUser(id: string): Promise<User> {
     return this.request<User>(`/api/users/${id}`)
   }
 
@@ -51,32 +51,32 @@ class ApiClient {
     })
   }
 
-  async updateUser(id: number, data: UpdateUserRequest): Promise<User> {
+  async updateUser(id: string, data: UpdateUserRequest): Promise<User> {
     return this.request<User>(`/api/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     return this.request<void>(`/api/users/${id}`, {
       method: 'DELETE',
     })
   }
 
   // Post API
-  async getPosts(limit = 20, offset = 0, userId?: number): Promise<Post[]> {
+  async getPosts(limit = 20, offset = 0, userId?: string): Promise<Post[]> {
     const params = new URLSearchParams({
       limit: limit.toString(),
       offset: offset.toString(),
     })
     if (userId) {
-      params.append('user_id', userId.toString())
+      params.append('user_id', userId)
     }
     return this.request<Post[]>(`/api/posts?${params.toString()}`)
   }
 
-  async getPost(id: number, userId: number): Promise<Post> {
+  async getPost(id: string, userId: string): Promise<Post> {
     return this.request<Post>(`/api/posts/${id}?user_id=${userId}`)
   }
 
@@ -87,14 +87,14 @@ class ApiClient {
     })
   }
 
-  async updatePost(id: number, userId: number, data: UpdatePostRequest): Promise<Post> {
+  async updatePost(id: string, userId: string, data: UpdatePostRequest): Promise<Post> {
     return this.request<Post>(`/api/posts/${id}?user_id=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
-  async deletePost(id: number, userId: number): Promise<void> {
+  async deletePost(id: string, userId: string): Promise<void> {
     return this.request<void>(`/api/posts/${id}?user_id=${userId}`, {
       method: 'DELETE',
     })

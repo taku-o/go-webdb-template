@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/example/go-db-prj-sample/internal/api/handler"
-	"github.com/example/go-db-prj-sample/internal/config"
+	"github.com/example/go-webdb-template/internal/api/handler"
+	"github.com/example/go-webdb-template/internal/config"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )

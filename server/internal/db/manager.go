@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/example/go-db-prj-sample/internal/config"
+	"github.com/example/go-webdb-template/internal/config"
 )
 
 // Manager は複数のShard接続を管理

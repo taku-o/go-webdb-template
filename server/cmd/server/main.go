@@ -10,12 +10,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/example/go-db-prj-sample/internal/api/handler"
-	"github.com/example/go-db-prj-sample/internal/api/router"
-	"github.com/example/go-db-prj-sample/internal/config"
-	"github.com/example/go-db-prj-sample/internal/db"
-	"github.com/example/go-db-prj-sample/internal/repository"
-	"github.com/example/go-db-prj-sample/internal/service"
+	"github.com/example/go-webdb-template/internal/api/handler"
+	"github.com/example/go-webdb-template/internal/api/router"
+	"github.com/example/go-webdb-template/internal/config"
+	"github.com/example/go-webdb-template/internal/db"
+	"github.com/example/go-webdb-template/internal/repository"
+	"github.com/example/go-webdb-template/internal/service"
 )
 
 func main() {

@@ -268,7 +268,7 @@ npm run e2e:ui
 ## Project Structure Summary
 
 ```
-go-db-prj-sample/
+go-webdb-template/
 ├── docs/
 │   ├── Architecture.md          ✅ Created
 │   ├── API.md                   ✅ Created
