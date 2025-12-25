@@ -50,6 +50,9 @@ client/.nyc_output/
 client/playwright-report/
 client/test-results/
 
+# Serena
+.serena/cache/
+
 # Misc
 *.log
 .env

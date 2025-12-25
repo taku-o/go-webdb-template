@@ -275,6 +275,63 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 - Integration tests for multi-layer interactions
 - E2E tests for complete workflows
 
+## Admin Panel (GoAdmin)
+
+### Overview
+
+GoAdminを使用した管理画面を提供しています。メインサービス（ポート8080）とは独立したサービスとしてポート8081で動作します。
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Admin Service (Port 8081)                       │
+│                                                               │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │                  GoAdmin Engine                         │ │
+│  │  • Admin Plugin (CRUD自動生成)                          │ │
+│  │  • Custom Pages (カスタムページ)                         │ │
+│  │  • Authentication (認証・認可)                          │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+│                         │                                     │
+│  ┌──────────────────────▼─────────────────────────────────┐ │
+│  │                 GORM Manager                            │ │
+│  │  (既存の接続管理を再利用)                                 │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+└─────────────────────────┼───────────────────────────────────┘
+                          │
+         ┌────────────────┴────────────────┐
+         ▼                                  ▼
+    ┌─────────┐                        ┌─────────┐
+    │ Shard 1 │                        │ Shard 2 │
+    └─────────┘                        └─────────┘
+```
+
+### Components
+
+**Location**: `internal/admin/`
+
+- `config.go`: GoAdmin設定構造体
+- `tables.go`: テーブルジェネレータ（Users, Posts）
+- `sharding.go`: クロスシャードクエリヘルパー
+- `auth/`: 認証・セッション管理
+- `pages/`: カスタムページ（ダッシュボード、ユーザー登録）
+
+### Features
+
+1. **テーブル管理**: Users/Postsテーブルの一覧表示・CRUD操作
+2. **シャーディング対応**: 全シャードのデータを統合表示
+3. **認証・認可**: GoAdmin組み込み認証機能
+4. **カスタムページ**: ダッシュボード、ユーザー登録フォーム
+
+### Entry Point
+
+**Location**: `cmd/admin/main.go`
+
+```bash
+APP_ENV=develop go run cmd/admin/main.go
+```
+
 ## Dependencies
 
 ### Server Dependencies

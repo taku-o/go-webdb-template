@@ -11,6 +11,7 @@ import (
 // Config はアプリケーション全体の設定を保持する構造体
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
+	Admin    AdminConfig    `mapstructure:"admin"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	CORS     CORSConfig     `mapstructure:"cors"`
@@ -60,6 +61,26 @@ type CORSConfig struct {
 	AllowedOrigins []string `mapstructure:"allowed_origins"`
 	AllowedMethods []string `mapstructure:"allowed_methods"`
 	AllowedHeaders []string `mapstructure:"allowed_headers"`
+}
+
+// AdminConfig は管理画面設定
+type AdminConfig struct {
+	Port         int           `mapstructure:"port"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	Auth         AuthConfig    `mapstructure:"auth"`
+	Session      SessionConfig `mapstructure:"session"`
+}
+
+// AuthConfig は認証設定
+type AuthConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+}
+
+// SessionConfig はセッション設定
+type SessionConfig struct {
+	Lifetime int `mapstructure:"lifetime"`
 }
 
 // Load は指定された環境の設定ファイルを読み込む

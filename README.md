@@ -13,6 +13,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 
 - ✅ **Sharding対応**: Hash-based shardingで複数DBへデータ分散
 - ✅ **GORM対応**: Writer/Reader分離をサポート (GORM v1.25.12)
+- ✅ **GoAdmin管理画面**: Webベースの管理画面でデータ管理
 - ✅ **レイヤー分離**: API層、Service層、Repository層、DB層で責務を明確化
 - ✅ **環境別設定**: develop/staging/production環境で設定切り替え
 - ✅ **型安全**: TypeScriptによる型定義
@@ -45,6 +46,7 @@ npm install
 ```bash
 mkdir -p server/data
 sqlite3 server/data/shard1.db < db/migrations/shard1/001_init.sql
+sqlite3 server/data/shard1.db < db/migrations/shard1/002_goadmin.sql
 sqlite3 server/data/shard2.db < db/migrations/shard2/001_init.sql
 ```
 
@@ -57,7 +59,22 @@ APP_ENV=develop go run cmd/server/main.go
 
 サーバーは http://localhost:8080 で起動します。
 
-### 4. クライアント起動
+### 4. 管理画面起動
+
+```bash
+cd server
+APP_ENV=develop go run cmd/admin/main.go
+```
+
+管理画面は http://localhost:8081/admin で起動します。
+
+**認証情報**（開発環境）:
+- ユーザー名: `admin`
+- パスワード: `password`
+
+詳細は [Admin.md](docs/Admin.md) を参照してください。
+
+### 5. クライアント起動
 
 ```bash
 cd client
