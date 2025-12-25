@@ -4,24 +4,25 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/GoAdminGroup/go-admin/context"
-	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/template/types"
+	appdb "github.com/example/go-webdb-template/internal/db"
 )
 
 // UserRegisterPage はユーザー登録ページを返す
-func UserRegisterPage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
+func UserRegisterPage(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
 	if ctx.Method() == http.MethodPost {
-		return handleUserRegisterPost(ctx, conn)
+		return handleUserRegisterPost(ctx, groupManager)
 	}
 	return renderUserRegisterForm(ctx, "", "", nil)
 }
 
 // handleUserRegisterPost はPOSTリクエストを処理する
-func handleUserRegisterPost(ctx *context.Context, conn db.Connection) (types.Panel, error) {
+func handleUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
 	name := strings.TrimSpace(ctx.FormValue("name"))
 	email := strings.TrimSpace(ctx.FormValue("email"))
 
@@ -31,8 +32,8 @@ func handleUserRegisterPost(ctx *context.Context, conn db.Connection) (types.Pan
 		return renderUserRegisterForm(ctx, name, email, errors)
 	}
 
-	// メールアドレスの重複チェック
-	exists, err := checkEmailExists(conn, email)
+	// メールアドレスの重複チェック（全シャードを検索）
+	exists, err := checkEmailExistsSharded(groupManager, email)
 	if err != nil {
 		return renderUserRegisterForm(ctx, name, email, []string{"データベースエラーが発生しました"})
 	}
@@ -40,31 +41,26 @@ func handleUserRegisterPost(ctx *context.Context, conn db.Connection) (types.Pan
 		return renderUserRegisterForm(ctx, name, email, []string{"このメールアドレスは既に登録されています"})
 	}
 
-	// ユーザー登録
-	userID, err := insertUser(conn, name, email)
+	// ユーザー登録（シャーディング対応）
+	userID, err := insertUserSharded(groupManager, name, email)
 	if err != nil {
 		return renderUserRegisterForm(ctx, name, email, []string{"ユーザー登録に失敗しました: " + err.Error()})
 	}
 
-	// 登録完了ページへリダイレクト
-	ctx.SetCookie(&http.Cookie{
-		Name:  "registered_user_id",
-		Value: fmt.Sprintf("%d", userID),
-		Path:  "/",
-	})
-	ctx.SetCookie(&http.Cookie{
-		Name:  "registered_user_name",
-		Value: name,
-		Path:  "/",
-	})
-	ctx.SetCookie(&http.Cookie{
-		Name:  "registered_user_email",
-		Value: email,
-		Path:  "/",
-	})
+	// 登録完了ページへリダイレクト（クエリパラメータで情報を渡す）
+	redirectURL := fmt.Sprintf("/admin/user/register/new?id=%d&name=%s&email=%s",
+		userID,
+		url.QueryEscape(name),
+		url.QueryEscape(email),
+	)
 
-	ctx.Redirect("/admin/user/register/new")
-	return types.Panel{}, nil
+	// GoAdminのContent wrapperはctx.Redirectを上書きするため、
+	// JavaScriptリダイレクトを使用
+	return types.Panel{
+		Title:       "リダイレクト中",
+		Description: "",
+		Content:     template.HTML(fmt.Sprintf(`<script>window.location.href='%s';</script>`, redirectURL)),
+	}, nil
 }
 
 // validateUserInput は入力値をバリデーションする
@@ -88,50 +84,74 @@ func validateUserInput(name, email string) []string {
 	return errors
 }
 
-// checkEmailExists はメールアドレスが既に存在するかチェックする
-func checkEmailExists(conn db.Connection, email string) (bool, error) {
-	result, err := conn.Query("SELECT COUNT(*) as count FROM users WHERE email = ?", email)
-	if err != nil {
-		return false, err
-	}
-	if len(result) == 0 {
-		return false, nil
+// checkEmailExistsSharded はメールアドレスが既に存在するかチェックする（全シャード検索）
+func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bool, error) {
+	connections := groupManager.GetAllShardingConnections()
+
+	for _, conn := range connections {
+		sqlDB, err := conn.DB.DB()
+		if err != nil {
+			return false, fmt.Errorf("failed to get sql.DB for shard %d: %w", conn.ShardID, err)
+		}
+
+		// このデータベースに含まれるテーブル（8つずつ）
+		startTable := (conn.ShardID - 1) * 8
+		endTable := startTable + 7
+
+		for tableNum := startTable; tableNum <= endTable; tableNum++ {
+			tableName := fmt.Sprintf("users_%03d", tableNum)
+			query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = ?", tableName)
+
+			var count int
+			err := sqlDB.QueryRow(query, email).Scan(&count)
+			if err != nil {
+				return false, fmt.Errorf("failed to check email in %s: %w", tableName, err)
+			}
+
+			if count > 0 {
+				return true, nil
+			}
+		}
 	}
 
-	count, ok := result[0]["count"]
-	if !ok {
-		return false, nil
-	}
-
-	switch v := count.(type) {
-	case int64:
-		return v > 0, nil
-	case int:
-		return v > 0, nil
-	case float64:
-		return v > 0, nil
-	default:
-		return false, nil
-	}
+	return false, nil
 }
 
-// insertUser はユーザーを登録する
-func insertUser(conn db.Connection, name, email string) (int64, error) {
-	now := time.Now().Format("2006-01-02 15:04:05")
-	result, err := conn.Exec(
-		"INSERT INTO users (name, email, created_at, updated_at) VALUES (?, ?, ?, ?)",
-		name, email, now, now,
-	)
+// insertUserSharded はユーザーを登録する（シャーディング対応）
+func insertUserSharded(groupManager *appdb.GroupManager, name, email string) (int64, error) {
+	now := time.Now()
+
+	// IDを生成（タイムスタンプベース）
+	userID := now.UnixNano()
+
+	// テーブル番号を計算（ID % 32）
+	tableNumber := int(userID % 32)
+	tableName := fmt.Sprintf("users_%03d", tableNumber)
+
+	// 接続の取得
+	conn, err := groupManager.GetShardingConnection(tableNumber)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	id, err := result.LastInsertId()
+	// sql.DBを取得
+	sqlDB, err := conn.DB.DB()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get sql.DB: %w", err)
 	}
 
-	return id, nil
+	// ユーザーを挿入
+	query := fmt.Sprintf(`
+		INSERT INTO %s (id, name, email, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)
+	`, tableName)
+
+	_, err = sqlDB.Exec(query, userID, name, email, now, now)
+	if err != nil {
+		return 0, fmt.Errorf("failed to insert user: %w", err)
+	}
+
+	return userID, nil
 }
 
 // renderUserRegisterForm はユーザー登録フォームをレンダリングする
@@ -164,7 +184,7 @@ func renderUserRegisterForm(ctx *context.Context, name, email string, errors []s
         </div>
         <div class="box-footer">
             <button type="submit" class="btn btn-primary">登録</button>
-            <a href="/admin/info/users" class="btn btn-default">キャンセル</a>
+            <a href="/admin" class="btn btn-default">キャンセル</a>
         </div>
     </form>
 </div>

@@ -13,12 +13,12 @@ import (
 )
 
 func TestUserCRUDFlowGORM(t *testing.T) {
-	// Setup test database with GORM sharding
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
 	// Initialize GORM repository
-	userRepo := repository.NewUserRepositoryGORM(dbManager)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Test Create
@@ -75,11 +75,11 @@ func TestUserCRUDFlowGORM(t *testing.T) {
 }
 
 func TestUserCrossShardOperationsGORM(t *testing.T) {
-	// Setup test database with GORM sharding
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	userRepo := repository.NewUserRepositoryGORM(dbManager)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
 
 	// Create multiple users
 	ctx := context.Background()

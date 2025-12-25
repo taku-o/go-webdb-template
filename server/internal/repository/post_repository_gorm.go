@@ -13,13 +13,15 @@ import (
 
 // PostRepositoryGORM は投稿のデータアクセスを担当（GORM版）
 type PostRepositoryGORM struct {
-	dbManager *db.GORMManager
+	groupManager  *db.GroupManager
+	tableSelector *db.TableSelector
 }
 
 // NewPostRepositoryGORM は新しいPostRepositoryGORMを作成
-func NewPostRepositoryGORM(dbManager *db.GORMManager) *PostRepositoryGORM {
+func NewPostRepositoryGORM(groupManager *db.GroupManager) *PostRepositoryGORM {
 	return &PostRepositoryGORM{
-		dbManager: dbManager,
+		groupManager:  groupManager,
+		tableSelector: db.NewTableSelector(32, 8),
 	}
 }
 
@@ -34,14 +36,17 @@ func (r *PostRepositoryGORM) Create(ctx context.Context, req *model.CreatePostRe
 	// ID生成（タイムスタンプベース、既存ロジック維持）
 	post.ID = time.Now().UnixNano()
 
-	// UserIDをキーとしてShardを決定（同じユーザーのデータは同じShardに配置）
-	database, err := r.dbManager.GetGORMByKey(req.UserID)
+	// UserIDをキーとしてテーブル/DBを決定（同じユーザーのデータは同じテーブルに配置）
+	tableName := r.tableSelector.GetTableName("posts", req.UserID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(req.UserID, "posts")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// GORM APIで作成
-	if err := database.WithContext(ctx).Create(post).Error; err != nil {
+	// GORM APIで作成（動的テーブル名を使用）
+	if err := conn.DB.WithContext(ctx).Table(tableName).Create(post).Error; err != nil {
 		return nil, fmt.Errorf("failed to create post: %w", err)
 	}
 
@@ -50,13 +55,17 @@ func (r *PostRepositoryGORM) Create(ctx context.Context, req *model.CreatePostRe
 
 // GetByID はIDで投稿を取得
 func (r *PostRepositoryGORM) GetByID(ctx context.Context, id int64, userID int64) (*model.Post, error) {
-	database, err := r.dbManager.GetGORMByKey(userID)
+	// UserIDをキーとしてテーブル/DBを決定
+	tableName := r.tableSelector.GetTableName("posts", userID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(userID, "posts")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	var post model.Post
-	if err := database.WithContext(ctx).First(&post, id).Error; err != nil {
+	if err := conn.DB.WithContext(ctx).Table(tableName).First(&post, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("post not found: %d", id)
 		}
@@ -68,13 +77,18 @@ func (r *PostRepositoryGORM) GetByID(ctx context.Context, id int64, userID int64
 
 // ListByUserID はユーザーIDで投稿一覧を取得
 func (r *PostRepositoryGORM) ListByUserID(ctx context.Context, userID int64, limit, offset int) ([]*model.Post, error) {
-	database, err := r.dbManager.GetGORMByKey(userID)
+	// UserIDをキーとしてテーブル/DBを決定
+	tableName := r.tableSelector.GetTableName("posts", userID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(userID, "posts")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	var posts []*model.Post
-	if err := database.WithContext(ctx).
+	if err := conn.DB.WithContext(ctx).
+		Table(tableName).
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
 		Limit(limit).
@@ -86,56 +100,74 @@ func (r *PostRepositoryGORM) ListByUserID(ctx context.Context, userID int64, lim
 	return posts, nil
 }
 
-// List はすべての投稿を取得（クロスシャードクエリ）
+// List はすべての投稿を取得（クロステーブルクエリ）
 func (r *PostRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.Post, error) {
-	connections := r.dbManager.GetAllGORMConnections()
+	connections := r.groupManager.GetAllShardingConnections()
 	posts := make([]*model.Post, 0)
 
-	// 各シャードから並列にデータを取得
+	// 各データベースの各テーブルからデータを取得
 	for _, conn := range connections {
-		var shardPosts []*model.Post
-		if err := conn.DB.WithContext(ctx).
-			Order("created_at DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&shardPosts).Error; err != nil {
-			return nil, fmt.Errorf("failed to query shard %d: %w", conn.ShardID, err)
+		// このデータベースに含まれるテーブル（8つずつ）
+		startTable := (conn.ShardID - 1) * 8
+		endTable := startTable + 7
+
+		for tableNum := startTable; tableNum <= endTable; tableNum++ {
+			tableName := fmt.Sprintf("posts_%03d", tableNum)
+
+			var tablePosts []*model.Post
+			if err := conn.DB.WithContext(ctx).
+				Table(tableName).
+				Order("created_at DESC").
+				Limit(limit).
+				Offset(offset).
+				Find(&tablePosts).Error; err != nil {
+				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+			}
+			posts = append(posts, tablePosts...)
 		}
-		posts = append(posts, shardPosts...)
 	}
 
 	return posts, nil
 }
 
-// GetUserPosts はユーザーと投稿をJOINして取得（クロスシャードクエリ）
+// GetUserPosts はユーザーと投稿をJOINして取得（クロステーブルクエリ）
 func (r *PostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset int) ([]*model.UserPost, error) {
-	connections := r.dbManager.GetAllGORMConnections()
+	connections := r.groupManager.GetAllShardingConnections()
 	userPosts := make([]*model.UserPost, 0)
 
-	// GORMでJOINクエリを実行
+	// 各データベースの各テーブルからデータを取得
 	for _, conn := range connections {
-		var shardUserPosts []*model.UserPost
-		err := conn.DB.WithContext(ctx).
-			Table("posts p").
-			Select(`
-				p.id as post_id,
-				p.title as post_title,
-				p.content as post_content,
-				u.id as user_id,
-				u.name as user_name,
-				u.email as user_email,
-				p.created_at
-			`).
-			Joins("INNER JOIN users u ON p.user_id = u.id").
-			Order("p.created_at DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&shardUserPosts).Error
+		// このデータベースに含まれるテーブル（8つずつ）
+		startTable := (conn.ShardID - 1) * 8
+		endTable := startTable + 7
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to query shard %d: %w", conn.ShardID, err)
+		for tableNum := startTable; tableNum <= endTable; tableNum++ {
+			postsTable := fmt.Sprintf("posts_%03d", tableNum)
+			usersTable := fmt.Sprintf("users_%03d", tableNum)
+
+			var tableUserPosts []*model.UserPost
+			err := conn.DB.WithContext(ctx).
+				Table(postsTable+" p").
+				Select(`
+					p.id as post_id,
+					p.title as post_title,
+					p.content as post_content,
+					u.id as user_id,
+					u.name as user_name,
+					u.email as user_email,
+					p.created_at
+				`).
+				Joins(fmt.Sprintf("INNER JOIN %s u ON p.user_id = u.id", usersTable)).
+				Order("p.created_at DESC").
+				Limit(limit).
+				Offset(offset).
+				Find(&tableUserPosts).Error
+
+			if err != nil {
+				return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
+			}
+			userPosts = append(userPosts, tableUserPosts...)
 		}
-		userPosts = append(userPosts, shardUserPosts...)
 	}
 
 	return userPosts, nil
@@ -143,9 +175,13 @@ func (r *PostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset int
 
 // Update は投稿を更新
 func (r *PostRepositoryGORM) Update(ctx context.Context, id int64, userID int64, req *model.UpdatePostRequest) (*model.Post, error) {
-	database, err := r.dbManager.GetGORMByKey(userID)
+	// UserIDをキーとしてテーブル/DBを決定
+	tableName := r.tableSelector.GetTableName("posts", userID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(userID, "posts")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	updates := make(map[string]interface{})
@@ -157,8 +193,8 @@ func (r *PostRepositoryGORM) Update(ctx context.Context, id int64, userID int64,
 	}
 	updates["updated_at"] = time.Now()
 
-	result := database.WithContext(ctx).
-		Model(&model.Post{}).
+	result := conn.DB.WithContext(ctx).
+		Table(tableName).
 		Where("id = ? AND user_id = ?", id, userID).
 		Updates(updates)
 
@@ -174,12 +210,17 @@ func (r *PostRepositoryGORM) Update(ctx context.Context, id int64, userID int64,
 
 // Delete は投稿を削除
 func (r *PostRepositoryGORM) Delete(ctx context.Context, id int64, userID int64) error {
-	database, err := r.dbManager.GetGORMByKey(userID)
+	// UserIDをキーとしてテーブル/DBを決定
+	tableName := r.tableSelector.GetTableName("posts", userID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(userID, "posts")
 	if err != nil {
-		return fmt.Errorf("failed to get database: %w", err)
+		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	result := database.WithContext(ctx).
+	result := conn.DB.WithContext(ctx).
+		Table(tableName).
 		Where("id = ? AND user_id = ?", id, userID).
 		Delete(&model.Post{})
 

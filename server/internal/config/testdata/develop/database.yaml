@@ -1,22 +1,66 @@
 database:
-  shards:
-    - id: 1
-      driver: sqlite3
-      dsn: ./data/shard1.db
-      writer_dsn: ./data/shard1.db
-      reader_dsns:
-        - ./data/shard1.db
-      reader_policy: random
-      max_connections: 10
-      max_idle_connections: 5
-      connection_max_lifetime: 300s
-    - id: 2
-      driver: sqlite3
-      dsn: ./data/shard2.db
-      writer_dsn: ./data/shard2.db
-      reader_dsns:
-        - ./data/shard2.db
-      reader_policy: random
-      max_connections: 10
-      max_idle_connections: 5
-      connection_max_lifetime: 300s
+  groups:
+    master:
+      - id: 1
+        driver: sqlite3
+        dsn: ./data/master.db
+        writer_dsn: ./data/master.db
+        reader_dsns:
+          - ./data/master.db
+        reader_policy: random
+        max_connections: 10
+        max_idle_connections: 5
+        connection_max_lifetime: 300s
+
+    sharding:
+      databases:
+        - id: 1
+          driver: sqlite3
+          dsn: ./data/sharding_db_1.db
+          writer_dsn: ./data/sharding_db_1.db
+          reader_dsns:
+            - ./data/sharding_db_1.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [0, 7]
+        - id: 2
+          driver: sqlite3
+          dsn: ./data/sharding_db_2.db
+          writer_dsn: ./data/sharding_db_2.db
+          reader_dsns:
+            - ./data/sharding_db_2.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [8, 15]
+        - id: 3
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db
+          writer_dsn: ./data/sharding_db_3.db
+          reader_dsns:
+            - ./data/sharding_db_3.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [16, 23]
+        - id: 4
+          driver: sqlite3
+          dsn: ./data/sharding_db_4.db
+          writer_dsn: ./data/sharding_db_4.db
+          reader_dsns:
+            - ./data/sharding_db_4.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [24, 31]
+
+      tables:
+        - name: users
+          suffix_count: 32
+        - name: posts
+          suffix_count: 32

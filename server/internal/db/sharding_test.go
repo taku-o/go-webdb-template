@@ -401,3 +401,238 @@ func TestGORMManagerCloseAll(t *testing.T) {
 	err = manager.CloseAll()
 	assert.NoError(t, err)
 }
+
+// =============================================================================
+// タスク3.1, 3.2, 3.3: TableSelectorのテスト
+// =============================================================================
+
+// TestNewTableSelector tests TableSelector creation
+func TestNewTableSelector(t *testing.T) {
+	tests := []struct {
+		name            string
+		tableCount      int
+		tablesPerDB     int
+		wantTableCount  int
+		wantTablesPerDB int
+	}{
+		{
+			name:            "default values when zero",
+			tableCount:      0,
+			tablesPerDB:     0,
+			wantTableCount:  32,
+			wantTablesPerDB: 8,
+		},
+		{
+			name:            "custom values",
+			tableCount:      64,
+			tablesPerDB:     16,
+			wantTableCount:  64,
+			wantTablesPerDB: 16,
+		},
+		{
+			name:            "negative values use defaults",
+			tableCount:      -1,
+			tablesPerDB:     -1,
+			wantTableCount:  32,
+			wantTablesPerDB: 8,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			selector := db.NewTableSelector(tt.tableCount, tt.tablesPerDB)
+
+			assert.Equal(t, tt.wantTableCount, selector.GetTableCount())
+		})
+	}
+}
+
+// TestTableSelector_GetTableNumber tests GetTableNumber method
+func TestTableSelector_GetTableNumber(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	tests := []struct {
+		id              int64
+		wantTableNumber int
+	}{
+		{id: 0, wantTableNumber: 0},
+		{id: 1, wantTableNumber: 1},
+		{id: 31, wantTableNumber: 31},
+		{id: 32, wantTableNumber: 0},
+		{id: 33, wantTableNumber: 1},
+		{id: 100, wantTableNumber: 4},   // 100 % 32 = 4
+		{id: 1000, wantTableNumber: 8},  // 1000 % 32 = 8
+		{id: 10000, wantTableNumber: 16}, // 10000 % 32 = 16
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("id=%d", tt.id), func(t *testing.T) {
+			tableNumber := selector.GetTableNumber(tt.id)
+			assert.Equal(t, tt.wantTableNumber, tableNumber)
+		})
+	}
+}
+
+// TestTableSelector_GetTableName tests GetTableName method
+func TestTableSelector_GetTableName(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	tests := []struct {
+		baseName      string
+		id            int64
+		wantTableName string
+	}{
+		{baseName: "users", id: 0, wantTableName: "users_000"},
+		{baseName: "users", id: 1, wantTableName: "users_001"},
+		{baseName: "users", id: 7, wantTableName: "users_007"},
+		{baseName: "users", id: 31, wantTableName: "users_031"},
+		{baseName: "users", id: 32, wantTableName: "users_000"},
+		{baseName: "posts", id: 15, wantTableName: "posts_015"},
+		{baseName: "posts", id: 100, wantTableName: "posts_004"}, // 100 % 32 = 4
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_id=%d", tt.baseName, tt.id), func(t *testing.T) {
+			tableName := selector.GetTableName(tt.baseName, tt.id)
+			assert.Equal(t, tt.wantTableName, tableName)
+		})
+	}
+}
+
+// TestTableSelector_GetDBID tests GetDBID method
+func TestTableSelector_GetDBID(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	tests := []struct {
+		tableNumber int
+		wantDBID    int
+	}{
+		// DB1: テーブル番号 0-7
+		{tableNumber: 0, wantDBID: 1},
+		{tableNumber: 7, wantDBID: 1},
+		// DB2: テーブル番号 8-15
+		{tableNumber: 8, wantDBID: 2},
+		{tableNumber: 15, wantDBID: 2},
+		// DB3: テーブル番号 16-23
+		{tableNumber: 16, wantDBID: 3},
+		{tableNumber: 23, wantDBID: 3},
+		// DB4: テーブル番号 24-31
+		{tableNumber: 24, wantDBID: 4},
+		{tableNumber: 31, wantDBID: 4},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("tableNumber=%d", tt.tableNumber), func(t *testing.T) {
+			dbID := selector.GetDBID(tt.tableNumber)
+			assert.Equal(t, tt.wantDBID, dbID)
+		})
+	}
+}
+
+// TestTableSelector_GetTableCount tests GetTableCount method
+func TestTableSelector_GetTableCount(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+	assert.Equal(t, 32, selector.GetTableCount())
+
+	selector64 := db.NewTableSelector(64, 16)
+	assert.Equal(t, 64, selector64.GetTableCount())
+}
+
+// TestGetShardingTableName tests the utility function
+func TestGetShardingTableName(t *testing.T) {
+	tests := []struct {
+		baseName      string
+		id            int64
+		wantTableName string
+	}{
+		{baseName: "users", id: 0, wantTableName: "users_000"},
+		{baseName: "users", id: 31, wantTableName: "users_031"},
+		{baseName: "users", id: 32, wantTableName: "users_000"},
+		{baseName: "posts", id: 100, wantTableName: "posts_004"}, // 100 % 32 = 4
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_id=%d", tt.baseName, tt.id), func(t *testing.T) {
+			tableName := db.GetShardingTableName(tt.baseName, tt.id)
+			assert.Equal(t, tt.wantTableName, tableName)
+		})
+	}
+}
+
+// TestGetShardingTableNumber tests the utility function
+func TestGetShardingTableNumber(t *testing.T) {
+	tests := []struct {
+		id              int64
+		wantTableNumber int
+	}{
+		{id: 0, wantTableNumber: 0},
+		{id: 1, wantTableNumber: 1},
+		{id: 31, wantTableNumber: 31},
+		{id: 32, wantTableNumber: 0},
+		{id: 100, wantTableNumber: 4},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("id=%d", tt.id), func(t *testing.T) {
+			tableNumber := db.GetShardingTableNumber(tt.id)
+			assert.Equal(t, tt.wantTableNumber, tableNumber)
+		})
+	}
+}
+
+// TestGetShardingDBID tests the utility function
+func TestGetShardingDBID(t *testing.T) {
+	tests := []struct {
+		tableNumber int
+		wantDBID    int
+	}{
+		{tableNumber: 0, wantDBID: 1},
+		{tableNumber: 7, wantDBID: 1},
+		{tableNumber: 8, wantDBID: 2},
+		{tableNumber: 15, wantDBID: 2},
+		{tableNumber: 16, wantDBID: 3},
+		{tableNumber: 23, wantDBID: 3},
+		{tableNumber: 24, wantDBID: 4},
+		{tableNumber: 31, wantDBID: 4},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("tableNumber=%d", tt.tableNumber), func(t *testing.T) {
+			dbID := db.GetShardingDBID(tt.tableNumber)
+			assert.Equal(t, tt.wantDBID, dbID)
+		})
+	}
+}
+
+// TestValidateTableName tests the table name validation function
+func TestValidateTableName(t *testing.T) {
+	allowedBaseNames := []string{"users", "posts"}
+
+	tests := []struct {
+		tableName string
+		want      bool
+	}{
+		// Valid names
+		{tableName: "users_000", want: true},
+		{tableName: "users_031", want: true},
+		{tableName: "posts_000", want: true},
+		{tableName: "posts_031", want: true},
+		{tableName: "users_015", want: true},
+		// Invalid names
+		{tableName: "users_032", want: false},  // Out of range
+		{tableName: "users_100", want: false},  // Out of range
+		{tableName: "news", want: false},       // Not in allowed list
+		{tableName: "users", want: false},      // No suffix
+		{tableName: "users_00", want: false},   // Wrong suffix format
+		{tableName: "users_0000", want: false}, // Wrong suffix format
+		{tableName: "other_000", want: false},  // Not in allowed list
+		{tableName: "'; DROP TABLE users; --", want: false}, // SQL injection attempt
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.tableName, func(t *testing.T) {
+			valid := db.ValidateTableName(tt.tableName, allowedBaseNames)
+			assert.Equal(t, tt.want, valid)
+		})
+	}
+}

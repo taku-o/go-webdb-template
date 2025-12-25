@@ -13,13 +13,15 @@ import (
 
 // UserRepositoryGORM はユーザーのデータアクセスを担当（GORM版）
 type UserRepositoryGORM struct {
-	dbManager *db.GORMManager
+	groupManager  *db.GroupManager
+	tableSelector *db.TableSelector
 }
 
 // NewUserRepositoryGORM は新しいUserRepositoryGORMを作成
-func NewUserRepositoryGORM(dbManager *db.GORMManager) *UserRepositoryGORM {
+func NewUserRepositoryGORM(groupManager *db.GroupManager) *UserRepositoryGORM {
 	return &UserRepositoryGORM{
-		dbManager: dbManager,
+		groupManager:  groupManager,
+		tableSelector: db.NewTableSelector(32, 8),
 	}
 }
 
@@ -33,14 +35,17 @@ func (r *UserRepositoryGORM) Create(ctx context.Context, req *model.CreateUserRe
 	// ID生成（タイムスタンプベース、既存ロジック維持）
 	user.ID = time.Now().UnixNano()
 
-	// シャードキーに基づいてGORMインスタンスを取得
-	database, err := r.dbManager.GetGORMByKey(user.ID)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", user.ID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(user.ID, "users")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// GORM APIで作成
-	if err := database.WithContext(ctx).Create(user).Error; err != nil {
+	// GORM APIで作成（動的テーブル名を使用）
+	if err := conn.DB.WithContext(ctx).Table(tableName).Create(user).Error; err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -49,13 +54,17 @@ func (r *UserRepositoryGORM) Create(ctx context.Context, req *model.CreateUserRe
 
 // GetByID はIDでユーザーを取得
 func (r *UserRepositoryGORM) GetByID(ctx context.Context, id int64) (*model.User, error) {
-	database, err := r.dbManager.GetGORMByKey(id)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "users")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	var user model.User
-	if err := database.WithContext(ctx).First(&user, id).Error; err != nil {
+	if err := conn.DB.WithContext(ctx).Table(tableName).First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("user not found: %d", id)
 		}
@@ -65,22 +74,31 @@ func (r *UserRepositoryGORM) GetByID(ctx context.Context, id int64) (*model.User
 	return &user, nil
 }
 
-// List はすべてのユーザーを取得（クロスシャードクエリ）
+// List はすべてのユーザーを取得（クロステーブルクエリ）
 func (r *UserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.User, error) {
-	connections := r.dbManager.GetAllGORMConnections()
+	connections := r.groupManager.GetAllShardingConnections()
 	users := make([]*model.User, 0)
 
-	// 各シャードから並列にデータを取得
+	// 各データベースの各テーブルからデータを取得
 	for _, conn := range connections {
-		var shardUsers []*model.User
-		if err := conn.DB.WithContext(ctx).
-			Order("id").
-			Limit(limit).
-			Offset(offset).
-			Find(&shardUsers).Error; err != nil {
-			return nil, fmt.Errorf("failed to query shard %d: %w", conn.ShardID, err)
+		// このデータベースに含まれるテーブル（8つずつ）
+		startTable := (conn.ShardID - 1) * 8
+		endTable := startTable + 7
+
+		for tableNum := startTable; tableNum <= endTable; tableNum++ {
+			tableName := fmt.Sprintf("users_%03d", tableNum)
+
+			var tableUsers []*model.User
+			if err := conn.DB.WithContext(ctx).
+				Table(tableName).
+				Order("id").
+				Limit(limit).
+				Offset(offset).
+				Find(&tableUsers).Error; err != nil {
+				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+			}
+			users = append(users, tableUsers...)
 		}
-		users = append(users, shardUsers...)
 	}
 
 	return users, nil
@@ -88,9 +106,13 @@ func (r *UserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*mo
 
 // Update はユーザーを更新
 func (r *UserRepositoryGORM) Update(ctx context.Context, id int64, req *model.UpdateUserRequest) (*model.User, error) {
-	database, err := r.dbManager.GetGORMByKey(id)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "users")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	updates := make(map[string]interface{})
@@ -102,7 +124,7 @@ func (r *UserRepositoryGORM) Update(ctx context.Context, id int64, req *model.Up
 	}
 	updates["updated_at"] = time.Now()
 
-	result := database.WithContext(ctx).Model(&model.User{}).Where("id = ?", id).Updates(updates)
+	result := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(updates)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to update user: %w", result.Error)
 	}
@@ -115,12 +137,16 @@ func (r *UserRepositoryGORM) Update(ctx context.Context, id int64, req *model.Up
 
 // Delete はユーザーを削除
 func (r *UserRepositoryGORM) Delete(ctx context.Context, id int64) error {
-	database, err := r.dbManager.GetGORMByKey(id)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "users")
 	if err != nil {
-		return fmt.Errorf("failed to get database: %w", err)
+		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	result := database.WithContext(ctx).Delete(&model.User{}, id)
+	result := conn.DB.WithContext(ctx).Table(tableName).Delete(&model.User{}, id)
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete user: %w", result.Error)
 	}

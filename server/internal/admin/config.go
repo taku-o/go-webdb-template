@@ -50,9 +50,12 @@ func (c *Config) getSessionLifetime() int {
 
 // getDatabaseConfig はGORM Managerを使用したデータベース設定を返す
 func (c *Config) getDatabaseConfig() goadminConfig.DatabaseList {
-	// 最初のシャードをGoAdmin用データベースとして使用
+	// masterグループのデータベースをGoAdmin用データベースとして使用
 	dsn := ""
-	if len(c.appConfig.Database.Shards) > 0 {
+	if len(c.appConfig.Database.Groups.Master) > 0 {
+		dsn = c.appConfig.Database.Groups.Master[0].DSN
+	} else if len(c.appConfig.Database.Shards) > 0 {
+		// 後方互換性: 旧設定形式のフォールバック
 		dsn = c.appConfig.Database.Shards[0].DSN
 	}
 

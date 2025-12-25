@@ -13,10 +13,10 @@ import (
 )
 
 func TestPostRepositoryGORM_Create(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	req := &model.CreatePostRequest{
@@ -37,10 +37,10 @@ func TestPostRepositoryGORM_Create(t *testing.T) {
 }
 
 func TestPostRepositoryGORM_GetByID(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test post first
@@ -63,10 +63,10 @@ func TestPostRepositoryGORM_GetByID(t *testing.T) {
 }
 
 func TestPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Test retrieval of non-existent post
@@ -76,10 +76,10 @@ func TestPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
 }
 
 func TestPostRepositoryGORM_Update(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test post first
@@ -110,10 +110,10 @@ func TestPostRepositoryGORM_Update(t *testing.T) {
 }
 
 func TestPostRepositoryGORM_Delete(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test post first
@@ -136,10 +136,10 @@ func TestPostRepositoryGORM_Delete(t *testing.T) {
 }
 
 func TestPostRepositoryGORM_ListByUserID(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test posts
@@ -166,13 +166,13 @@ func TestPostRepositoryGORM_ListByUserID(t *testing.T) {
 }
 
 func TestPostRepositoryGORM_List(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewPostRepositoryGORM(dbManager)
+	repo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
-	// Create test posts
+	// Create test posts with different UserIDs (different tables)
 	req1 := &model.CreatePostRequest{
 		UserID:  1,
 		Title:   "Post 1",
@@ -189,18 +189,18 @@ func TestPostRepositoryGORM_List(t *testing.T) {
 	_, err = repo.Create(ctx, req2)
 	require.NoError(t, err)
 
-	// List all posts (cross-shard query)
+	// List all posts (cross-table query)
 	posts, err := repo.List(ctx, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 2)
 }
 
 func TestPostRepositoryGORM_GetUserPosts(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	userRepo := repository.NewUserRepositoryGORM(dbManager)
-	postRepo := repository.NewPostRepositoryGORM(dbManager)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
+	postRepo := repository.NewPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test user
@@ -220,7 +220,7 @@ func TestPostRepositoryGORM_GetUserPosts(t *testing.T) {
 	_, err = postRepo.Create(ctx, postReq)
 	require.NoError(t, err)
 
-	// Get user posts with JOIN (cross-shard query)
+	// Get user posts with JOIN (cross-table query)
 	userPosts, err := postRepo.GetUserPosts(ctx, 10, 0)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, userPosts)

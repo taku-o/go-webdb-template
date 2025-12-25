@@ -1,58 +1,86 @@
 database:
-  shards:
-    - id: 1
-      driver: postgres
-      host: staging-db-shard1.example.com
-      port: 5432
-      name: app_db_shard1
-      user: staging_user
-      password: ${DB_PASSWORD_SHARD1}  # 環境変数から読み込み
-      writer_dsn: host=staging-db-shard1-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
-      reader_dsns:
-        - host=staging-db-shard1-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
-      reader_policy: random
-      max_connections: 25
-      max_idle_connections: 10
-      connection_max_lifetime: 600s
-    - id: 2
-      driver: postgres
-      host: staging-db-shard2.example.com
-      port: 5432
-      name: app_db_shard2
-      user: staging_user
-      password: ${DB_PASSWORD_SHARD2}  # 環境変数から読み込み
-      writer_dsn: host=staging-db-shard2-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
-      reader_dsns:
-        - host=staging-db-shard2-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
-      reader_policy: random
-      max_connections: 25
-      max_idle_connections: 10
-      connection_max_lifetime: 600s
-    - id: 3
-      driver: postgres
-      host: staging-db-shard3.example.com
-      port: 5432
-      name: app_db_shard3
-      user: staging_user
-      password: ${DB_PASSWORD_SHARD3}  # 環境変数から読み込み
-      writer_dsn: host=staging-db-shard3-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
-      reader_dsns:
-        - host=staging-db-shard3-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
-      reader_policy: random
-      max_connections: 25
-      max_idle_connections: 10
-      connection_max_lifetime: 600s
-    - id: 4
-      driver: postgres
-      host: staging-db-shard4.example.com
-      port: 5432
-      name: app_db_shard4
-      user: staging_user
-      password: ${DB_PASSWORD_SHARD4}  # 環境変数から読み込み
-      writer_dsn: host=staging-db-shard4-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
-      reader_dsns:
-        - host=staging-db-shard4-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
-      reader_policy: random
-      max_connections: 25
-      max_idle_connections: 10
-      connection_max_lifetime: 600s
+  groups:
+    master:
+      - id: 1
+        driver: postgres
+        host: staging-db-master.example.com
+        port: 5432
+        name: app_db_master
+        user: staging_user
+        password: ${DB_PASSWORD_MASTER}  # 環境変数から読み込み
+        writer_dsn: host=staging-db-master-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_MASTER} dbname=app_db_master sslmode=require
+        reader_dsns:
+          - host=staging-db-master-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_MASTER} dbname=app_db_master sslmode=require
+        reader_policy: random
+        max_connections: 25
+        max_idle_connections: 10
+        connection_max_lifetime: 600s
+
+    sharding:
+      databases:
+        - id: 1
+          driver: postgres
+          host: staging-db-sharding1.example.com
+          port: 5432
+          name: app_db_sharding1
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING1}  # 環境変数から読み込み
+          writer_dsn: host=staging-db-sharding1-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING1} dbname=app_db_sharding1 sslmode=require
+          reader_dsns:
+            - host=staging-db-sharding1-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING1} dbname=app_db_sharding1 sslmode=require
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [0, 7]
+        - id: 2
+          driver: postgres
+          host: staging-db-sharding2.example.com
+          port: 5432
+          name: app_db_sharding2
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING2}  # 環境変数から読み込み
+          writer_dsn: host=staging-db-sharding2-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING2} dbname=app_db_sharding2 sslmode=require
+          reader_dsns:
+            - host=staging-db-sharding2-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING2} dbname=app_db_sharding2 sslmode=require
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [8, 15]
+        - id: 3
+          driver: postgres
+          host: staging-db-sharding3.example.com
+          port: 5432
+          name: app_db_sharding3
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING3}  # 環境変数から読み込み
+          writer_dsn: host=staging-db-sharding3-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING3} dbname=app_db_sharding3 sslmode=require
+          reader_dsns:
+            - host=staging-db-sharding3-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING3} dbname=app_db_sharding3 sslmode=require
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [16, 23]
+        - id: 4
+          driver: postgres
+          host: staging-db-sharding4.example.com
+          port: 5432
+          name: app_db_sharding4
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING4}  # 環境変数から読み込み
+          writer_dsn: host=staging-db-sharding4-writer.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING4} dbname=app_db_sharding4 sslmode=require
+          reader_dsns:
+            - host=staging-db-sharding4-reader1.example.com port=5432 user=staging_user password=${DB_PASSWORD_SHARDING4} dbname=app_db_sharding4 sslmode=require
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [24, 31]
+
+      tables:
+        - name: users
+          suffix_count: 32
+        - name: posts
+          suffix_count: 32

@@ -12,13 +12,15 @@ import (
 
 // UserRepository はユーザーのデータアクセスを担当
 type UserRepository struct {
-	dbManager *db.Manager
+	groupManager  *db.GroupManager
+	tableSelector *db.TableSelector
 }
 
 // NewUserRepository は新しいUserRepositoryを作成
-func NewUserRepository(dbManager *db.Manager) *UserRepository {
+func NewUserRepository(groupManager *db.GroupManager) *UserRepository {
 	return &UserRepository{
-		dbManager: dbManager,
+		groupManager:  groupManager,
+		tableSelector: db.NewTableSelector(32, 8),
 	}
 }
 
@@ -32,22 +34,30 @@ func (r *UserRepository) Create(ctx context.Context, req *model.CreateUserReques
 		UpdatedAt: now,
 	}
 
-	// まだIDが決まっていないので、仮のIDを使ってShardを決定
-	// 実際のアプリケーションではID生成戦略を工夫する必要がある
-	// ここでは簡易的にタイムスタンプベースのIDを生成
+	// IDを生成（タイムスタンプベース）
 	user.ID = now.UnixNano()
 
-	database, err := r.dbManager.GetDBByKey(user.ID)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", user.ID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(user.ID, "users")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	query := `
-		INSERT INTO users (id, name, email, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-	`
+	// sql.DBを取得
+	sqlDB, err := conn.DB.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
 
-	_, err = database.ExecContext(ctx, query, user.ID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
+	query := fmt.Sprintf(`
+		INSERT INTO %s (id, name, email, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)
+	`, tableName)
+
+	_, err = sqlDB.ExecContext(ctx, query, user.ID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -57,19 +67,29 @@ func (r *UserRepository) Create(ctx context.Context, req *model.CreateUserReques
 
 // GetByID はIDでユーザーを取得
 func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, error) {
-	database, err := r.dbManager.GetDBByKey(id)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "users")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	query := `
+	// sql.DBを取得
+	sqlDB, err := conn.DB.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	query := fmt.Sprintf(`
 		SELECT id, name, email, created_at, updated_at
-		FROM users
+		FROM %s
 		WHERE id = ?
-	`
+	`, tableName)
 
 	var user model.User
-	err = database.QueryRowContext(ctx, query, id).Scan(
+	err = sqlDB.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
 		&user.Name,
 		&user.Email,
@@ -86,36 +106,51 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, er
 	return &user, nil
 }
 
-// List はすべてのユーザーを取得（クロスシャードクエリ）
+// List はすべてのユーザーを取得（クロステーブルクエリ）
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*model.User, error) {
-	connections := r.dbManager.GetAllConnections()
+	connections := r.groupManager.GetAllShardingConnections()
 	users := make([]*model.User, 0)
 
-	query := `
-		SELECT id, name, email, created_at, updated_at
-		FROM users
-		ORDER BY id
-		LIMIT ? OFFSET ?
-	`
-
-	// 各Shardから並列にデータを取得してマージ
+	// 各データベースの各テーブルからデータを取得
 	for _, conn := range connections {
-		rows, err := conn.DB.QueryContext(ctx, query, limit, offset)
+		sqlDB, err := conn.DB.DB()
 		if err != nil {
-			return nil, fmt.Errorf("failed to query shard %d: %w", conn.ShardID, err)
+			return nil, fmt.Errorf("failed to get sql.DB for shard %d: %w", conn.ShardID, err)
 		}
-		defer rows.Close()
 
-		for rows.Next() {
-			var user model.User
-			if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-				return nil, fmt.Errorf("failed to scan user: %w", err)
+		// このデータベースに含まれるテーブル（8つずつ）
+		startTable := (conn.ShardID - 1) * 8
+		endTable := startTable + 7
+
+		for tableNum := startTable; tableNum <= endTable; tableNum++ {
+			tableName := fmt.Sprintf("users_%03d", tableNum)
+
+			query := fmt.Sprintf(`
+				SELECT id, name, email, created_at, updated_at
+				FROM %s
+				ORDER BY id
+				LIMIT ? OFFSET ?
+			`, tableName)
+
+			rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
+			if err != nil {
+				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
 			}
-			users = append(users, &user)
-		}
 
-		if err := rows.Err(); err != nil {
-			return nil, fmt.Errorf("rows error: %w", err)
+			for rows.Next() {
+				var user model.User
+				if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
+					rows.Close()
+					return nil, fmt.Errorf("failed to scan user: %w", err)
+				}
+				users = append(users, &user)
+			}
+
+			if err := rows.Err(); err != nil {
+				rows.Close()
+				return nil, fmt.Errorf("rows error: %w", err)
+			}
+			rows.Close()
 		}
 	}
 
@@ -124,13 +159,23 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*model.
 
 // Update はユーザーを更新
 func (r *UserRepository) Update(ctx context.Context, id int64, req *model.UpdateUserRequest) (*model.User, error) {
-	database, err := r.dbManager.GetDBByKey(id)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "users")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get database: %w", err)
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
+	}
+
+	// sql.DBを取得
+	sqlDB, err := conn.DB.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
 	}
 
 	// 更新するフィールドを動的に構築
-	query := "UPDATE users SET updated_at = ?"
+	query := fmt.Sprintf("UPDATE %s SET updated_at = ?", tableName)
 	args := []interface{}{time.Now()}
 
 	if req.Name != "" {
@@ -145,7 +190,7 @@ func (r *UserRepository) Update(ctx context.Context, id int64, req *model.Update
 	query += " WHERE id = ?"
 	args = append(args, id)
 
-	result, err := database.ExecContext(ctx, query, args...)
+	result, err := sqlDB.ExecContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
@@ -164,13 +209,23 @@ func (r *UserRepository) Update(ctx context.Context, id int64, req *model.Update
 
 // Delete はユーザーを削除
 func (r *UserRepository) Delete(ctx context.Context, id int64) error {
-	database, err := r.dbManager.GetDBByKey(id)
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "users")
 	if err != nil {
-		return fmt.Errorf("failed to get database: %w", err)
+		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	query := "DELETE FROM users WHERE id = ?"
-	result, err := database.ExecContext(ctx, query, id)
+	// sql.DBを取得
+	sqlDB, err := conn.DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	query := fmt.Sprintf("DELETE FROM %s WHERE id = ?", tableName)
+	result, err := sqlDB.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}

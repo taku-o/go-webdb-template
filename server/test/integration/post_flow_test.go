@@ -15,14 +15,14 @@ import (
 )
 
 func TestPostCRUDFlow(t *testing.T) {
-	// Setup test database with sharding
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	// Initialize services
-	userRepo := repository.NewUserRepository(dbManager)
+	// Initialize services (using GORM repositories)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
 	userService := service.NewUserService(userRepo)
-	postRepo := repository.NewPostRepository(dbManager)
+	postRepo := repository.NewPostRepositoryGORM(groupManager)
 	postService := service.NewPostService(postRepo, userRepo)
 
 	// Create a test user first
@@ -76,14 +76,14 @@ func TestPostCRUDFlow(t *testing.T) {
 }
 
 func TestCrossShardJoin(t *testing.T) {
-	// Setup test database with sharding
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	// Initialize services
-	userRepo := repository.NewUserRepository(dbManager)
+	// Initialize services (using GORM repositories)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
 	userService := service.NewUserService(userRepo)
-	postRepo := repository.NewPostRepository(dbManager)
+	postRepo := repository.NewPostRepositoryGORM(groupManager)
 	postService := service.NewPostService(postRepo, userRepo)
 
 	// Create multiple users

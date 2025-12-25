@@ -13,10 +13,10 @@ import (
 )
 
 func TestUserRepositoryGORM_Create(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepositoryGORM(dbManager)
+	repo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	req := &model.CreateUserRequest{
@@ -35,10 +35,10 @@ func TestUserRepositoryGORM_Create(t *testing.T) {
 }
 
 func TestUserRepositoryGORM_GetByID(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepositoryGORM(dbManager)
+	repo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test user first
@@ -59,10 +59,10 @@ func TestUserRepositoryGORM_GetByID(t *testing.T) {
 }
 
 func TestUserRepositoryGORM_GetByID_NotFound(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepositoryGORM(dbManager)
+	repo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Test retrieval of non-existent user
@@ -71,12 +71,11 @@ func TestUserRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	assert.Nil(t, user)
 }
 
-
 func TestUserRepositoryGORM_Update(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepositoryGORM(dbManager)
+	repo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test user first
@@ -106,10 +105,10 @@ func TestUserRepositoryGORM_Update(t *testing.T) {
 }
 
 func TestUserRepositoryGORM_Delete(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepositoryGORM(dbManager)
+	repo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test user first
@@ -131,10 +130,10 @@ func TestUserRepositoryGORM_Delete(t *testing.T) {
 }
 
 func TestUserRepositoryGORM_List(t *testing.T) {
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepositoryGORM(dbManager)
+	repo := repository.NewUserRepositoryGORM(groupManager)
 	ctx := context.Background()
 
 	// Create test users
@@ -152,7 +151,7 @@ func TestUserRepositoryGORM_List(t *testing.T) {
 	_, err = repo.Create(ctx, req2)
 	require.NoError(t, err)
 
-	// List users (cross-shard query)
+	// List users (cross-table query)
 	users, err := repo.List(ctx, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, users, 2)

@@ -13,13 +13,13 @@ import (
 )
 
 func TestPostCRUDFlowGORM(t *testing.T) {
-	// Setup test database with GORM sharding
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
 	// Initialize GORM repositories
-	userRepo := repository.NewUserRepositoryGORM(dbManager)
-	postRepo := repository.NewPostRepositoryGORM(dbManager)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
+	postRepo := repository.NewPostRepositoryGORM(groupManager)
 
 	// Create a test user first
 	ctx := context.Background()
@@ -76,13 +76,13 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 }
 
 func TestCrossShardJoinGORM(t *testing.T) {
-	// Setup test database with GORM sharding
-	dbManager := testutil.SetupTestGORMShards(t, 2)
-	defer testutil.CleanupTestGORMDB(dbManager)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
 	// Initialize GORM repositories
-	userRepo := repository.NewUserRepositoryGORM(dbManager)
-	postRepo := repository.NewPostRepositoryGORM(dbManager)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
+	postRepo := repository.NewPostRepositoryGORM(groupManager)
 
 	ctx := context.Background()
 
