@@ -93,6 +93,42 @@ npm run dev
 
 詳細は [プロジェクト構造計画](docs/plans/project-structure.md) を参照してください。
 
+## CLIツール
+
+バッチ処理用のCLIツールが利用できます。
+
+### ユーザー一覧出力（list-users）
+
+ユーザー一覧をTSV形式で出力します。
+
+#### ビルド
+
+```bash
+cd server
+go build -o bin/list-users ./cmd/list-users
+```
+
+#### 実行
+
+```bash
+# デフォルト（20件）
+APP_ENV=develop ./bin/list-users
+
+# 件数を指定（最大100件）
+APP_ENV=develop ./bin/list-users --limit 50
+```
+
+#### オプション
+
+| オプション | 説明 | デフォルト | 範囲 |
+|-----------|------|----------|------|
+| `--limit` | 出力件数 | 20 | 1-100 |
+
+#### 出力形式
+
+TSV（タブ区切り）形式で、以下の項目を出力します：
+- ID, Name, Email, CreatedAt, UpdatedAt
+
 ## Sharding戦略
 
 Hash-based shardingを採用しています。

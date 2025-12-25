@@ -1,0 +1,12 @@
+{
+  "feature": "0007-cli",
+  "description": "バッチ処理対応（CLIツール基盤構築）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
