@@ -65,8 +65,15 @@ http://localhost:8081/admin/info/users
 http://localhost:8081/admin/info/posts
 と、カスタムページへのリンクを追加して欲しい。
 
+OKです。いったんサーバーは止めてください。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/5 に対して
+pull requestを作成してください。
 
 
+.gitignoreを修正して。
+> バイナリファイルがステージングされています。除外してからコミットします。
 
 
 

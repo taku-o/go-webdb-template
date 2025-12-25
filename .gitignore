@@ -11,6 +11,8 @@ vendor/
 
 # Server binary
 server/server
+server/admin
+admin
 
 # Database files
 *.db
