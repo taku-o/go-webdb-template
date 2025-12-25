@@ -24,5 +24,10 @@ docs/Command-Line-Tool.md を作成してください。
 cd server
 APP_ENV=develop ./bin/list-users --limit 50
 
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/9 に対して
+pull requestを作成してください。
+
+/review 13
 
 
