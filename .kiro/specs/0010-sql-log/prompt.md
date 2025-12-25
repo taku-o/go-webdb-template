@@ -54,4 +54,17 @@ pull requestを作成してください。
 /review 20
 
 
+ごめん。ログのフォーマットを少し変えたい。
+テーブル名の直後にSHARD_IDを移動したい。
+[YYYY-MM-DD HH:MM:SS] [DRIVER] [TABLE][SHARD_ID] ROWS | SQL | DURATIONms
+
+/review 20
+
+
+
+
+
+
+
+
 
