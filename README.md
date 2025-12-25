@@ -106,13 +106,49 @@ shard_id = hash(user_id) % shard_count + 1
 
 詳細は [Sharding.md](docs/Sharding.md) を参照してください。
 
+## 設定ファイル構造
+
+設定ファイルは環境別ディレクトリに分割されています。
+
+### ディレクトリ構造
+
+```
+config/
+├── develop/                  # 開発環境設定ディレクトリ
+│   ├── config.yaml           # メイン設定（server, admin, logging, cors）
+│   └── database.yaml         # データベース設定
+├── production/               # 本番環境設定ディレクトリ
+│   ├── config.yaml.example   # メイン設定テンプレート
+│   └── database.yaml.example # データベース設定テンプレート
+└── staging/                  # ステージング環境設定ディレクトリ
+    ├── config.yaml           # メイン設定
+    └── database.yaml         # データベース設定
+```
+
+### 設定ファイルの読み込み順序
+
+1. メイン設定ファイル（`config/{env}/config.yaml`）を読み込み
+2. データベース設定ファイル（`config/{env}/database.yaml`）をマージ
+3. 統合された設定を`Config`構造体にマッピング
+4. 環境変数（`DB_PASSWORD_SHARD*`）でパスワードを上書き
+
+### 環境切り替え
+
+環境変数`APP_ENV`で環境を切り替えます：
+
+```bash
+APP_ENV=develop go run cmd/server/main.go    # 開発環境
+APP_ENV=staging go run cmd/server/main.go    # ステージング環境
+APP_ENV=production go run cmd/server/main.go # 本番環境
+```
+
 ## GORM対応
 
 Writer/Reader分離をサポートするGORM版のRepositoryを実装しています。
 
 ### Writer/Reader分離の設定例
 
-`config/production.yaml`:
+`config/production/database.yaml`:
 ```yaml
 database:
   shards:

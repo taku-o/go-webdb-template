@@ -20,7 +20,8 @@ admin
 server/data/
 
 # Config files (production secrets)
-config/production.yaml
+config/production/config.yaml
+config/production/database.yaml
 
 # IDE
 .idea/

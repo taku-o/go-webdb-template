@@ -85,23 +85,35 @@ type SessionConfig struct {
 
 // Load は指定された環境の設定ファイルを読み込む
 // 環境変数 APP_ENV が設定されていない場合は "develop" がデフォルト
+// 設定ファイルは環境別ディレクトリ（config/{env}/）から読み込む
+// メイン設定ファイル（config.yaml）とデータベース設定ファイル（database.yaml）を統合する
 func Load() (*Config, error) {
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "develop"
 	}
 
-	viper.SetConfigName(env)
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("../config") // サーバー実行ディレクトリから見た相対パス
-	viper.AddConfigPath("../../config")
-	viper.AddConfigPath("./config")
+
+	// 環境別ディレクトリのパスを追加（複数パスで実行ディレクトリの違いに対応）
+	viper.AddConfigPath(fmt.Sprintf("../config/%s", env))
+	viper.AddConfigPath(fmt.Sprintf("../../config/%s", env))
+	viper.AddConfigPath(fmt.Sprintf("../../../config/%s", env))
+	viper.AddConfigPath(fmt.Sprintf("./config/%s", env))
 
 	// 環境変数の自動マッピング
 	viper.AutomaticEnv()
 
+	// メイン設定ファイルの読み込み
+	viper.SetConfigName("config")
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		return nil, fmt.Errorf("failed to read main config file: %w", err)
+	}
+
+	// データベース設定ファイルのマージ
+	viper.SetConfigName("database")
+	if err := viper.MergeInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to read database config file: %w", err)
 	}
 
 	var cfg Config

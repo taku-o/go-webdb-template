@@ -1,0 +1,12 @@
+{
+  "feature": "0006-config-refactoring",
+  "description": "設定ファイルの分割・リファクタリング",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
