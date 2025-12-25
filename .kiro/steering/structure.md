@@ -78,9 +78,15 @@ go-webdb-template/
 │   └── next.config.js
 │
 ├── config/                      # 環境別設定ファイル
-│   ├── develop.yaml            # 開発環境設定
-│   ├── staging.yaml            # ステージング環境設定
-│   └── production.yaml.example # 本番環境設定テンプレート
+│   ├── develop/                # 開発環境設定ディレクトリ
+│   │   ├── config.yaml         # メイン設定（server, admin, logging, cors）
+│   │   └── database.yaml       # データベース設定
+│   ├── production/             # 本番環境設定ディレクトリ
+│   │   ├── config.yaml.example # メイン設定テンプレート
+│   │   └── database.yaml.example # データベース設定テンプレート
+│   └── staging/                # ステージング環境設定ディレクトリ
+│       ├── config.yaml         # メイン設定
+│       └── database.yaml       # データベース設定
 │
 ├── db/
 │   └── migrations/             # マイグレーションSQL

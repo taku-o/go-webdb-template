@@ -1,0 +1,22 @@
+database:
+  shards:
+    - id: 1
+      driver: sqlite3
+      dsn: ./data/shard1.db
+      writer_dsn: ./data/shard1.db
+      reader_dsns:
+        - ./data/shard1.db
+      reader_policy: random
+      max_connections: 10
+      max_idle_connections: 5
+      connection_max_lifetime: 300s
+    - id: 2
+      driver: sqlite3
+      dsn: ./data/shard2.db
+      writer_dsn: ./data/shard2.db
+      reader_dsns:
+        - ./data/shard2.db
+      reader_policy: random
+      max_connections: 10
+      max_idle_connections: 5
+      connection_max_lifetime: 300s

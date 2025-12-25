@@ -5,8 +5,8 @@
   "createdAt": "2025-01-27",
   "approvals": {
     "requirements": true,
-    "design": false,
-    "tasks": false
+    "design": true,
+    "tasks": true
   }
 }
 
