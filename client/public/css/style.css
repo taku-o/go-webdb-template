@@ -1,0 +1,45 @@
+/* 
+ * サンプルCSSファイル
+ * 
+ * このファイルは参考用プロジェクトのサンプルとして作成されています。
+ * Next.jsのpublicディレクトリ配下のCSSファイルは、/css/style.css のように参照できます。
+ * 
+ * 使用方法:
+ * <link rel="stylesheet" href="/css/style.css" />
+ */
+
+/* 基本的なリセットCSS（サンプル） */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* サンプルスタイル */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* サンプルクラス（参考用） */
+.sample-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sample-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.sample-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
