@@ -160,7 +160,11 @@ APP_ENV=develop ./bin/list-users
 登録後の画面に、
 ユーザー一覧へのリンクがあるから、それも消そう。
 
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/19 に対して
+pull requestを作成してください。
 
+/review 23
 
 
 
