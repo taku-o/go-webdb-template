@@ -51,10 +51,12 @@ type ShardConfig struct {
 
 // LoggingConfig はロギング設定
 type LoggingConfig struct {
-	Level     string `mapstructure:"level"`
-	Format    string `mapstructure:"format"`
-	Output    string `mapstructure:"output"`
-	OutputDir string `mapstructure:"output_dir"`
+	Level           string `mapstructure:"level"`
+	Format          string `mapstructure:"format"`
+	Output          string `mapstructure:"output"`
+	OutputDir       string `mapstructure:"output_dir"`
+	SQLLogEnabled   bool   `mapstructure:"sql_log_enabled"`    // SQLログの有効/無効（オプション）
+	SQLLogOutputDir string `mapstructure:"sql_log_output_dir"` // SQLログ出力先ディレクトリ（オプション）
 }
 
 // CORSConfig はCORS設定
@@ -135,6 +137,16 @@ func Load() (*Config, error) {
 	if cfg.Logging.OutputDir == "" {
 		cfg.Logging.OutputDir = "logs"
 	}
+
+	// SQLログ出力先のデフォルト値設定
+	if cfg.Logging.SQLLogOutputDir == "" {
+		cfg.Logging.SQLLogOutputDir = cfg.Logging.OutputDir
+	}
+
+	// SQLログ有効/無効の環境判定（設定ファイルで明示的に指定されていない場合）
+	// develop/staging: true, production: false
+	// 注意: boolのデフォルトはfalseなので、設定ファイルで明示的にtrueを指定する必要がある
+	// 環境判定による自動有効化は行わない（設定ファイルの設定を優先）
 
 	return &cfg, nil
 }

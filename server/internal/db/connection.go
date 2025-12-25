@@ -81,7 +81,7 @@ func (c *Connection) Ping() error {
 }
 
 // createGORMConnection はGORM接続を作成するヘルパー関数
-func createGORMConnection(cfg *config.ShardConfig, isWriter bool) (*gorm.DB, error) {
+func createGORMConnection(cfg *config.ShardConfig, isWriter bool, sqlLogger *SQLLogger) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
 	dsn := cfg.GetWriterDSN()
@@ -100,7 +100,13 @@ func createGORMConnection(cfg *config.ShardConfig, isWriter bool) (*gorm.DB, err
 		return nil, fmt.Errorf("unsupported driver: %s", cfg.Driver)
 	}
 
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	// GORM ConfigにLoggerを設定
+	gormConfig := &gorm.Config{}
+	if sqlLogger != nil {
+		gormConfig.Logger = sqlLogger
+	}
+
+	db, err := gorm.Open(dialector, gormConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +155,9 @@ type GORMConnection struct {
 }
 
 // NewGORMConnection は新しいGORM接続を作成
-func NewGORMConnection(cfg *config.ShardConfig) (*GORMConnection, error) {
-	// 1. Writer接続を作成
-	writerDB, err := createGORMConnection(cfg, true)
+func NewGORMConnection(cfg *config.ShardConfig, sqlLogger *SQLLogger) (*GORMConnection, error) {
+	// 1. Writer接続を作成（Logger設定付き）
+	writerDB, err := createGORMConnection(cfg, true, sqlLogger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create writer connection: %w", err)
 	}

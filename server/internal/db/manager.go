@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/example/go-webdb-template/internal/config"
@@ -128,9 +129,21 @@ func NewGORMManager(cfg *config.Config) (*GORMManager, error) {
 		strategy:    NewHashBasedSharding(len(cfg.Database.Shards)),
 	}
 
-	// 各シャードへの接続を確立
+	// 各シャードへの接続を確立（SQL Logger設定付き）
 	for _, shardCfg := range cfg.Database.Shards {
-		conn, err := NewGORMConnection(&shardCfg)
+		// SQL Loggerの作成
+		sqlLogger, err := NewSQLLogger(
+			shardCfg.ID,
+			shardCfg.Driver,
+			cfg.Logging.SQLLogOutputDir,
+			cfg.Logging.SQLLogEnabled,
+		)
+		if err != nil {
+			// Logger作成エラーは警告のみ（SQLクエリ実行には影響しない）
+			log.Printf("Warning: Failed to create SQL logger for shard %d: %v", shardCfg.ID, err)
+		}
+
+		conn, err := NewGORMConnection(&shardCfg, sqlLogger)
 		if err != nil {
 			manager.CloseAll()
 			return nil, fmt.Errorf("failed to create connection for shard %d: %w", shardCfg.ID, err)
