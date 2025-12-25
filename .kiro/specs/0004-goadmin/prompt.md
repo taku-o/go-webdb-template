@@ -72,13 +72,13 @@ OKです。いったんサーバーは止めてください。
 pull requestを作成してください。
 
 
-.gitignoreを修正して。
+.gitignoreを修正して、git addされないようにして。
 > バイナリファイルがステージングされています。除外してからコミットします。
 
+この修正もpull requestに反映して。
 
+/review 6
 
-
-/review
 
 
 
