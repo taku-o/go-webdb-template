@@ -44,40 +44,60 @@ func (h *HashBasedSharding) GetShardID(key int64) int {
 
 ### Development Environment
 
-**File**: `config/develop.yaml`
+**File**: `config/develop/database.yaml`
 
 ```yaml
 database:
   shards:
     - id: 1
       driver: sqlite3
-      host: ./data/shard1.db
+      dsn: ./data/shard1.db
     - id: 2
       driver: sqlite3
-      host: ./data/shard2.db
+      dsn: ./data/shard2.db
+    - id: 3
+      driver: sqlite3
+      dsn: ./data/shard3.db
+    - id: 4
+      driver: sqlite3
+      dsn: ./data/shard4.db
 ```
 
 ### Production Environment
 
-**File**: `config/production.yaml`
+**File**: `config/production/database.yaml.example`
 
 ```yaml
 database:
   shards:
     - id: 1
       driver: postgres
-      host: db-shard1.example.com
+      host: prod-db-shard1.example.com
       port: 5432
-      name: app_shard1
-      user: app_user
-      password: ${DB_SHARD1_PASSWORD}
+      name: app_db_shard1
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD1}
     - id: 2
       driver: postgres
-      host: db-shard2.example.com
+      host: prod-db-shard2.example.com
       port: 5432
-      name: app_shard2
-      user: app_user
-      password: ${DB_SHARD2_PASSWORD}
+      name: app_db_shard2
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD2}
+    - id: 3
+      driver: postgres
+      host: prod-db-shard3.example.com
+      port: 5432
+      name: app_db_shard3
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD3}
+    - id: 4
+      driver: postgres
+      host: prod-db-shard4.example.com
+      port: 5432
+      name: app_db_shard4
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD4}
 ```
 
 ## Data Distribution
@@ -87,16 +107,20 @@ database:
 Users are distributed across shards based on their ID:
 
 ```
-User ID 1 → hash(1) % 2 = Shard 1 or 2
-User ID 2 → hash(2) % 2 = Shard 1 or 2
+User ID 1 → hash(1) % 4 = Shard 1, 2, 3, or 4
+User ID 2 → hash(2) % 4 = Shard 1, 2, 3, or 4
 ...
 ```
 
-Example distribution (with 2 shards):
+Example distribution (with 4 shards):
 - User ID 1 → Shard 2
-- User ID 2 → Shard 1
-- User ID 3 → Shard 2
+- User ID 2 → Shard 3
+- User ID 3 → Shard 4
 - User ID 4 → Shard 1
+- User ID 5 → Shard 2
+- User ID 6 → Shard 3
+- User ID 7 → Shard 4
+- User ID 8 → Shard 1
 
 ### Post Table
 
@@ -218,8 +242,10 @@ Each shard must have an identical schema:
 
 **Shard 1**: `db/migrations/shard1/001_init.sql`
 **Shard 2**: `db/migrations/shard2/001_init.sql`
+**Shard 3**: `db/migrations/shard3/001_init.sql`
+**Shard 4**: `db/migrations/shard4/001_init.sql`
 
-Both contain the same schema:
+All shards contain the same schema:
 ```sql
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -428,7 +454,7 @@ Thoroughly test:
 
 GORM版のRepositoryは`gorm.io/plugin/dbresolver`を使用してWriter/Reader分離をサポートしています。
 
-**設定例** (`config/production.yaml`):
+**設定例** (`config/production/database.yaml.example`):
 ```yaml
 database:
   shards:
@@ -438,6 +464,27 @@ database:
       reader_dsns:
         - host=prod-db-shard1-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
         - host=prod-db-shard1-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
+      reader_policy: round_robin
+    - id: 2
+      driver: postgres
+      writer_dsn: host=prod-db-shard2-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard2-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
+        - host=prod-db-shard2-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
+      reader_policy: round_robin
+    - id: 3
+      driver: postgres
+      writer_dsn: host=prod-db-shard3-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard3-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
+        - host=prod-db-shard3-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
+      reader_policy: round_robin
+    - id: 4
+      driver: postgres
+      writer_dsn: host=prod-db-shard4-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard4-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
+        - host=prod-db-shard4-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
       reader_policy: round_robin
 ```
 
