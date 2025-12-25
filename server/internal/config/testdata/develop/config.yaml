@@ -30,3 +30,9 @@ cors:
   allowed_headers:
     - Content-Type
     - Authorization
+
+api:
+  current_version: "v2"
+  secret_key: "test-secret-key-for-jwt-signing"
+  invalid_versions:
+    - "v1"

@@ -20,6 +20,32 @@ import (
 	"github.com/example/go-webdb-template/test/testutil"
 )
 
+// testAPIToken はテスト用のAPIトークン
+var testAPIToken string
+
+func init() {
+	var err error
+	testAPIToken, err = testutil.GetTestAPIToken()
+	if err != nil {
+		panic("Failed to generate test API token: " + err.Error())
+	}
+}
+
+// doRequestWithAuth は認証ヘッダー付きのリクエストを実行
+func doRequestWithAuth(method, url string, body []byte) (*http.Response, error) {
+	var bodyReader io.Reader
+	if body != nil {
+		bodyReader = bytes.NewBuffer(body)
+	}
+	req, err := http.NewRequest(method, url, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+testAPIToken)
+	return http.DefaultClient.Do(req)
+}
+
 func setupTestServer(t *testing.T) *httptest.Server {
 	// Setup test database
 	dbManager := testutil.SetupTestShards(t, 2)
@@ -54,11 +80,7 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	}
 	body, _ := json.Marshal(createReq)
 
-	resp, err := http.Post(
-		server.URL+"/api/users",
-		"application/json",
-		bytes.NewBuffer(body),
-	)
+	resp, err := doRequestWithAuth("POST", server.URL+"/api/users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -74,7 +96,7 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	require.NoError(t, err)
 
 	// Retrieve user
-	resp, err = http.Get(server.URL + fmt.Sprintf("/api/users/%d", userID))
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -105,7 +127,7 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 		"email": "original@example.com",
 	}
 	body, _ := json.Marshal(createReq)
-	resp, err := http.Post(server.URL+"/api/users", "application/json", bytes.NewBuffer(body))
+	resp, err := doRequestWithAuth("POST", server.URL+"/api/users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -121,13 +143,7 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 		"email": "updated@example.com",
 	}
 	body, _ = json.Marshal(updateReq)
-	req, _ := http.NewRequest(
-		"PUT",
-		server.URL+fmt.Sprintf("/api/users/%d", userID),
-		bytes.NewBuffer(body),
-	)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err = http.DefaultClient.Do(req)
+	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/users/%d", userID), body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -137,14 +153,13 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 	assert.Equal(t, "Updated Name", updated["name"])
 
 	// Delete user
-	req, _ = http.NewRequest("DELETE", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
-	resp, err = http.DefaultClient.Do(req)
+	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// Verify deletion
-	resp, err = http.Get(server.URL + fmt.Sprintf("/api/users/%d", userID))
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -160,7 +175,7 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 		"email": "posttest@example.com",
 	}
 	body, _ := json.Marshal(userReq)
-	resp, err := http.Post(server.URL+"/api/users", "application/json", bytes.NewBuffer(body))
+	resp, err := doRequestWithAuth("POST", server.URL+"/api/users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -177,7 +192,7 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 		"content": "Test content",
 	}
 	body, _ = json.Marshal(postReq)
-	resp, err = http.Post(server.URL+"/api/posts", "application/json", bytes.NewBuffer(body))
+	resp, err = doRequestWithAuth("POST", server.URL+"/api/posts", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -190,13 +205,13 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 	assert.Equal(t, "Test Post", post["title"])
 
 	// Get post
-	resp, err = http.Get(server.URL + fmt.Sprintf("/api/posts/%d?user_id=%d", postID, userID))
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/posts/%d?user_id=%d", postID, userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Get user posts (JOIN)
-	resp, err = http.Get(server.URL + "/api/user-posts")
+	resp, err = doRequestWithAuth("GET", server.URL+"/api/user-posts", nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)

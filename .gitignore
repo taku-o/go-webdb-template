@@ -10,9 +10,9 @@ go.work
 vendor/
 
 # Server binary
-server/server
-server/admin
-admin
+/server/server
+/server/admin
+/admin
 server/bin/
 
 # Database files
@@ -20,9 +20,11 @@ server/bin/
 *.db-journal
 server/data/
 
-# Config files (production secrets)
+# Config files (production and staging secrets)
 config/production/config.yaml
 config/production/database.yaml
+config/staging/config.yaml
+config/staging/database.yaml
 
 # IDE
 .idea/

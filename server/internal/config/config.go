@@ -15,6 +15,7 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	CORS     CORSConfig     `mapstructure:"cors"`
+	API      APIConfig      `mapstructure:"api"`
 }
 
 // ServerConfig はサーバー設定
@@ -64,6 +65,14 @@ type CORSConfig struct {
 	AllowedOrigins []string `mapstructure:"allowed_origins"`
 	AllowedMethods []string `mapstructure:"allowed_methods"`
 	AllowedHeaders []string `mapstructure:"allowed_headers"`
+}
+
+// APIConfig はAPIキー設定
+type APIConfig struct {
+	CurrentVersion  string   `mapstructure:"current_version"`
+	PublicKey       string   `mapstructure:"public_key"`
+	SecretKey       string   `mapstructure:"secret_key"`
+	InvalidVersions []string `mapstructure:"invalid_versions"`
 }
 
 // AdminConfig は管理画面設定

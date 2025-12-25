@@ -1,11 +1,6 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
-// Polyfill for TextEncoder/TextDecoder (required for MSW in Node environment)
-import { TextEncoder, TextDecoder } from 'util'
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
-
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter() {
@@ -26,3 +21,4 @@ jest.mock('next/navigation', () => ({
 
 // Mock environment variables
 process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8080'
+process.env.NEXT_PUBLIC_API_KEY = 'test-api-key'

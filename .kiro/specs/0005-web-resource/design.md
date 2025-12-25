@@ -159,3 +159,5 @@ Next.js 14のApp Routerでは、`layout.tsx`で`<head>`タグを直接使用で�
 - `client/src/app/layout.tsx`: ルートレイアウト
 - `client/src/app/page.tsx`: トップページ
 
+
+

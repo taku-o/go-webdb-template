@@ -93,6 +93,9 @@ func main() {
 	app.HandleFunc("/admin/user/register/new", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
 		return pages.UserRegisterCompletePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
+	app.HandleFunc("/admin/api-key", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
+		return pages.APIKeyPage(goadminContext.NewContext(ctx.Request), conn)
+	})).Methods("GET", "POST")
 
 	// アクセスログの初期化（production環境以外）
 	var httpHandler http.Handler = app
