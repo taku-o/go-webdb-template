@@ -151,8 +151,8 @@ func (f *SQLTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	durationMs := entry.Data["duration_ms"]
 
 	logLine := fmt.Sprintf(
-		"[%s] [%v] [%v] [%v] %v | %v | %.2fms\n",
-		timestamp, shardID, driver, table, rowsAffected, sql, durationMs,
+		"[%s] [%v] [%v][%v] %v | %v | %.2fms\n",
+		timestamp, driver, table, shardID, rowsAffected, sql, durationMs,
 	)
 
 	return []byte(logLine), nil
