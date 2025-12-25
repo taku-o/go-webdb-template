@@ -1,0 +1,12 @@
+{
+  "feature": "0008-log-strategy",
+  "description": "ログ出力機能の組み込み",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
