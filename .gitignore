@@ -13,6 +13,7 @@ vendor/
 server/server
 server/admin
 admin
+server/bin/
 
 # Database files
 *.db

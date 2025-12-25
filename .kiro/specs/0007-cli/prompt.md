@@ -6,4 +6,23 @@ cc-sddのfeature名は0007-cliとしてください。
 
 設計書、OKです。
 
+タスクリスト、OKです。
+
+この要件の作業用のgitブランチを切ってください。
+ここまでの作業をcommitしてください。
+
+/serena-initialize
+
+/kiro:spec-impl 0007-cli
+
+お願いします。
+> 修正内容: 各ユーザーの実際のIDをチェックするように修正したいです。
+
+CLIツールのドキュメントが欲しいです。
+docs/Command-Line-Tool.md を作成してください。
+
+cd server
+APP_ENV=develop ./bin/list-users --limit 50
+
+
 
