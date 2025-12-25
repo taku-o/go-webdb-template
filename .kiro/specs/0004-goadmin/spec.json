@@ -1,0 +1,11 @@
+{
+  "feature": "0004-goadmin",
+  "description": "GoAdmin管理画面導入",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

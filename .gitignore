@@ -11,6 +11,8 @@ vendor/
 
 # Server binary
 server/server
+server/admin
+admin
 
 # Database files
 *.db
@@ -49,6 +51,9 @@ client/coverage/
 client/.nyc_output/
 client/playwright-report/
 client/test-results/
+
+# Serena
+.serena/cache/
 
 # Misc
 *.log
