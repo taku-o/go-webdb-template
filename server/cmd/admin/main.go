@@ -27,6 +27,7 @@ import (
 	"github.com/example/go-webdb-template/internal/admin/pages"
 	"github.com/example/go-webdb-template/internal/config"
 	appdb "github.com/example/go-webdb-template/internal/db"
+	"github.com/example/go-webdb-template/internal/logging"
 )
 
 func main() {
@@ -93,10 +94,32 @@ func main() {
 		return pages.UserRegisterCompletePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
 
+	// アクセスログの初期化（production環境以外）
+	var httpHandler http.Handler = app
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "develop"
+	}
+	if env != "production" {
+		accessLogger, err := logging.NewAccessLogger("admin", cfg.Logging.OutputDir)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize access logger: %v", err)
+			log.Println("Access logging will be disabled")
+		} else {
+			defer accessLogger.Close()
+			// アクセスログミドルウェアを追加
+			accessLogMiddleware := logging.NewAccessLogMiddleware(accessLogger)
+			httpHandler = accessLogMiddleware.Middleware(app)
+			log.Printf("Access logging enabled: %s", cfg.Logging.OutputDir)
+		}
+	} else {
+		log.Println("Access logging disabled in production environment")
+	}
+
 	// HTTPサーバーの設定
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Admin.Port),
-		Handler:      app,
+		Handler:      httpHandler,
 		ReadTimeout:  cfg.Admin.ReadTimeout,
 		WriteTimeout: cfg.Admin.WriteTimeout,
 	}

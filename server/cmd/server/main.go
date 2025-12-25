@@ -14,6 +14,7 @@ import (
 	"github.com/example/go-webdb-template/internal/api/router"
 	"github.com/example/go-webdb-template/internal/config"
 	"github.com/example/go-webdb-template/internal/db"
+	"github.com/example/go-webdb-template/internal/logging"
 	"github.com/example/go-webdb-template/internal/repository"
 	"github.com/example/go-webdb-template/internal/service"
 )
@@ -53,10 +54,24 @@ func main() {
 	// Routerの初期化
 	r := router.NewRouter(userHandler, postHandler, cfg)
 
+	// アクセスログの初期化
+	var httpHandler http.Handler = r
+	accessLogger, err := logging.NewAccessLogger("api", cfg.Logging.OutputDir)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize access logger: %v", err)
+		log.Println("Access logging will be disabled")
+	} else {
+		defer accessLogger.Close()
+		// アクセスログミドルウェアを追加
+		accessLogMiddleware := logging.NewAccessLogMiddleware(accessLogger)
+		httpHandler = accessLogMiddleware.Middleware(r)
+		log.Printf("Access logging enabled: %s", cfg.Logging.OutputDir)
+	}
+
 	// HTTPサーバーの設定
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler:      r,
+		Handler:      httpHandler,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 	}

@@ -51,9 +51,10 @@ type ShardConfig struct {
 
 // LoggingConfig はロギング設定
 type LoggingConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
-	Output string `mapstructure:"output"`
+	Level     string `mapstructure:"level"`
+	Format    string `mapstructure:"format"`
+	Output    string `mapstructure:"output"`
+	OutputDir string `mapstructure:"output_dir"`
 }
 
 // CORSConfig はCORS設定
@@ -128,6 +129,11 @@ func Load() (*Config, error) {
 		if envPassword := os.Getenv(envKey); envPassword != "" {
 			shard.Password = envPassword
 		}
+	}
+
+	// デフォルト値の設定
+	if cfg.Logging.OutputDir == "" {
+		cfg.Logging.OutputDir = "logs"
 	}
 
 	return &cfg, nil

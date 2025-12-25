@@ -17,6 +17,9 @@ logging:
   level: warn
   format: json
   output: /var/log/app/server.log
+  # output_dir: ログファイル出力先ディレクトリ
+  # 相対パス（例: logs）または絶対パス（例: /var/log/go-webdb-template）を指定
+  output_dir: /var/log/go-webdb-template
 
 cors:
   allowed_origins:
