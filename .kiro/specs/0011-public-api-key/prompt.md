@@ -170,6 +170,20 @@ server/internal/admin/pages/api_key.go
 test_tokenは削除してください。
 
 
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/21 に対して
+pull requestを作成してください。
+
+/review 22
+
+develop環境のclientのpublic APIキーを新規構築の時にセットするのが面倒。
+これは何とかする方法はない？
+develop環境だからセキュアでなくて良い。
+
+そうしたいです。
+> 提案: client/.env.developmentにdevelop環境用のAPIキーを記載してgitにコミットする
+
+
 
 
 
