@@ -51,5 +51,6 @@ func RegisterCustomPages(conn db.Connection) map[string]context.Handler {
 		"/":                  MakeHandler(conn, HomePage),
 		"/user/register":     MakeHandler(conn, UserRegisterPage),
 		"/user/register/new": MakeHandler(conn, UserRegisterCompletePage),
+		"/api-key":           MakeHandler(conn, APIKeyPage),
 	}
 }

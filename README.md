@@ -70,7 +70,7 @@ APP_ENV=develop go run cmd/admin/main.go
 
 **認証情報**（開発環境）:
 - ユーザー名: `admin`
-- パスワード: `password`
+- パスワード: `admin123`
 
 詳細は [Admin.md](docs/Admin.md) を参照してください。
 
@@ -90,12 +90,82 @@ npm run dev
 - `GET /api/posts` - 投稿一覧
 - `POST /api/posts` - 投稿作成
 - `GET /api/user-posts` - ユーザーと投稿をJOIN（クロスシャードクエリ）
+- `GET /health` - ヘルスチェック（認証不要）
 
 詳細は [プロジェクト構造計画](docs/plans/project-structure.md) を参照してください。
+
+## API認証
+
+APIエンドポイント（`/api/*`）へのアクセスにはJWTベースのPublic APIキーが必要です。
+
+### APIキーの発行
+
+GoAdmin管理画面からAPIキーを発行できます。
+
+1. 管理画面（http://localhost:8081/admin）にログイン
+2. サイドメニューから「カスタムページ」→「APIキー発行」を選択
+3. 「APIキーを発行」ボタンをクリック
+4. 生成されたJWTトークンをダウンロードまたはコピー
+
+### 秘密鍵の生成
+
+APIキーの署名に使用する秘密鍵を生成するツールが用意されています。
+
+```bash
+cd server
+go run cmd/generate-secret/main.go
+```
+
+生成された秘密鍵を`config/{env}/config.yaml`の`api.secret_key`に設定してください。
+
+### APIリクエストの認証
+
+APIリクエストには`Authorization`ヘッダーでJWTトークンを送信します。
+
+```bash
+curl -H "Authorization: Bearer <YOUR_API_KEY>" http://localhost:8080/api/users
+```
+
+### クライアント側の設定
+
+Next.jsクライアントでは、環境変数`NEXT_PUBLIC_API_KEY`にAPIキーを設定します。
+
+```bash
+# client/.env.local
+NEXT_PUBLIC_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### エラーレスポンス
+
+- `401 Unauthorized` - APIキーが無効または未設定
+- `403 Forbidden` - スコープ不足（readスコープなしでGET、writeスコープなしでPOST/PUT/DELETE）
+
+エラーレスポンス形式:
+```json
+{
+  "code": 401,
+  "message": "Invalid API key"
+}
+```
 
 ## CLIツール
 
 バッチ処理用のCLIツールが利用できます。
+
+### 秘密鍵生成（generate-secret）
+
+APIキー署名用の秘密鍵を生成します。
+
+#### 実行
+
+```bash
+cd server
+go run cmd/generate-secret/main.go
+```
+
+#### 出力
+
+Base64エンコードされた32バイト（256ビット）のランダムな秘密鍵が標準出力に表示されます。
 
 ### ユーザー一覧出力（list-users）
 

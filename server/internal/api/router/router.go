@@ -2,8 +2,10 @@ package router
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/example/go-webdb-template/internal/api/handler"
+	"github.com/example/go-webdb-template/internal/auth"
 	"github.com/example/go-webdb-template/internal/config"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -15,6 +17,14 @@ func NewRouter(userHandler *handler.UserHandler, postHandler *handler.PostHandle
 
 	// API routes
 	api := r.PathPrefix("/api").Subrouter()
+
+	// 認証ミドルウェアの適用
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "develop"
+	}
+	authMiddleware := auth.NewAuthMiddleware(&cfg.API, env)
+	api.Use(authMiddleware.Middleware)
 
 	// User routes
 	api.HandleFunc("/users", userHandler.CreateUser).Methods("POST")

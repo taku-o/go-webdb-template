@@ -32,3 +32,9 @@ cors:
   allowed_headers:
     - Content-Type
     - Authorization
+
+api:
+  current_version: "v2"
+  secret_key: "RNrxs7Rt1ZViughEGb8J08Uc1uQobSOZRRb+BmnGaag="
+  invalid_versions:
+    - "v1"

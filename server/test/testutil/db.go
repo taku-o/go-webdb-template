@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/gorm"
 
+	"github.com/example/go-webdb-template/internal/auth"
 	"github.com/example/go-webdb-template/internal/config"
 	"github.com/example/go-webdb-template/internal/db"
 	"github.com/example/go-webdb-template/internal/model"
@@ -80,6 +82,17 @@ func CleanupTestDB(manager *db.Manager) {
 	}
 }
 
+// TestSecretKey はテスト用の秘密鍵
+const TestSecretKey = "test-secret-key-for-jwt-signing"
+
+// TestEnv はテスト用の環境
+const TestEnv = "develop"
+
+// GetTestAPIToken はテスト用のAPIトークンを生成
+func GetTestAPIToken() (string, error) {
+	return auth.GeneratePublicAPIKey(TestSecretKey, "v2", TestEnv, time.Now().Unix())
+}
+
 // GetTestConfig returns a test configuration
 func GetTestConfig() *config.Config {
 	return &config.Config{
@@ -90,6 +103,11 @@ func GetTestConfig() *config.Config {
 			AllowedOrigins: []string{"*"},
 			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders: []string{"*"},
+		},
+		API: config.APIConfig{
+			CurrentVersion:  "v2",
+			SecretKey:       TestSecretKey,
+			InvalidVersions: []string{"v1"},
 		},
 	}
 }

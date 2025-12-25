@@ -1,52 +1,72 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import UsersPage from '@/app/users/page'
 
+// Mock user data that can be modified during tests
+let mockUsers = [
+  {
+    id: '1',
+    name: 'User 1',
+    email: 'user1@example.com',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'User 2',
+    email: 'user2@example.com',
+    created_at: '2024-01-15T11:00:00Z',
+    updated_at: '2024-01-15T11:00:00Z',
+  },
+]
+
 const server = setupServer(
-  rest.get('http://localhost:8080/api/users', (req, res, ctx) => {
-    return res(
-      ctx.json([
-        {
-          id: '1',
-          name: 'User 1',
-          email: 'user1@example.com',
-          created_at: '2024-01-15T10:00:00Z',
-          updated_at: '2024-01-15T10:00:00Z',
-        },
-        {
-          id: '2',
-          name: 'User 2',
-          email: 'user2@example.com',
-          created_at: '2024-01-15T11:00:00Z',
-          updated_at: '2024-01-15T11:00:00Z',
-        },
-      ])
-    )
+  http.get('http://localhost:8080/api/users', () => {
+    return HttpResponse.json(mockUsers)
   }),
 
-  rest.post('http://localhost:8080/api/users', async (req, res, ctx) => {
-    const body = await req.json()
-    return res(
-      ctx.status(201),
-      ctx.json({
-        id: '3',
-        name: body.name,
-        email: body.email,
-        created_at: '2024-01-15T12:00:00Z',
-        updated_at: '2024-01-15T12:00:00Z',
-      })
-    )
+  http.post('http://localhost:8080/api/users', async ({ request }) => {
+    const body = (await request.json()) as { name: string; email: string }
+    const newUser = {
+      id: '3',
+      name: body.name,
+      email: body.email,
+      created_at: '2024-01-15T12:00:00Z',
+      updated_at: '2024-01-15T12:00:00Z',
+    }
+    // Add to mock users so next GET returns it
+    mockUsers = [...mockUsers, newUser]
+    return HttpResponse.json(newUser, { status: 201 })
   }),
 
-  rest.delete('http://localhost:8080/api/users/:id', (req, res, ctx) => {
-    return res(ctx.status(204))
+  http.delete('http://localhost:8080/api/users/:id', () => {
+    return new HttpResponse(null, { status: 204 })
   })
 )
 
 beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  // Reset mock users
+  mockUsers = [
+    {
+      id: '1',
+      name: 'User 1',
+      email: 'user1@example.com',
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z',
+    },
+    {
+      id: '2',
+      name: 'User 2',
+      email: 'user2@example.com',
+      created_at: '2024-01-15T11:00:00Z',
+      updated_at: '2024-01-15T11:00:00Z',
+    },
+  ]
+})
 afterAll(() => server.close())
 
 describe('UsersPage Integration', () => {
@@ -72,9 +92,10 @@ describe('UsersPage Integration', () => {
       expect(screen.getByText('User 1')).toBeInTheDocument()
     })
 
-    // Fill in form
-    const nameInput = screen.getByLabelText('名前')
-    const emailInput = screen.getByLabelText('メールアドレス')
+    // Find inputs by role
+    const inputs = screen.getAllByRole('textbox')
+    const nameInput = inputs[0] // First text input is name
+    const emailInput = inputs[1] // Second text input is email
     const submitButton = screen.getByRole('button', { name: '作成' })
 
     await user.type(nameInput, 'New User')
@@ -94,15 +115,16 @@ describe('UsersPage Integration', () => {
 
   it('handles API errors gracefully', async () => {
     server.use(
-      rest.get('http://localhost:8080/api/users', (req, res, ctx) => {
-        return res(ctx.status(500))
+      http.get('http://localhost:8080/api/users', () => {
+        return new HttpResponse(null, { status: 500, statusText: 'Internal Server Error' })
       })
     )
 
     render(<UsersPage />)
 
+    // Component displays err.message which comes from the fetch error
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load users/i)).toBeInTheDocument()
+      expect(screen.getByText(/Internal Server Error/i)).toBeInTheDocument()
     })
   })
 

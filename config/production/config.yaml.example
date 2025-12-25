@@ -35,3 +35,10 @@ cors:
   allowed_headers:
     - Content-Type
     - Authorization
+
+api:
+  current_version: "v2"
+  # public_key: "<JWT_TOKEN>"  # オプション: 発行済みのPublic APIキー
+  secret_key: "<SECRET_KEY>"  # 必須: 秘密鍵生成ツールで生成した値を設定
+  invalid_versions:
+    - "v1"

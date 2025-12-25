@@ -1,6 +1,9 @@
-import { apiClient } from '../api'
 import { User, CreateUserRequest } from '@/types/user'
 import { Post, CreatePostRequest } from '@/types/post'
+import { apiClient } from '../api'
+
+// テスト用APIキー（jest.setup.jsで設定済み）
+const TEST_API_KEY = 'test-api-key'
 
 // Mock fetch
 global.fetch = jest.fn()
@@ -8,6 +11,63 @@ global.fetch = jest.fn()
 describe('apiClient', () => {
   beforeEach(() => {
     ;(fetch as jest.Mock).mockClear()
+  })
+
+  describe('Authorization header', () => {
+    it('includes Authorization header in all requests', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      })
+
+      await apiClient.getUsers()
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          }),
+        })
+      )
+    })
+  })
+
+  describe('Error handling for 401/403', () => {
+    it('handles 401 Unauthorized error with message from response', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({ code: 401, message: 'Invalid API key' }),
+      })
+
+      await expect(apiClient.getUsers()).rejects.toThrow('Invalid API key')
+    })
+
+    it('handles 403 Forbidden error with message from response', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        json: async () => ({ code: 403, message: 'Insufficient scope' }),
+      })
+
+      await expect(apiClient.getUsers()).rejects.toThrow('Insufficient scope')
+    })
+
+    it('uses statusText when json parsing fails for 401', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => {
+          throw new Error('JSON parse error')
+        },
+      })
+
+      await expect(apiClient.getUsers()).rejects.toThrow('Unauthorized')
+    })
   })
 
   describe('User API', () => {
@@ -37,7 +97,10 @@ describe('apiClient', () => {
         'http://localhost:8080/api/users',
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          },
           body: JSON.stringify(createRequest),
         })
       )
@@ -73,7 +136,10 @@ describe('apiClient', () => {
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/users?limit=20&offset=0',
         expect.objectContaining({
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          },
         })
       )
     })
@@ -101,6 +167,10 @@ describe('apiClient', () => {
         'http://localhost:8080/api/users/1',
         expect.objectContaining({
           method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          },
         })
       )
     })
@@ -135,6 +205,10 @@ describe('apiClient', () => {
         'http://localhost:8080/api/posts',
         expect.objectContaining({
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          },
           body: JSON.stringify(createRequest),
         })
       )
@@ -174,6 +248,10 @@ describe('apiClient', () => {
         'http://localhost:8080/api/posts/1?user_id=1',
         expect.objectContaining({
           method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          },
         })
       )
     })

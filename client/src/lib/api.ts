@@ -5,9 +5,16 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 
 class ApiClient {
   private baseURL: string
+  private apiKey: string | null
 
   constructor(baseURL: string) {
     this.baseURL = baseURL
+    this.apiKey = process.env.NEXT_PUBLIC_API_KEY || null
+
+    // APIキーが設定されていない場合、エラーを投げる
+    if (!this.apiKey) {
+      throw new Error('NEXT_PUBLIC_API_KEY is not set')
+    }
   }
 
   private async request<T>(
@@ -15,15 +22,25 @@ class ApiClient {
     options?: RequestInit
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
+
+    // Authorizationヘッダーを追加
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.apiKey}`,
+      ...options?.headers,
+    }
+
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers,
     })
 
     if (!response.ok) {
+      // エラーレスポンスの処理
+      if (response.status === 401 || response.status === 403) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || response.statusText)
+      }
       const error = await response.text()
       throw new Error(error || response.statusText)
     }
