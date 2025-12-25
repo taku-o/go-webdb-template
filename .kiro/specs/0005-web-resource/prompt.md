@@ -8,5 +8,15 @@ cc-sddのfeature名は0005-web-resourceとしてください。"
 
 とりあえず、設計書、タスクリスト、どちらもOKでいい
 
+この要件の作業用のgitブランチを切ってください。
+ここまでの作業をcommitしてください。
+
+APIサーバーとclientサーバーを起動してください
+
+OKです。いったんサーバーは止めてください。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/7 に対して
+pull requestを作成してください。
 
 
