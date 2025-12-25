@@ -10,37 +10,23 @@ import (
 )
 
 // HomePage はダッシュボードページを返す
+// 注意: GoAdminはmasterデータベースのみを使用するため、統計情報はmasterグループのテーブル（news）のみ表示
 func HomePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
-	// 統計情報を取得
-	userCount := getTableCount(conn, "users")
-	postCount := getTableCount(conn, "posts")
+	// 統計情報を取得（masterグループのテーブルのみ）
+	newsCount := getTableCount(conn, "news")
 
 	content := fmt.Sprintf(`
 <div class="row">
     <div class="col-lg-3 col-xs-6">
-        <div class="small-box bg-aqua">
+        <div class="small-box bg-yellow">
             <div class="inner">
                 <h3>%d</h3>
-                <p>ユーザー数</p>
+                <p>ニュース数</p>
             </div>
             <div class="icon">
-                <i class="fa fa-users"></i>
+                <i class="fa fa-newspaper-o"></i>
             </div>
-            <a href="/admin/info/users" class="small-box-footer">
-                詳細を見る <i class="fa fa-arrow-circle-right"></i>
-            </a>
-        </div>
-    </div>
-    <div class="col-lg-3 col-xs-6">
-        <div class="small-box bg-green">
-            <div class="inner">
-                <h3>%d</h3>
-                <p>投稿数</p>
-            </div>
-            <div class="icon">
-                <i class="fa fa-file-text"></i>
-            </div>
-            <a href="/admin/info/posts" class="small-box-footer">
+            <a href="/admin/info/news" class="small-box-footer">
                 詳細を見る <i class="fa fa-arrow-circle-right"></i>
             </a>
         </div>
@@ -54,11 +40,8 @@ func HomePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
                 <h3 class="box-title">クイックアクション</h3>
             </div>
             <div class="box-body">
-                <a href="/admin/info/users/new" class="btn btn-primary">
-                    <i class="fa fa-user-plus"></i> ユーザー登録
-                </a>
-                <a href="/admin/info/posts/new" class="btn btn-success">
-                    <i class="fa fa-plus"></i> 投稿作成
+                <a href="/admin/info/news/new" class="btn btn-warning">
+                    <i class="fa fa-newspaper-o"></i> ニュース作成
                 </a>
             </div>
         </div>
@@ -86,7 +69,7 @@ func HomePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
         </div>
     </div>
 </div>
-`, userCount, postCount)
+`, newsCount)
 
 	return types.Panel{
 		Title:       "ダッシュボード",

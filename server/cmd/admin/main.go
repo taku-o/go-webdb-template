@@ -37,18 +37,18 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// GORM DB Managerの初期化
-	gormManager, err := appdb.NewGORMManager(cfg)
+	// GroupManagerの初期化
+	groupManager, err := appdb.NewGroupManager(cfg)
 	if err != nil {
-		log.Fatalf("Failed to create GORM manager: %v", err)
+		log.Fatalf("Failed to create group manager: %v", err)
 	}
-	defer gormManager.CloseAll()
+	defer groupManager.CloseAll()
 
-	// すべてのShardへの接続確認
-	if err := gormManager.PingAll(); err != nil {
+	// すべてのデータベースへの接続確認
+	if err := groupManager.PingAll(); err != nil {
 		log.Fatalf("Failed to ping databases: %v", err)
 	}
-	log.Println("Successfully connected to all database shards")
+	log.Println("Successfully connected to all database groups")
 
 	// Gorilla Mux Router
 	app := mux.NewRouter()
@@ -88,7 +88,7 @@ func main() {
 		return pages.HomePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
 	app.HandleFunc("/admin/user/register", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
-		return pages.UserRegisterPage(goadminContext.NewContext(ctx.Request), conn)
+		return pages.UserRegisterPage(goadminContext.NewContext(ctx.Request), groupManager)
 	})).Methods("GET", "POST")
 	app.HandleFunc("/admin/user/register/new", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
 		return pages.UserRegisterCompletePage(goadminContext.NewContext(ctx.Request), conn)

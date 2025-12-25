@@ -13,10 +13,10 @@ import (
 )
 
 func TestUserRepository_Create(t *testing.T) {
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepository(dbManager)
+	repo := repository.NewUserRepository(groupManager)
 	ctx := context.Background()
 
 	req := &model.CreateUserRequest{
@@ -35,10 +35,10 @@ func TestUserRepository_Create(t *testing.T) {
 }
 
 func TestUserRepository_GetByID(t *testing.T) {
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepository(dbManager)
+	repo := repository.NewUserRepository(groupManager)
 	ctx := context.Background()
 
 	// Create test user first
@@ -59,10 +59,10 @@ func TestUserRepository_GetByID(t *testing.T) {
 }
 
 func TestUserRepository_GetByID_NotFound(t *testing.T) {
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepository(dbManager)
+	repo := repository.NewUserRepository(groupManager)
 	ctx := context.Background()
 
 	// Test retrieval of non-existent user
@@ -72,10 +72,10 @@ func TestUserRepository_GetByID_NotFound(t *testing.T) {
 }
 
 func TestUserRepository_Update(t *testing.T) {
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepository(dbManager)
+	repo := repository.NewUserRepository(groupManager)
 	ctx := context.Background()
 
 	// Create test user first
@@ -105,10 +105,10 @@ func TestUserRepository_Update(t *testing.T) {
 }
 
 func TestUserRepository_Delete(t *testing.T) {
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepository(dbManager)
+	repo := repository.NewUserRepository(groupManager)
 	ctx := context.Background()
 
 	// Create test user first
@@ -130,10 +130,10 @@ func TestUserRepository_Delete(t *testing.T) {
 }
 
 func TestUserRepository_List(t *testing.T) {
-	dbManager := testutil.SetupTestShards(t, 2)
-	defer testutil.CleanupTestDB(dbManager)
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
 
-	repo := repository.NewUserRepository(dbManager)
+	repo := repository.NewUserRepository(groupManager)
 	ctx := context.Background()
 
 	// Create test users

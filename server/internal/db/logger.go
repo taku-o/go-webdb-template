@@ -150,12 +150,30 @@ func (f *SQLTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	sql := entry.Data["sql"]
 	durationMs := entry.Data["duration_ms"]
 
+	// SQLを正規化（改行削除、空白の連続を圧縮）
+	normalizedSQL := normalizeSQL(fmt.Sprintf("%v", sql))
+
 	logLine := fmt.Sprintf(
 		"[%s] [%v] [%v][%v] %v | %v | %.2fms\n",
-		timestamp, driver, table, shardID, rowsAffected, sql, durationMs,
+		timestamp, driver, table, shardID, rowsAffected, normalizedSQL, durationMs,
 	)
 
 	return []byte(logLine), nil
+}
+
+// normalizeSQL はSQLクエリを正規化する（改行削除、空白の連続を圧縮）
+func normalizeSQL(sql string) string {
+	// 改行とタブをスペースに置換
+	sql = strings.ReplaceAll(sql, "\n", " ")
+	sql = strings.ReplaceAll(sql, "\r", " ")
+	sql = strings.ReplaceAll(sql, "\t", " ")
+
+	// 連続する空白を1つに圧縮
+	spaceRegex := regexp.MustCompile(`\s+`)
+	sql = spaceRegex.ReplaceAllString(sql, " ")
+
+	// 前後の空白を削除
+	return strings.TrimSpace(sql)
 }
 
 // extractTableName はSQLクエリからテーブル名を抽出

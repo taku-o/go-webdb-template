@@ -11,7 +11,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 
 ## 特徴
 
-- ✅ **Sharding対応**: Hash-based shardingで複数DBへデータ分散
+- ✅ **Sharding対応**: テーブルベースシャーディング（32分割）で複数DBへデータ分散
 - ✅ **GORM対応**: Writer/Reader分離をサポート (GORM v1.25.12)
 - ✅ **GoAdmin管理画面**: Webベースの管理画面でデータ管理
 - ✅ **レイヤー分離**: API層、Service層、Repository層、DB層で責務を明確化
@@ -43,11 +43,53 @@ npm install
 
 ### 2. データベースのセットアップ
 
+#### 方法A: マイグレーションスクリプトを使用（推奨）
+
+```bash
+./scripts/migrate.sh
+```
+
+#### 方法B: 手動セットアップ
+
 ```bash
 mkdir -p server/data
-sqlite3 server/data/shard1.db < db/migrations/shard1/001_init.sql
-sqlite3 server/data/shard1.db < db/migrations/shard1/002_goadmin.sql
-sqlite3 server/data/shard2.db < db/migrations/shard2/001_init.sql
+
+# Master データベース（news テーブル）
+sqlite3 server/data/master.db < db/migrations/master/001_init.sql
+
+# Sharding データベース（マイグレーション生成＆適用）
+cd server
+go run cmd/migrate-gen/main.go \
+    -template ../db/migrations/sharding/templates/users.sql.template \
+    -output ../db/migrations/sharding/generated/
+go run cmd/migrate-gen/main.go \
+    -template ../db/migrations/sharding/templates/posts.sql.template \
+    -output ../db/migrations/sharding/generated/
+cd ..
+
+# DB1: テーブル _000-007
+for i in {0..7}; do
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+done
+
+# DB2: テーブル _008-015
+for i in {8..15}; do
+    sqlite3 server/data/sharding_db_2.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_2.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+done
+
+# DB3: テーブル _016-023
+for i in {16..23}; do
+    sqlite3 server/data/sharding_db_3.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_3.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+done
+
+# DB4: テーブル _024-031
+for i in {24..31}; do
+    sqlite3 server/data/sharding_db_4.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_4.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+done
 ```
 
 ### 3. サーバー起動
@@ -201,14 +243,24 @@ TSV（タブ区切り）形式で、以下の項目を出力します：
 
 ## Sharding戦略
 
-Hash-based shardingを採用しています。
+テーブルベースシャーディング（32分割）を採用しています。
 
 ```
-shard_id = hash(user_id) % shard_count + 1
+table_number = id % 32      # 0-31
+table_name = "users_" + sprintf("%03d", table_number)  # users_000 ~ users_031
+db_id = (table_number / 8) + 1  # 1-4
 ```
 
-- 同一ユーザーのデータは常に同じShardに配置
-- クロスシャードクエリは各Shardから並列取得してマージ
+**データベースグループ**:
+- **Master グループ**: 共有テーブル（news）を格納
+- **Sharding グループ**: 32分割されたテーブル（users_000〜031, posts_000〜031）を4つのDBに分散
+
+| DB | テーブル範囲 |
+|----|------------|
+| DB1 | _000 〜 _007 |
+| DB2 | _008 〜 _015 |
+| DB3 | _016 〜 _023 |
+| DB4 | _024 〜 _031 |
 
 詳細は [Sharding.md](docs/Sharding.md) を参照してください。
 
@@ -222,13 +274,23 @@ shard_id = hash(user_id) % shard_count + 1
 config/
 ├── develop/                  # 開発環境設定ディレクトリ
 │   ├── config.yaml           # メイン設定（server, admin, logging, cors）
-│   └── database.yaml         # データベース設定
+│   └── database.yaml         # データベース設定（groups構造）
 ├── production/               # 本番環境設定ディレクトリ
 │   ├── config.yaml.example   # メイン設定テンプレート
 │   └── database.yaml.example # データベース設定テンプレート
 └── staging/                  # ステージング環境設定ディレクトリ
     ├── config.yaml           # メイン設定
     └── database.yaml         # データベース設定
+
+db/
+└── migrations/
+    ├── master/               # Masterグループ用マイグレーション
+    │   └── 001_init.sql      # newsテーブル
+    └── sharding/             # Shardingグループ用マイグレーション
+        ├── templates/        # テンプレートファイル
+        │   ├── users.sql.template
+        │   └── posts.sql.template
+        └── generated/        # 生成されたマイグレーション
 ```
 
 ### 設定ファイルの読み込み順序

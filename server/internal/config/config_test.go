@@ -119,17 +119,17 @@ func TestLoad_WithBothConfigFiles(t *testing.T) {
 		t.Errorf("expected Logging.Level 'debug', got %s", cfg.Logging.Level)
 	}
 
-	// データベース設定の確認
-	if len(cfg.Database.Shards) == 0 {
-		t.Error("expected Database.Shards to have at least one shard")
+	// データベース設定の確認（Groupsを使用）
+	if len(cfg.Database.Groups.Master) == 0 {
+		t.Error("expected Database.Groups.Master to have at least one entry")
 	}
-	if len(cfg.Database.Shards) > 0 {
-		shard := cfg.Database.Shards[0]
-		if shard.ID != 1 {
-			t.Errorf("expected first shard ID 1, got %d", shard.ID)
+	if len(cfg.Database.Groups.Master) > 0 {
+		master := cfg.Database.Groups.Master[0]
+		if master.ID != 1 {
+			t.Errorf("expected first master ID 1, got %d", master.ID)
 		}
-		if shard.Driver != "sqlite3" {
-			t.Errorf("expected first shard Driver 'sqlite3', got %s", shard.Driver)
+		if master.Driver != "sqlite3" {
+			t.Errorf("expected first master Driver 'sqlite3', got %s", master.Driver)
 		}
 	}
 }
@@ -179,6 +179,177 @@ func TestLoad_PasswordOverrideFromEnv(t *testing.T) {
 	if len(cfg.Database.Shards) > 0 {
 		if cfg.Database.Shards[0].Password != "env_password_test" {
 			t.Errorf("expected Password 'env_password_test', got %s", cfg.Database.Shards[0].Password)
+		}
+	}
+}
+
+// タスク1.1, 1.2: DatabaseGroupsConfig構造体のテスト
+func TestDatabaseGroupsConfig_Structure(t *testing.T) {
+	// DatabaseGroupsConfig構造体が正しいフィールドを持つことを確認
+	cfg := DatabaseGroupsConfig{
+		Master: []ShardConfig{
+			{
+				ID:     1,
+				Driver: "sqlite3",
+				DSN:    "./data/master.db",
+			},
+		},
+		Sharding: ShardingGroupConfig{
+			Databases: []ShardConfig{
+				{
+					ID:         1,
+					Driver:     "sqlite3",
+					DSN:        "./data/sharding_db_1.db",
+					TableRange: [2]int{0, 7},
+				},
+				{
+					ID:         2,
+					Driver:     "sqlite3",
+					DSN:        "./data/sharding_db_2.db",
+					TableRange: [2]int{8, 15},
+				},
+			},
+			Tables: []ShardingTableConfig{
+				{
+					Name:        "users",
+					SuffixCount: 32,
+				},
+				{
+					Name:        "posts",
+					SuffixCount: 32,
+				},
+			},
+		},
+	}
+
+	// Master構成の確認
+	if len(cfg.Master) != 1 {
+		t.Errorf("expected 1 master database, got %d", len(cfg.Master))
+	}
+	if cfg.Master[0].ID != 1 {
+		t.Errorf("expected master ID 1, got %d", cfg.Master[0].ID)
+	}
+	if cfg.Master[0].DSN != "./data/master.db" {
+		t.Errorf("expected master DSN './data/master.db', got %s", cfg.Master[0].DSN)
+	}
+
+	// Sharding構成の確認
+	if len(cfg.Sharding.Databases) != 2 {
+		t.Errorf("expected 2 sharding databases, got %d", len(cfg.Sharding.Databases))
+	}
+	if cfg.Sharding.Databases[0].TableRange[0] != 0 {
+		t.Errorf("expected TableRange[0] 0, got %d", cfg.Sharding.Databases[0].TableRange[0])
+	}
+	if cfg.Sharding.Databases[0].TableRange[1] != 7 {
+		t.Errorf("expected TableRange[1] 7, got %d", cfg.Sharding.Databases[0].TableRange[1])
+	}
+	if cfg.Sharding.Databases[1].TableRange[0] != 8 {
+		t.Errorf("expected TableRange[0] 8, got %d", cfg.Sharding.Databases[1].TableRange[0])
+	}
+	if cfg.Sharding.Databases[1].TableRange[1] != 15 {
+		t.Errorf("expected TableRange[1] 15, got %d", cfg.Sharding.Databases[1].TableRange[1])
+	}
+
+	// Tables構成の確認
+	if len(cfg.Sharding.Tables) != 2 {
+		t.Errorf("expected 2 tables, got %d", len(cfg.Sharding.Tables))
+	}
+	if cfg.Sharding.Tables[0].Name != "users" {
+		t.Errorf("expected table name 'users', got %s", cfg.Sharding.Tables[0].Name)
+	}
+	if cfg.Sharding.Tables[0].SuffixCount != 32 {
+		t.Errorf("expected suffix count 32, got %d", cfg.Sharding.Tables[0].SuffixCount)
+	}
+}
+
+func TestShardConfig_TableRange(t *testing.T) {
+	// ShardConfigにTableRangeフィールドがあることを確認
+	cfg := ShardConfig{
+		ID:         1,
+		Driver:     "sqlite3",
+		DSN:        "./data/sharding_db_1.db",
+		TableRange: [2]int{0, 7},
+	}
+
+	if cfg.TableRange[0] != 0 {
+		t.Errorf("expected TableRange[0] 0, got %d", cfg.TableRange[0])
+	}
+	if cfg.TableRange[1] != 7 {
+		t.Errorf("expected TableRange[1] 7, got %d", cfg.TableRange[1])
+	}
+}
+
+func TestDatabaseConfig_Groups(t *testing.T) {
+	// DatabaseConfigにGroupsフィールドがあることを確認
+	cfg := DatabaseConfig{
+		Shards: []ShardConfig{
+			{ID: 1, Driver: "sqlite3"},
+		},
+		Groups: DatabaseGroupsConfig{
+			Master: []ShardConfig{
+				{ID: 1, Driver: "sqlite3"},
+			},
+		},
+	}
+
+	if len(cfg.Shards) != 1 {
+		t.Errorf("expected 1 shard, got %d", len(cfg.Shards))
+	}
+	if len(cfg.Groups.Master) != 1 {
+		t.Errorf("expected 1 master database, got %d", len(cfg.Groups.Master))
+	}
+}
+
+func TestLoad_GroupsConfig(t *testing.T) {
+	// 設定ファイルからGroupsConfigが読み込まれることを確認
+	originalEnv := os.Getenv("APP_ENV")
+	os.Setenv("APP_ENV", "develop")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	viper.Reset()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Skipf("config files not found, skipping: %v", err)
+	}
+
+	// Masterグループの確認
+	if len(cfg.Database.Groups.Master) == 0 {
+		t.Error("expected at least one master database")
+	} else {
+		master := cfg.Database.Groups.Master[0]
+		if master.ID != 1 {
+			t.Errorf("expected master ID 1, got %d", master.ID)
+		}
+		if master.Driver != "sqlite3" {
+			t.Errorf("expected master Driver 'sqlite3', got %s", master.Driver)
+		}
+		if master.DSN != "./data/master.db" {
+			t.Errorf("expected master DSN './data/master.db', got %s", master.DSN)
+		}
+	}
+
+	// Shardingグループの確認
+	if len(cfg.Database.Groups.Sharding.Databases) != 4 {
+		t.Errorf("expected 4 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
+	}
+	if len(cfg.Database.Groups.Sharding.Databases) > 0 {
+		db1 := cfg.Database.Groups.Sharding.Databases[0]
+		if db1.TableRange[0] != 0 || db1.TableRange[1] != 7 {
+			t.Errorf("expected table_range [0, 7], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
+		}
+	}
+
+	// テーブル設定の確認
+	if len(cfg.Database.Groups.Sharding.Tables) != 2 {
+		t.Errorf("expected 2 tables, got %d", len(cfg.Database.Groups.Sharding.Tables))
+	}
+	if len(cfg.Database.Groups.Sharding.Tables) > 0 {
+		if cfg.Database.Groups.Sharding.Tables[0].Name != "users" {
+			t.Errorf("expected first table 'users', got %s", cfg.Database.Groups.Sharding.Tables[0].Name)
+		}
+		if cfg.Database.Groups.Sharding.Tables[0].SuffixCount != 32 {
+			t.Errorf("expected suffix_count 32, got %d", cfg.Database.Groups.Sharding.Tables[0].SuffixCount)
 		}
 	}
 }

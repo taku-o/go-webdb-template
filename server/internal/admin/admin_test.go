@@ -94,11 +94,8 @@ func TestGeneratorsMap(t *testing.T) {
 		t.Error("Generators map is nil")
 	}
 
-	if _, ok := Generators["users"]; !ok {
-		t.Error("users generator not found in Generators map")
-	}
-
-	if _, ok := Generators["posts"]; !ok {
-		t.Error("posts generator not found in Generators map")
+	// newsジェネレータのみ確認（users/postsはシャーディンググループにあるため管理対象外）
+	if _, ok := Generators["news"]; !ok {
+		t.Error("news generator not found in Generators map")
 	}
 }

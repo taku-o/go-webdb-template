@@ -13,15 +13,18 @@ import (
 // UserRegisterCompletePage はユーザー登録完了ページを返す
 func UserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
 	_ = conn // connは将来の拡張用
-	// Cookieから登録情報を取得
-	userID := ctx.Cookie("registered_user_id")
-	userName := ctx.Cookie("registered_user_name")
-	userEmail := ctx.Cookie("registered_user_email")
+	// クエリパラメータから登録情報を取得
+	userID := ctx.Query("id")
+	userName := ctx.Query("name")
+	userEmail := ctx.Query("email")
 
 	if userID == "" || userName == "" || userEmail == "" {
-		// 情報がない場合は一覧へリダイレクト
-		ctx.Redirect("/admin/info/users")
-		return types.Panel{}, nil
+		// 情報がない場合は登録ページへ戻る
+		return types.Panel{
+			Title:       "エラー",
+			Description: "登録情報が見つかりません",
+			Content:     template.HTML(`<div class="alert alert-warning">登録情報が見つかりません。<a href="/admin/user/register">ユーザー登録ページ</a>からやり直してください。</div>`),
+		}, nil
 	}
 
 	registeredAt := time.Now().Format("2006-01-02 15:04:05")
@@ -57,9 +60,6 @@ func UserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.P
         </table>
     </div>
     <div class="box-footer">
-        <a href="/admin/info/users" class="btn btn-primary">
-            <i class="fa fa-list"></i> ユーザー一覧に戻る
-        </a>
         <a href="/admin/user/register" class="btn btn-success">
             <i class="fa fa-plus"></i> 新規登録を続ける
         </a>

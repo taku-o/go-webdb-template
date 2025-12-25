@@ -27,7 +27,29 @@ type ServerConfig struct {
 
 // DatabaseConfig はデータベース設定
 type DatabaseConfig struct {
+	// 後方互換性のため残す（非推奨）
 	Shards []ShardConfig `mapstructure:"shards"`
+
+	// 新規: データベースグループ
+	Groups DatabaseGroupsConfig `mapstructure:"groups"`
+}
+
+// DatabaseGroupsConfig はデータベースグループ設定
+type DatabaseGroupsConfig struct {
+	Master   []ShardConfig       `mapstructure:"master"`
+	Sharding ShardingGroupConfig `mapstructure:"sharding"`
+}
+
+// ShardingGroupConfig はshardingグループの設定
+type ShardingGroupConfig struct {
+	Databases []ShardConfig         `mapstructure:"databases"`
+	Tables    []ShardingTableConfig `mapstructure:"tables"`
+}
+
+// ShardingTableConfig はshardingグループのテーブル定義
+type ShardingTableConfig struct {
+	Name        string `mapstructure:"name"`         // テーブル名（例: "users"）
+	SuffixCount int    `mapstructure:"suffix_count"` // 分割数（例: 32）
 }
 
 // ShardConfig は各シャードの設定
@@ -48,6 +70,9 @@ type ShardConfig struct {
 	WriterDSN    string   `mapstructure:"writer_dsn"`    // Writer接続用DSN
 	ReaderDSNs   []string `mapstructure:"reader_dsns"`   // Reader接続用DSNリスト
 	ReaderPolicy string   `mapstructure:"reader_policy"` // "random" or "round_robin"
+
+	// shardingグループ用: テーブル番号範囲 [min, max]
+	TableRange [2]int `mapstructure:"table_range"`
 }
 
 // LoggingConfig はロギング設定

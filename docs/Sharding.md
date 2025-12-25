@@ -2,45 +2,85 @@
 
 ## Overview
 
-This project implements database sharding to distribute data across multiple database instances. Sharding improves scalability by allowing the system to handle more data and traffic than a single database server could support.
+This project implements database sharding to distribute data across multiple database instances. The sharding architecture consists of two database groups:
+
+- **Master Group**: Contains shared tables (e.g., `news`) that don't require sharding
+- **Sharding Group**: Contains partitioned tables (e.g., `users_000` to `users_031`, `posts_000` to `posts_031`)
+
+## Architecture
+
+### Database Groups
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      GroupManager                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────┐    ┌─────────────────────────────────┐ │
+│  │  MasterManager  │    │       ShardingManager          │ │
+│  │                 │    │                                 │ │
+│  │  ┌───────────┐  │    │  ┌─────────┐  ┌─────────┐     │ │
+│  │  │ master.db │  │    │  │  DB 1   │  │  DB 2   │     │ │
+│  │  │ (news)    │  │    │  │ _000-007│  │ _008-015│     │ │
+│  │  └───────────┘  │    │  └─────────┘  └─────────┘     │ │
+│  └─────────────────┘    │                                 │ │
+│                         │  ┌─────────┐  ┌─────────┐     │ │
+│                         │  │  DB 3   │  │  DB 4   │     │ │
+│                         │  │ _016-023│  │ _024-031│     │ │
+│                         │  └─────────┘  └─────────┘     │ │
+│                         └─────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Table Distribution
+
+| Database | Table Range | Tables |
+|----------|------------|--------|
+| sharding_db_1 | _000 〜 _007 | users_000, users_001, ..., users_007 |
+| sharding_db_2 | _008 〜 _015 | users_008, users_009, ..., users_015 |
+| sharding_db_3 | _016 〜 _023 | users_016, users_017, ..., users_023 |
+| sharding_db_4 | _024 〜 _031 | users_024, users_025, ..., users_031 |
 
 ## Sharding Strategy
 
-### Hash-Based Sharding
+### Table-Based Sharding
 
-The application uses **hash-based sharding** with `user_id` as the shard key.
+The application uses **table-based sharding** with 32 table partitions.
 
 **Algorithm**:
 ```go
-func (h *HashBasedSharding) GetShardID(key int64) int {
-    hash := fnv.New32a()
-    hash.Write([]byte(fmt.Sprintf("%d", key)))
-    hashValue := hash.Sum32()
-    shardID := int(hashValue%uint32(h.shardCount)) + 1
-    return shardID
-}
+// Table number calculation
+tableNumber := id % 32  // Range: 0-31
+
+// Table name generation
+tableName := fmt.Sprintf("users_%03d", tableNumber)  // e.g., "users_005"
+
+// Database selection
+dbID := (tableNumber / 8) + 1  // Range: 1-4
 ```
 
 **Key Points**:
-- Uses FNV-1a hash function for consistent distribution
-- Shard ID range: 1 to N (where N is the shard count)
-- Same `user_id` always maps to the same shard
-- Posts are co-located with users (same shard)
+- Uses modulo 32 for even distribution
+- Table number range: 0 to 31
+- Same `id` always maps to the same table
+- Posts use `user_id` as the sharding key
+- Each database holds 8 tables
 
-### Why Hash-Based Sharding?
+### Why Table-Based Sharding?
 
 **Advantages**:
-- Even distribution of data across shards
-- Simple and predictable shard selection
-- No hotspots if user IDs are well-distributed
-- Deterministic: same key always goes to same shard
+- Even distribution of data across tables
+- Simple and predictable table selection (O(1))
+- No hotspots if IDs are well-distributed
+- Easier to add more databases without data migration
+- Flexible: can move tables between databases
 
 **Disadvantages**:
-- Difficult to rebalance when adding/removing shards
-- Range queries across shards are expensive
-- Related data must share the same shard key
+- More tables to manage (32 tables per entity)
+- Range queries require checking multiple tables
+- Template-based migrations needed
 
-## Shard Configuration
+## Configuration
 
 ### Development Environment
 
@@ -48,19 +88,71 @@ func (h *HashBasedSharding) GetShardID(key int64) int {
 
 ```yaml
 database:
-  shards:
-    - id: 1
-      driver: sqlite3
-      dsn: ./data/shard1.db
-    - id: 2
-      driver: sqlite3
-      dsn: ./data/shard2.db
-    - id: 3
-      driver: sqlite3
-      dsn: ./data/shard3.db
-    - id: 4
-      driver: sqlite3
-      dsn: ./data/shard4.db
+  groups:
+    master:
+      - id: 1
+        driver: sqlite3
+        dsn: ./data/master.db
+        writer_dsn: ./data/master.db
+        reader_dsns:
+          - ./data/master.db
+        reader_policy: random
+        max_connections: 10
+        max_idle_connections: 5
+        connection_max_lifetime: 300s
+
+    sharding:
+      databases:
+        - id: 1
+          driver: sqlite3
+          dsn: ./data/sharding_db_1.db
+          writer_dsn: ./data/sharding_db_1.db
+          reader_dsns:
+            - ./data/sharding_db_1.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [0, 7]  # _000-007
+        - id: 2
+          driver: sqlite3
+          dsn: ./data/sharding_db_2.db
+          writer_dsn: ./data/sharding_db_2.db
+          reader_dsns:
+            - ./data/sharding_db_2.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [8, 15]  # _008-015
+        - id: 3
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db
+          writer_dsn: ./data/sharding_db_3.db
+          reader_dsns:
+            - ./data/sharding_db_3.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [16, 23]  # _016-023
+        - id: 4
+          driver: sqlite3
+          dsn: ./data/sharding_db_4.db
+          writer_dsn: ./data/sharding_db_4.db
+          reader_dsns:
+            - ./data/sharding_db_4.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [24, 31]  # _024-031
+
+      tables:
+        - name: users
+          suffix_count: 32
+        - name: posts
+          suffix_count: 32
 ```
 
 ### Production Environment
@@ -69,117 +161,152 @@ database:
 
 ```yaml
 database:
-  shards:
-    - id: 1
-      driver: postgres
-      host: prod-db-shard1.example.com
-      port: 5432
-      name: app_db_shard1
-      user: prod_user
-      password: ${DB_PASSWORD_SHARD1}
-    - id: 2
-      driver: postgres
-      host: prod-db-shard2.example.com
-      port: 5432
-      name: app_db_shard2
-      user: prod_user
-      password: ${DB_PASSWORD_SHARD2}
-    - id: 3
-      driver: postgres
-      host: prod-db-shard3.example.com
-      port: 5432
-      name: app_db_shard3
-      user: prod_user
-      password: ${DB_PASSWORD_SHARD3}
-    - id: 4
-      driver: postgres
-      host: prod-db-shard4.example.com
-      port: 5432
-      name: app_db_shard4
-      user: prod_user
-      password: ${DB_PASSWORD_SHARD4}
+  groups:
+    master:
+      - id: 1
+        driver: postgres
+        host: prod-db-master.example.com
+        port: 5432
+        name: app_master
+        user: prod_user
+        password: ${DB_PASSWORD_MASTER}
+        writer_dsn: host=prod-db-master-writer.example.com ...
+        reader_dsns:
+          - host=prod-db-master-reader1.example.com ...
+        reader_policy: round_robin
+
+    sharding:
+      databases:
+        - id: 1
+          driver: postgres
+          host: prod-db-shard1.example.com
+          port: 5432
+          name: app_shard1
+          user: prod_user
+          password: ${DB_PASSWORD_SHARD1}
+          table_range: [0, 7]
+        - id: 2
+          driver: postgres
+          host: prod-db-shard2.example.com
+          port: 5432
+          name: app_shard2
+          user: prod_user
+          password: ${DB_PASSWORD_SHARD2}
+          table_range: [8, 15]
+        - id: 3
+          driver: postgres
+          host: prod-db-shard3.example.com
+          port: 5432
+          name: app_shard3
+          user: prod_user
+          password: ${DB_PASSWORD_SHARD3}
+          table_range: [16, 23]
+        - id: 4
+          driver: postgres
+          host: prod-db-shard4.example.com
+          port: 5432
+          name: app_shard4
+          user: prod_user
+          password: ${DB_PASSWORD_SHARD4}
+          table_range: [24, 31]
+
+      tables:
+        - name: users
+          suffix_count: 32
+        - name: posts
+          suffix_count: 32
 ```
 
 ## Data Distribution
 
-### User Table
+### Master Group Tables
 
-Users are distributed across shards based on their ID:
+The master group contains shared tables that don't require sharding:
 
-```
-User ID 1 → hash(1) % 4 = Shard 1, 2, 3, or 4
-User ID 2 → hash(2) % 4 = Shard 1, 2, 3, or 4
-...
-```
-
-Example distribution (with 4 shards):
-- User ID 1 → Shard 2
-- User ID 2 → Shard 3
-- User ID 3 → Shard 4
-- User ID 4 → Shard 1
-- User ID 5 → Shard 2
-- User ID 6 → Shard 3
-- User ID 7 → Shard 4
-- User ID 8 → Shard 1
-
-### Post Table
-
-Posts are co-located with users using `user_id` as the shard key:
-
-```
-Post with user_id=1 → Same shard as User 1
-Post with user_id=2 → Same shard as User 2
+**news table**:
+```sql
+CREATE TABLE IF NOT EXISTS news (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    author_id INTEGER,
+    published_at DATETIME,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+);
 ```
 
-**Benefit**: User and their posts are always on the same shard, enabling efficient single-shard queries.
+### Sharding Group Tables
+
+Users and posts are distributed across 32 tables:
+
+```
+User ID 1  → 1 % 32 = 1  → users_001, DB 1
+User ID 8  → 8 % 32 = 8  → users_008, DB 2
+User ID 16 → 16 % 32 = 16 → users_016, DB 3
+User ID 24 → 24 % 32 = 24 → users_024, DB 4
+User ID 32 → 32 % 32 = 0  → users_000, DB 1
+User ID 100 → 100 % 32 = 4 → users_004, DB 1
+```
+
+**Benefit**: Even distribution across tables and databases.
 
 ## Query Patterns
 
-### Single-Shard Queries
+### Single-Table Queries
 
-Operations that access data for a single user can be routed to a specific shard:
+Operations that access data for a single entity use dynamic table names:
 
 **Example**: Get User by ID
 ```go
-// Automatically routes to correct shard
-conn, err := dbManager.GetConnectionByKey(userID)
+// Calculate table name
+tableName := db.GetShardingTableName("users", userID)  // e.g., "users_005"
+
+// Get connection for this table
+conn, err := groupManager.GetShardingConnectionByID(userID, "users")
 if err != nil {
     return nil, err
 }
 
-user, err := repo.GetByID(conn, userID)
+// Query with dynamic table name
+var user model.User
+err = conn.DB.Table(tableName).Where("id = ?", userID).First(&user).Error
 ```
 
 **Queries**:
-- `GetUserByID(id)` → Single shard
-- `CreateUser(user)` → Single shard
-- `GetPostsByUserID(userID)` → Single shard
-- `UpdateUser(id, data)` → Single shard
-- `DeleteUser(id)` → Single shard
+- `GetUserByID(id)` → Single table
+- `CreateUser(user)` → Single table
+- `GetPostByID(postID, userID)` → Single table
+- `UpdateUser(id, data)` → Single table
+- `DeleteUser(id)` → Single table
 
-### Cross-Shard Queries
+### Cross-Table Queries
 
-Operations that need to access all data must query multiple shards:
+Operations that need to access all data must query all tables:
 
 **Example**: Get All Users
 ```go
-func (r *UserRepository) GetAll() ([]*model.User, error) {
+func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*model.User, error) {
+    connections := r.groupManager.GetAllShardingConnections()
     var allUsers []*model.User
 
-    // Query each shard
-    for i := 1; i <= r.dbManager.GetShardCount(); i++ {
-        conn, err := r.dbManager.GetConnection(i)
-        if err != nil {
-            return nil, err
-        }
+    // Query each database
+    for _, conn := range connections {
+        // Query all tables in this database
+        for i := conn.TableRange[0]; i <= conn.TableRange[1]; i++ {
+            tableName := fmt.Sprintf("users_%03d", i)
 
-        // Query this shard
-        users, err := queryUsersFromShard(conn)
-        if err != nil {
-            return nil, err
+            var users []*model.User
+            err := conn.DB.Table(tableName).
+                Order("id").
+                Limit(limit).
+                Offset(offset).
+                Find(&users).Error
+            if err != nil {
+                continue
+            }
+            allUsers = append(allUsers, users...)
         }
-
-        allUsers = append(allUsers, users...)
     }
 
     return allUsers, nil
@@ -187,41 +314,38 @@ func (r *UserRepository) GetAll() ([]*model.User, error) {
 ```
 
 **Queries**:
-- `GetAllUsers()` → All shards
-- `GetAllPosts()` → All shards
-- `GetUserPosts()` (JOIN) → All shards
+- `GetAllUsers()` → All tables in all databases
+- `GetAllPosts()` → All tables in all databases
+- `GetUserPosts()` (JOIN) → All tables in all databases
 
-### Cross-Shard JOIN
+### Cross-Table JOIN
 
-**Challenge**: Users and Posts may be on different shards
+**Challenge**: Users and Posts are in different tables
 
-**Solution**: Application-level JOIN
+**Solution**: Application-level JOIN with table matching
 
 ```go
-func (r *PostRepository) GetUserPosts() ([]UserPost, error) {
-    var result []UserPost
+func (r *PostRepository) GetUserPosts(ctx context.Context, limit, offset int) ([]model.UserPost, error) {
+    var result []model.UserPost
 
-    // 1. Get all users from all shards
-    users, err := r.userRepo.GetAll()
+    connections := r.groupManager.GetAllShardingConnections()
 
-    // 2. Get all posts from all shards
-    posts, err := r.GetAll()
+    for _, conn := range connections {
+        for i := conn.TableRange[0]; i <= conn.TableRange[1]; i++ {
+            usersTable := fmt.Sprintf("users_%03d", i)
+            postsTable := fmt.Sprintf("posts_%03d", i)
 
-    // 3. Join in memory
-    for _, post := range posts {
-        for _, user := range users {
-            if post.UserID == user.ID {
-                result = append(result, UserPost{
-                    UserID:      user.ID,
-                    UserName:    user.Name,
-                    UserEmail:   user.Email,
-                    PostID:      post.ID,
-                    PostTitle:   post.Title,
-                    PostContent: post.Content,
-                    CreatedAt:   post.CreatedAt,
-                })
-                break
+            // JOIN within same suffix (users_005 with posts_005)
+            var userPosts []model.UserPost
+            err := conn.DB.Table(postsTable).
+                Select("users.id as user_id, users.name as user_name, ...").
+                Joins(fmt.Sprintf("JOIN %s ON %s.user_id = %s.id",
+                    usersTable, postsTable, usersTable)).
+                Find(&userPosts).Error
+            if err != nil {
+                continue
             }
+            result = append(result, userPosts...)
         }
     }
 
@@ -229,306 +353,221 @@ func (r *PostRepository) GetUserPosts() ([]UserPost, error) {
 }
 ```
 
-**Performance Note**: Application-level JOINs can be expensive for large datasets. Consider:
-- Caching frequently accessed data
-- Denormalizing data to avoid JOINs
-- Using pagination to limit result size
+**Note**: Users and their posts share the same table suffix (same sharding key), enabling efficient single-database JOINs.
 
-## Schema Management
+## Migration Management
 
-### Schema Consistency
+### Directory Structure
 
-Each shard must have an identical schema:
+```
+db/
+└── migrations/
+    ├── master/
+    │   └── 001_init.sql          # news table
+    └── sharding/
+        ├── templates/
+        │   ├── users.sql.template    # users table template
+        │   └── posts.sql.template    # posts table template
+        └── generated/              # generated migrations (optional)
+```
 
-**Shard 1**: `db/migrations/shard1/001_init.sql`
-**Shard 2**: `db/migrations/shard2/001_init.sql`
-**Shard 3**: `db/migrations/shard3/001_init.sql`
-**Shard 4**: `db/migrations/shard4/001_init.sql`
+### Migration Templates
 
-All shards contain the same schema:
+**users.sql.template**:
 ```sql
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE INDEX IF NOT EXISTS idx_{TABLE_NAME}_email ON {TABLE_NAME}(email);
+```
+
+**posts.sql.template**:
+```sql
+CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+    id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users_{TABLE_SUFFIX}(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_{TABLE_NAME}_user_id ON {TABLE_NAME}(user_id);
+CREATE INDEX IF NOT EXISTS idx_{TABLE_NAME}_created_at ON {TABLE_NAME}(created_at);
 ```
 
-### Schema Migrations
+### Migration Generation Tool
 
-When evolving the schema:
+Generate migration files from templates:
 
-1. Create migration files for each shard
-2. Apply migrations to all shards
-3. Ensure consistency across all shards
-4. Test cross-shard queries after migration
+```bash
+cd server
+go run cmd/migrate-gen/main.go \
+    -template db/migrations/sharding/templates/users.sql.template \
+    -output db/migrations/sharding/generated/
+```
 
-**Future Enhancement**: Automated migration tool that applies changes to all shards.
+### Migration Application
 
-## Adding/Removing Shards
+Apply migrations using the script:
 
-### Adding a Shard
+```bash
+# Apply all migrations
+./scripts/migrate.sh
 
-**Warning**: Adding shards to a hash-based sharding system requires data rebalancing.
+# Or apply manually:
 
-**Steps**:
-1. Add new shard configuration to config file
-2. Create schema on new shard
-3. Recalculate shard assignments for all users
-4. Migrate data to new shards
-5. Update application with new shard count
+# Master database
+sqlite3 server/data/master.db < db/migrations/master/001_init.sql
 
-**Challenge**: Existing data must be redistributed because hash values will change.
+# Sharding databases (example for DB 1, tables _000-007)
+for i in {0..7}; do
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+done
+```
 
-### Alternative: Consistent Hashing
+## Connection Management
 
-For easier shard management, consider implementing **consistent hashing**:
-- Minimizes data movement when adding/removing shards
-- Only ~1/N of data needs to move when adding a shard
-- More complex implementation
+### GroupManager
 
-## Performance Optimization
-
-### Connection Pooling
-
-Each shard maintains its own connection pool:
+The `GroupManager` provides unified access to all database connections:
 
 ```go
-type Connection struct {
-    db       *sql.DB
-    shardID  int
-    config   ShardConfig
+// Initialize GroupManager
+groupManager, err := db.NewGroupManager(cfg)
+if err != nil {
+    log.Fatal(err)
 }
+defer groupManager.CloseAll()
 
-// Configure connection pool
-db.SetMaxOpenConns(25)
-db.SetMaxIdleConns(5)
-db.SetConnMaxLifetime(5 * time.Minute)
+// Get master connection (for news table)
+masterConn, err := groupManager.GetMasterConnection()
+
+// Get sharding connection by ID
+shardingConn, err := groupManager.GetShardingConnectionByID(userID, "users")
+
+// Get sharding connection by table number
+shardingConn, err := groupManager.GetShardingConnection(tableNumber)
+
+// Get all sharding connections (for cross-table queries)
+connections := groupManager.GetAllShardingConnections()
 ```
 
-### Parallel Queries
+### TableSelector
 
-Cross-shard queries execute in parallel using goroutines:
+The `TableSelector` handles table name generation:
 
 ```go
-var wg sync.WaitGroup
-resultChan := make(chan []*model.User, shardCount)
+tableSelector := db.NewTableSelector(32, 8)  // 32 tables, 8 per database
 
-for i := 1; i <= shardCount; i++ {
-    wg.Add(1)
-    go func(shardID int) {
-        defer wg.Done()
-        users, _ := queryShardParallel(shardID)
-        resultChan <- users
-    }(i)
-}
+// Get table number from ID
+tableNumber := tableSelector.GetTableNumber(userID)  // e.g., 5
 
-wg.Wait()
-close(resultChan)
+// Get table name
+tableName := tableSelector.GetTableName("users", userID)  // e.g., "users_005"
 
-// Collect results
-for users := range resultChan {
-    allUsers = append(allUsers, users...)
-}
+// Get database ID from table number
+dbID := tableSelector.GetDBID(tableNumber)  // e.g., 1
 ```
-
-### Indexes
-
-Ensure appropriate indexes on each shard:
-
-```sql
--- User lookups
-CREATE INDEX idx_users_email ON users(email);
-
--- Post lookups by user
-CREATE INDEX idx_posts_user_id ON posts(user_id);
-
--- Recent posts
-CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
-```
-
-## Monitoring and Metrics
-
-### Key Metrics to Monitor
-
-1. **Shard Distribution**:
-   - Number of users per shard
-   - Number of posts per shard
-   - Ensure even distribution
-
-2. **Query Performance**:
-   - Single-shard query latency
-   - Cross-shard query latency
-   - Connection pool utilization
-
-3. **Shard Health**:
-   - Connection errors per shard
-   - Query errors per shard
-   - Available connections per shard
-
-### Monitoring Queries
-
-```sql
--- Check user distribution
-SELECT 'Shard 1' as shard, COUNT(*) as user_count FROM users;
--- Run on each shard
-
--- Check post distribution
-SELECT 'Shard 1' as shard, COUNT(*) as post_count FROM posts;
--- Run on each shard
-```
-
-## Best Practices
-
-### 1. Always Use Shard Keys
-
-When designing queries, always include the shard key (`user_id`) when possible:
-
-```go
-// Good: Includes user_id for routing
-DeletePost(postID, userID)
-
-// Bad: Would require querying all shards
-DeletePost(postID)
-```
-
-### 2. Co-locate Related Data
-
-Keep related entities on the same shard:
-- Users and their Posts share the same shard key
-- Comments could use the same user_id shard key
-- User settings could use user_id as well
-
-### 3. Denormalize When Necessary
-
-If you frequently JOIN across shards:
-- Consider denormalizing data
-- Store user name with posts to avoid JOINs
-- Use caching for frequently accessed data
-
-### 4. Plan for Growth
-
-- Monitor shard size and distribution
-- Plan for rebalancing before reaching capacity
-- Consider partitioning strategies for very large tables
-
-### 5. Test Cross-Shard Operations
-
-Thoroughly test:
-- Cross-shard queries return correct results
-- Transactions don't span shards (not supported)
-- Error handling when shards are unavailable
-
-## Limitations
-
-### Current Limitations
-
-1. **No Distributed Transactions**: Transactions cannot span multiple shards
-2. **No Range Queries**: Queries like "get users 1-100" require checking all shards
-3. **Rebalancing is Hard**: Adding/removing shards requires data migration
-4. **JOIN Performance**: Application-level JOINs can be slow for large datasets
-
-### Future Enhancements
-
-1. **Global ID Generation**: Use a distributed ID generator (Snowflake, UUID)
-2. **Consistent Hashing**: Easier shard management
-3. **Read Replicas**: Add read replicas for each shard (GORM版で実装済み)
-4. **Shard Rebalancing Tool**: Automate data migration
-5. **Query Router**: Dedicated routing layer for shard selection
 
 ## GORM Support
 
 ### Writer/Reader Separation
 
-GORM版のRepositoryは`gorm.io/plugin/dbresolver`を使用してWriter/Reader分離をサポートしています。
+GORM repositories use `gorm.io/plugin/dbresolver` for Writer/Reader separation.
 
-**設定例** (`config/production/database.yaml.example`):
+**Configuration**:
 ```yaml
 database:
-  shards:
-    - id: 1
-      driver: postgres
-      writer_dsn: host=prod-db-shard1-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
-      reader_dsns:
-        - host=prod-db-shard1-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
-        - host=prod-db-shard1-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD1} dbname=app_db_shard1 sslmode=require
-      reader_policy: round_robin
-    - id: 2
-      driver: postgres
-      writer_dsn: host=prod-db-shard2-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
-      reader_dsns:
-        - host=prod-db-shard2-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
-        - host=prod-db-shard2-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD2} dbname=app_db_shard2 sslmode=require
-      reader_policy: round_robin
-    - id: 3
-      driver: postgres
-      writer_dsn: host=prod-db-shard3-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
-      reader_dsns:
-        - host=prod-db-shard3-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
-        - host=prod-db-shard3-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
-      reader_policy: round_robin
-    - id: 4
-      driver: postgres
-      writer_dsn: host=prod-db-shard4-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
-      reader_dsns:
-        - host=prod-db-shard4-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
-        - host=prod-db-shard4-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
-      reader_policy: round_robin
+  groups:
+    sharding:
+      databases:
+        - id: 1
+          driver: postgres
+          writer_dsn: host=prod-db-shard1-writer.example.com ...
+          reader_dsns:
+            - host=prod-db-shard1-reader1.example.com ...
+            - host=prod-db-shard1-reader2.example.com ...
+          reader_policy: round_robin  # or "random"
 ```
 
-**機能**:
-- **Write操作**: Create, Update, Delete → Writer DBに送信
-- **Read操作**: Select, Find → Reader DBに送信
-- **複数Reader**: 複数のReader DSNを設定可能
-- **ロードバランシング**: `random`または`round_robin`ポリシー
-- **後方互換性**: 従来の`dsn`設定も引き続きサポート
+**Behavior**:
+- **Write operations**: Create, Update, Delete → Writer DB
+- **Read operations**: Select, Find → Reader DB
+- **Load balancing**: Supports `random` or `round_robin` policies
 
-**使用例**:
+### Dynamic Table Names with GORM
+
 ```go
-// GORMManager を使用
-gormManager, err := db.NewGORMManager(cfg)
-defer gormManager.CloseAll()
+// Use Table() method for dynamic table names
+tableName := db.GetShardingTableName("users", userID)
 
-// Repository層での使用
-userRepo := repository.NewUserRepositoryGORM(gormManager)
+var user model.User
+err := conn.DB.Table(tableName).Where("id = ?", userID).First(&user).Error
 
-// Write操作 → Writer DBに送信
-user, err := userRepo.Create(ctx, req)
-
-// Read操作 → Reader DBに送信
-user, err := userRepo.GetByID(ctx, id)
+// For Create/Update/Delete
+err := conn.DB.Table(tableName).Create(&user).Error
 ```
 
-**利点**:
-- Writeの負荷とReadの負荷を分離
-- Read性能のスケールアウトが容易
-- Readerの追加だけで読み込み性能を向上可能
-- 既存のsharding戦略と組み合わせて使用可能
+## Best Practices
 
-### GORM Migration Path
+### 1. Always Use Sharding Keys
 
-現在は`database/sql`版のRepositoryを使用していますが、GORM版も完全に実装されています。
+When designing queries, always include the sharding key:
 
-**移行手順**:
-1. Service層をInterface化
-2. main.goでGORMManagerを使用
-3. GORMRepositoryをインジェクト
-4. Writer/Reader分離の設定を追加
+```go
+// Good: Includes user_id for routing
+GetPost(postID, userID)
+DeletePost(postID, userID)
 
-**現状**:
-- GORM版Repository: 実装済み ✅
-- Writer/Reader分離: 実装済み ✅
-- テスト: すべてパス ✅
-- Service層Interface化: 未実装 (将来タスク)
+// Bad: Would require querying all tables
+GetPost(postID)  // Which table contains this post?
+```
+
+### 2. Co-locate Related Data
+
+Keep related entities using the same sharding key:
+- Posts use `user_id` as the sharding key
+- Same `user_id` → same table suffix → same database
+- Enables efficient JOINs within a single database
+
+### 3. Use Template-Based Migrations
+
+Always use the template system for schema changes:
+- Modify the template file
+- Regenerate migration files
+- Apply to all databases
+
+### 4. Monitor Table Distribution
+
+Check data distribution across tables:
+```sql
+-- Check user count per table (run in each database)
+SELECT 'users_000' as table_name, COUNT(*) as count FROM users_000
+UNION ALL
+SELECT 'users_001', COUNT(*) FROM users_001
+-- ... for all tables
+```
+
+## Limitations
+
+### Current Limitations
+
+1. **No Distributed Transactions**: Transactions cannot span multiple databases
+2. **Table Suffix Required**: Post operations require `user_id` to determine table
+3. **Limited Range Queries**: Queries like "get users 1-100" require checking multiple tables
+4. **32-Table Fixed**: Currently fixed at 32 table partitions
+
+### Backward Compatibility
+
+The system maintains backward compatibility:
+- Old `shards` configuration is still supported (deprecated)
+- `GORMManager` is still available (deprecated)
+- Migration path: Use `GroupManager` for new code

@@ -47,18 +47,18 @@ func doRequestWithAuth(method, url string, body []byte) (*http.Response, error) 
 }
 
 func setupTestServer(t *testing.T) *httptest.Server {
-	// Setup test database
-	dbManager := testutil.SetupTestShards(t, 2)
+	// Setup test database with GroupManager
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	t.Cleanup(func() {
-		testutil.CleanupTestDB(dbManager)
+		testutil.CleanupTestGroupManager(groupManager)
 	})
 
-	// Initialize layers
-	userRepo := repository.NewUserRepository(dbManager)
+	// Initialize layers (using GORM repositories)
+	userRepo := repository.NewUserRepositoryGORM(groupManager)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
-	postRepo := repository.NewPostRepository(dbManager)
+	postRepo := repository.NewPostRepositoryGORM(groupManager)
 	postService := service.NewPostService(postRepo, userRepo)
 	postHandler := handler.NewPostHandler(postService)
 
