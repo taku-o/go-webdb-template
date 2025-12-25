@@ -16,6 +16,20 @@ OKです。設計書を承認します。
 
 /kiro:spec-tasks
 
+OKです。タスクリストを承認します。
+
+この要件の作業用のgitブランチを切ってください。
+ここまでの作業をcommitしてください。
+
+/serena-initialize
+
+/kiro:spec-impl 0009-inc-sharding
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/17 に対して
+pull requestを作成してください。
+
+/review 18
 
 
 
