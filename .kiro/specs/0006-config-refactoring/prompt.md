@@ -35,5 +35,5 @@ OKです。いったんサーバーは止めてください。
 その後、https://github.com/taku-o/go-webdb-template/issues/8 に対して
 pull requestを作成してください。
 
-
+/review 12
 
