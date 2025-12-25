@@ -1,0 +1,12 @@
+{
+  "feature": "0011-public-api-key",
+  "description": "APIサーバーに、PublicなAPIキーによる認証を追加する",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
