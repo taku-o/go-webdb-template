@@ -30,3 +30,33 @@ database:
       max_connections: 50
       max_idle_connections: 20
       connection_max_lifetime: 600s
+    - id: 3
+      driver: postgres
+      host: prod-db-shard3.example.com
+      port: 5432
+      name: app_db_shard3
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD3}  # 環境変数から読み込み
+      writer_dsn: host=prod-db-shard3-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard3-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
+        - host=prod-db-shard3-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD3} dbname=app_db_shard3 sslmode=require
+      reader_policy: round_robin
+      max_connections: 50
+      max_idle_connections: 20
+      connection_max_lifetime: 600s
+    - id: 4
+      driver: postgres
+      host: prod-db-shard4.example.com
+      port: 5432
+      name: app_db_shard4
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD4}  # 環境変数から読み込み
+      writer_dsn: host=prod-db-shard4-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
+      reader_dsns:
+        - host=prod-db-shard4-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
+        - host=prod-db-shard4-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARD4} dbname=app_db_shard4 sslmode=require
+      reader_policy: round_robin
+      max_connections: 50
+      max_idle_connections: 20
+      connection_max_lifetime: 600s

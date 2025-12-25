@@ -20,3 +20,23 @@ database:
       max_connections: 10
       max_idle_connections: 5
       connection_max_lifetime: 300s
+    - id: 3
+      driver: sqlite3
+      dsn: ./data/shard3.db
+      writer_dsn: ./data/shard3.db
+      reader_dsns:
+        - ./data/shard3.db
+      reader_policy: random
+      max_connections: 10
+      max_idle_connections: 5
+      connection_max_lifetime: 300s
+    - id: 4
+      driver: sqlite3
+      dsn: ./data/shard4.db
+      writer_dsn: ./data/shard4.db
+      reader_dsns:
+        - ./data/shard4.db
+      reader_policy: random
+      max_connections: 10
+      max_idle_connections: 5
+      connection_max_lifetime: 300s
