@@ -18,6 +18,7 @@ logging:
   format: json
   output: stdout
   output_dir: ../logs
+  sql_log_enabled: true
 
 cors:
   allowed_origins:
