@@ -10,6 +10,29 @@ export default function Home() {
           Go + Next.js + Sharding対応のサンプルプロジェクトです。
         </p>
 
+        {/* サンプル画像ファイルの参照例 */}
+        {/* Next.jsのpublicディレクトリ配下の画像ファイルは /images/logo.png のように参照できます */}
+        <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+          <h3 className="font-semibold mb-4">静的ファイルの参照例</h3>
+          <div className="flex gap-4 items-center">
+            <div>
+              <p className="text-sm text-gray-600 mb-2">SVG画像:</p>
+              <img src="/images/logo.svg" alt="Logo SVG" className="w-20 h-20" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-2">PNG画像:</p>
+              <img src="/images/logo.png" alt="Logo PNG" className="w-20 h-20 border" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 mb-2">JPG画像:</p>
+              <img src="/images/icon.jpg" alt="Icon JPG" className="w-20 h-20 border" />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-4">
+            これらの画像は client/public/images/ ディレクトリに配置されています。
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
             href="/users"

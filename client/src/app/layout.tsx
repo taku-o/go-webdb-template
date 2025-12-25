@@ -10,6 +10,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* サンプルCSSファイルの参照 */}
+        {/* Next.jsのpublicディレクトリ配下のファイルは /css/style.css のように参照できます */}
+        <link rel="stylesheet" href="/css/style.css" />
+      </head>
       <body>{children}</body>
     </html>
   )

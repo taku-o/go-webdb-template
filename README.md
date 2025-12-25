@@ -135,6 +135,58 @@ database:
 
 詳細は [Architecture.md](docs/Architecture.md) を参照してください。
 
+## 静的ファイル（CSS・画像）の配置
+
+クライアント側（Next.js）の静的ファイルは`client/public/`ディレクトリに配置します。
+
+### ディレクトリ構造
+
+```
+client/
+├── public/
+│   ├── css/              # CSSファイル用ディレクトリ
+│   │   └── style.css     # サンプルCSSファイル
+│   └── images/           # 画像ファイル用ディレクトリ
+│       ├── logo.svg      # サンプルSVG画像
+│       ├── logo.png      # サンプルPNG画像
+│       └── icon.jpg      # サンプルJPG画像
+```
+
+### 参照方法
+
+Next.jsの`public/`ディレクトリ配下のファイルは、ルート（`/`）から直接参照できます。
+
+#### CSSファイルの参照
+
+`client/src/app/layout.tsx`でCSSファイルを参照:
+
+```tsx
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>{children}</body>
+</html>
+```
+
+#### 画像ファイルの参照
+
+`client/src/app/page.tsx`などで画像ファイルを参照:
+
+```tsx
+// <img>タグを使用する場合
+<img src="/images/logo.png" alt="Logo" />
+
+// next/imageコンポーネントを使用する場合（推奨）
+import Image from 'next/image'
+<Image src="/images/logo.png" alt="Logo" width={100} height={100} />
+```
+
+**重要なポイント**:
+- パスに`public/`を含めない（`/css/style.css`が正しい）
+- `public/`ディレクトリがルート（`/`）として扱われる
+- 開発環境と本番環境の両方で同じ動作
+
 ## ライセンス
 
 MIT License
