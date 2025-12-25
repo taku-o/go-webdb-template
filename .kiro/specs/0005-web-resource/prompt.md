@@ -15,8 +15,8 @@ APIサーバーとclientサーバーを起動してください
 
 OKです。いったんサーバーは止めてください。
 
-ここまでの修正をcommitしてください。
-その後、https://github.com/taku-o/go-webdb-template/issues/7 に対して
+https://github.com/taku-o/go-webdb-template/issues/7 に対して
 pull requestを作成してください。
 
+/review 11
 
