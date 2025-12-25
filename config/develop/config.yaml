@@ -17,6 +17,7 @@ logging:
   level: debug
   format: json
   output: stdout
+  output_dir: ../logs
 
 cors:
   allowed_origins:

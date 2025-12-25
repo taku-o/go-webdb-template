@@ -57,6 +57,11 @@ client/test-results/
 # Serena
 .serena/cache/
 
+# Logs
+logs/*
+logs/**
+!logs/.gitkeep
+
 # Misc
 *.log
 .env
