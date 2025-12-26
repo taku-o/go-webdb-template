@@ -1,61 +1,67 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
 	"github.com/example/go-webdb-template/internal/api/handler"
 	"github.com/example/go-webdb-template/internal/auth"
 	"github.com/example/go-webdb-template/internal/config"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-// NewRouter は新しいルーターを作成
-func NewRouter(userHandler *handler.UserHandler, postHandler *handler.PostHandler, cfg *config.Config) http.Handler {
-	r := mux.NewRouter()
+// NewRouter は新しいEchoルーターを作成
+func NewRouter(userHandler *handler.UserHandler, postHandler *handler.PostHandler, cfg *config.Config) *echo.Echo {
+	e := echo.New()
 
-	// API routes
-	api := r.PathPrefix("/api").Subrouter()
-
-	// 認証ミドルウェアの適用
+	// デバッグモードの設定（開発環境のみ）
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "develop"
 	}
-	authMiddleware := auth.NewAuthMiddleware(&cfg.API, env)
-	api.Use(authMiddleware.Middleware)
+	if env == "develop" {
+		e.Debug = true
+	}
 
-	// User routes
-	api.HandleFunc("/users", userHandler.CreateUser).Methods("POST")
-	api.HandleFunc("/users", userHandler.ListUsers).Methods("GET")
-	api.HandleFunc("/users/{id}", userHandler.GetUser).Methods("GET")
-	api.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
-	api.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
+	// Recoverミドルウェア
+	e.Use(middleware.Recover())
 
-	// Post routes
-	api.HandleFunc("/posts", postHandler.CreatePost).Methods("POST")
-	api.HandleFunc("/posts", postHandler.ListPosts).Methods("GET")
-	api.HandleFunc("/posts/{id}", postHandler.GetPost).Methods("GET")
-	api.HandleFunc("/posts/{id}", postHandler.UpdatePost).Methods("PUT")
-	api.HandleFunc("/posts/{id}", postHandler.DeletePost).Methods("DELETE")
-
-	// User-Post JOIN route
-	api.HandleFunc("/user-posts", postHandler.GetUserPosts).Methods("GET")
+	// CORS設定
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     cfg.CORS.AllowedOrigins,
+		AllowMethods:     cfg.CORS.AllowedMethods,
+		AllowHeaders:     cfg.CORS.AllowedHeaders,
+		AllowCredentials: true,
+	}))
 
 	// Health check
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	}).Methods("GET")
-
-	// CORS middleware
-	c := cors.New(cors.Options{
-		AllowedOrigins:   cfg.CORS.AllowedOrigins,
-		AllowedMethods:   cfg.CORS.AllowedMethods,
-		AllowedHeaders:   cfg.CORS.AllowedHeaders,
-		AllowCredentials: true,
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(http.StatusOK, "OK")
 	})
 
-	return c.Handler(r)
+	// Huma API設定
+	humaConfig := huma.DefaultConfig("go-webdb-template API", "1.0.0")
+	humaConfig.DocsPath = "/docs"
+	humaConfig.Servers = []*huma.Server{
+		{
+			URL:         fmt.Sprintf("http://localhost:%d", cfg.Server.Port),
+			Description: "Development server",
+		},
+	}
+
+	// Huma APIインスタンスの作成（ルートレベル、認証なし）
+	humaAPI := humaecho.New(e, humaConfig)
+
+	// Humaミドルウェアとして認証を追加（/api/パスのみ）
+	humaAPI.UseMiddleware(auth.NewHumaAuthMiddleware(&cfg.API, env))
+
+	// Humaエンドポイントの登録
+	handler.RegisterUserEndpoints(humaAPI, userHandler)
+	handler.RegisterPostEndpoints(humaAPI, postHandler)
+
+	return e
 }

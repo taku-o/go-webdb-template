@@ -136,3 +136,8 @@ func (a *AccessLogger) Close() error {
 	}
 	return nil
 }
+
+// Writer はログの出力先を返す
+func (a *AccessLogger) Writer() io.Writer {
+	return a.writer
+}

@@ -134,7 +134,16 @@ npm run dev
 - `GET /api/user-posts` - ユーザーと投稿をJOIN（クロスシャードクエリ）
 - `GET /health` - ヘルスチェック（認証不要）
 
-詳細は [プロジェクト構造計画](docs/plans/project-structure.md) を参照してください。
+### OpenAPI仕様
+
+- `GET /docs` - API Documentation UI (Stoplight Elements)
+- `GET /openapi.json` - OpenAPI 3.1 (JSON)
+- `GET /openapi.yaml` - OpenAPI 3.1 (YAML)
+- `GET /openapi-3.0.json` - OpenAPI 3.0.3 (JSON)
+
+※ OpenAPIドキュメントエンドポイントは認証不要でアクセス可能です。
+
+詳細は [API.md](docs/API.md) を参照してください。
 
 ## API認証
 
@@ -336,6 +345,8 @@ database:
 - `gorm.io/driver/postgres`
 - `gorm.io/plugin/dbresolver` (Writer/Reader分離)
 - `gorm.io/sharding` (将来使用予定)
+- `github.com/labstack/echo/v4` v4.13.3 (HTTPルーター)
+- `github.com/danielgtaylor/huma/v2` v2.34.1 (OpenAPI仕様自動生成)
 
 詳細は [Architecture.md](docs/Architecture.md) を参照してください。
 
