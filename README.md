@@ -26,6 +26,10 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 - Go 1.21+
 - Node.js 18+
 - SQLite3
+- Atlas CLI（データベースマイグレーション管理用）
+  - インストール方法: `brew install ariga/tap/atlas`（macOS）
+  - インストール確認: `atlas version`
+  - 詳細: https://atlasgo.io/
 
 ### 1. 依存関係のインストール
 

@@ -1,0 +1,12 @@
+{
+  "feature": "0014-db-atlas",
+  "description": "データベースの管理にAtlasを導入",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
