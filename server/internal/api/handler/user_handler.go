@@ -40,7 +40,7 @@ func RegisterUserEndpoints(api huma.API, h *UserHandler) {
 
 		user, err := h.userService.CreateUser(ctx, req)
 		if err != nil {
-			return nil, huma.Error400BadRequest(err.Error())
+			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
 		resp := &humaapi.UserOutput{}

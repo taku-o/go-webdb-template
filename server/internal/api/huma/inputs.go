@@ -3,8 +3,8 @@ package humaapi
 // CreateUserInput はユーザー作成リクエストの入力構造体
 type CreateUserInput struct {
 	Body struct {
-		Name  string `json:"name" maxLength:"100" doc:"ユーザー名"`
-		Email string `json:"email" format:"email" maxLength:"255" doc:"メールアドレス"`
+		Name  string `json:"name" required:"true" maxLength:"100" doc:"ユーザー名"`
+		Email string `json:"email" required:"true" format:"email" maxLength:"255" doc:"メールアドレス"`
 	}
 }
 
