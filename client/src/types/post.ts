@@ -8,7 +8,7 @@ export interface Post {
 }
 
 export interface CreatePostRequest {
-  user_id: string
+  user_id: number
   title: string
   content: string
 }
