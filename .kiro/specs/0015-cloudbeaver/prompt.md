@@ -147,8 +147,17 @@ pull requestを作成してください。
 
 /review 31
 
+cloudbeaver/scripts/ は消して大丈夫？
+使ってる？
 
+これやってください。
+>  削除する場合:
+>  1. cloudbeaver/scripts/ ディレクトリ削除
+>  2. docker-compose.yml のマウント設定削除
 
+commitして、pull requestを更新してください。
+
+/review 31
 
 
 
