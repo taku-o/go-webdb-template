@@ -20,6 +20,7 @@ type SQLLogger struct {
 	logrusLogger *logrus.Logger
 	writer       io.WriteCloser
 	shardID      int
+	groupName    string
 	driver       string
 	logLevel     logger.LogLevel
 	outputDir    string
@@ -27,7 +28,7 @@ type SQLLogger struct {
 
 // NewSQLLogger は新しいSQLLoggerを作成
 // SQLログが無効な場合はnilを返す
-func NewSQLLogger(shardID int, driver string, outputDir string, enabled bool) (*SQLLogger, error) {
+func NewSQLLogger(shardID int, groupName string, driver string, outputDir string, enabled bool) (*SQLLogger, error) {
 	// SQLログが無効な場合はnilを返す
 	if !enabled {
 		return nil, nil
@@ -59,6 +60,7 @@ func NewSQLLogger(shardID int, driver string, outputDir string, enabled bool) (*
 		logrusLogger: logrusLogger,
 		writer:       writer,
 		shardID:      shardID,
+		groupName:    groupName,
 		driver:       driver,
 		logLevel:     logger.Info,
 		outputDir:    outputDir,
@@ -115,14 +117,11 @@ func (l *SQLLogger) Trace(ctx context.Context, begin time.Time, fc func() (strin
 	sql, rows := fc()
 	duration := time.Since(begin)
 
-	// テーブル名を抽出（SQLクエリから）
-	tableName := extractTableName(sql)
-
 	// ログエントリを作成
 	l.logrusLogger.WithFields(logrus.Fields{
 		"shard_id":      l.shardID,
+		"group_name":    l.groupName,
 		"driver":        l.driver,
-		"table":         tableName,
 		"rows_affected": rows,
 		"sql":           sql,
 		"duration_ms":   float64(duration.Microseconds()) / 1000.0,
@@ -144,8 +143,8 @@ type SQLTextFormatter struct{}
 func (f *SQLTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	timestamp := entry.Time.Format("2006-01-02 15:04:05")
 	shardID := entry.Data["shard_id"]
+	groupName := entry.Data["group_name"]
 	driver := entry.Data["driver"]
-	table := entry.Data["table"]
 	rowsAffected := entry.Data["rows_affected"]
 	sql := entry.Data["sql"]
 	durationMs := entry.Data["duration_ms"]
@@ -155,7 +154,7 @@ func (f *SQLTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	logLine := fmt.Sprintf(
 		"[%s] [%v] [%v][%v] %v | %v | %.2fms\n",
-		timestamp, driver, table, shardID, rowsAffected, normalizedSQL, durationMs,
+		timestamp, driver, groupName, shardID, rowsAffected, normalizedSQL, durationMs,
 	)
 
 	return []byte(logLine), nil

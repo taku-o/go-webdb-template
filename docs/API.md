@@ -4,10 +4,27 @@
 
 Development: `http://localhost:8080`
 
+## OpenAPI Specification
+
+このAPIはOpenAPI 3.0/3.1仕様に準拠しています。以下のエンドポイントからOpenAPI仕様を取得できます：
+
+- **API Documentation UI**: `http://localhost:8080/docs` (Stoplight Elements)
+- **OpenAPI 3.1 (JSON)**: `http://localhost:8080/openapi.json`
+- **OpenAPI 3.1 (YAML)**: `http://localhost:8080/openapi.yaml`
+- **OpenAPI 3.0.3 (JSON)**: `http://localhost:8080/openapi-3.0.json`
+
+※ OpenAPIドキュメントエンドポイントは認証不要でアクセス可能です。
+
+### フレームワーク
+
+- **Echo v4**: 高性能なHTTPルーター
+- **Huma v2**: OpenAPI仕様の自動生成とバリデーション
+
 ## Common Headers
 
 ```
 Content-Type: application/json
+Authorization: Bearer <API_TOKEN>
 ```
 
 ## Error Responses

@@ -134,6 +134,7 @@ func NewGORMManager(cfg *config.Config) (*GORMManager, error) {
 		// SQL Loggerの作成
 		sqlLogger, err := NewSQLLogger(
 			shardCfg.ID,
+			"shard",
 			shardCfg.Driver,
 			cfg.Logging.SQLLogOutputDir,
 			cfg.Logging.SQLLogEnabled,

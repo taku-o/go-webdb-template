@@ -187,7 +187,7 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 
 	// Create post
 	postReq := map[string]interface{}{
-		"user_id": fmt.Sprintf("%d", userID),
+		"user_id": userID,
 		"title":   "Test Post",
 		"content": "Test content",
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -51,36 +50,30 @@ func main() {
 	userHandler := handler.NewUserHandler(userService)
 	postHandler := handler.NewPostHandler(postService)
 
-	// Routerの初期化
-	r := router.NewRouter(userHandler, postHandler, cfg)
+	// Echoルーターの初期化
+	e := router.NewRouter(userHandler, postHandler, cfg)
 
 	// アクセスログの初期化
-	var httpHandler http.Handler = r
 	accessLogger, err := logging.NewAccessLogger("api", cfg.Logging.OutputDir)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize access logger: %v", err)
 		log.Println("Access logging will be disabled")
 	} else {
 		defer accessLogger.Close()
-		// アクセスログミドルウェアを追加
-		accessLogMiddleware := logging.NewAccessLogMiddleware(accessLogger)
-		httpHandler = accessLogMiddleware.Middleware(r)
+		// Echoのアクセスログミドルウェアを追加
+		e.Use(logging.NewEchoAccessLogMiddleware(accessLogger))
 		log.Printf("Access logging enabled: %s", cfg.Logging.OutputDir)
 	}
 
-	// HTTPサーバーの設定
-	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler:      httpHandler,
-		ReadTimeout:  cfg.Server.ReadTimeout,
-		WriteTimeout: cfg.Server.WriteTimeout,
-	}
+	// Echoサーバーのタイムアウト設定
+	e.Server.ReadTimeout = cfg.Server.ReadTimeout
+	e.Server.WriteTimeout = cfg.Server.WriteTimeout
 
 	// Graceful shutdown
 	go func() {
 		log.Printf("Starting server on port %d", cfg.Server.Port)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server failed: %v", err)
+		if err := e.Start(fmt.Sprintf(":%d", cfg.Server.Port)); err != nil {
+			log.Printf("Server stopped: %v", err)
 		}
 	}()
 
@@ -95,7 +88,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := e.Shutdown(ctx); err != nil {
 		log.Printf("Server forced to shutdown: %v", err)
 	}
 
