@@ -276,3 +276,101 @@ rm -f server/data/master.db server/data/sharding_db_*.db
 - `atlas.sum` ファイルはマイグレーションの整合性チェックに使用されます
 - 本番環境では必ずバックアップを取得してからマイグレーションを実行してください
 - シャーディングDBは全シャードに同じマイグレーションを適用する必要があります
+
+## 運用実験結果
+
+本プロジェクトで実施したAtlas運用実験の結果を記録します。
+
+### 実験結果サマリ
+
+| 操作 | Master | Sharding | 結果 |
+|------|--------|----------|------|
+| テーブル追加 | OK | OK | `atlas migrate diff` で自動生成 |
+| カラム追加 | OK | OK | `ALTER TABLE ADD COLUMN` が自動生成 |
+| データ更新 | OK | OK | `atlas migrate new` で空ファイル作成後、手動でSQL追加 |
+| テーブル削除 | OK | OK | `DROP TABLE` が自動生成（PRAGMA foreign_keys含む） |
+
+### データ更新用マイグレーションの作成
+
+Atlasはスキーマ変更のみを検出するため、データ更新用のマイグレーションは手動で作成する必要があります。
+
+```bash
+# 空のマイグレーションファイルを作成
+atlas migrate new insert_data --dir file://db/migrations/master
+
+# 生成されたファイルにSQLを追加
+# 例: INSERT INTO table_name (col1, col2) VALUES ('value1', 'value2');
+
+# atlas.sumを更新
+atlas migrate hash --dir file://db/migrations/master
+
+# マイグレーションを適用
+atlas migrate apply \
+    --dir file://db/migrations/master \
+    --url "sqlite://server/data/master.db"
+```
+
+### 直接SQL実行後の同期方法
+
+Atlas管理外でSQLを直接実行した場合の対処方法：
+
+1. **現在のDBスキーマをインスペクト**
+   ```bash
+   atlas schema inspect --url "sqlite://server/data/master.db" --format hcl
+   ```
+
+2. **HCLスキーマファイルを更新**
+   インスペクト結果を参考に `db/schema/master.hcl` を更新
+
+3. **マイグレーションを生成**
+   ```bash
+   atlas migrate diff sync_changes \
+       --dir file://db/migrations/master \
+       --to file://db/schema/master.hcl \
+       --dev-url "sqlite://file?mode=memory"
+   ```
+
+4. **マイグレーション履歴を手動で更新**（DBにテーブルが既に存在する場合）
+   ```bash
+   # atlas_schema_revisionsテーブルに直接レコードを追加
+   sqlite3 server/data/master.db "INSERT INTO atlas_schema_revisions (...) VALUES (...)"
+   ```
+
+5. **ステータスを確認**
+   ```bash
+   atlas migrate status \
+       --dir file://db/migrations/master \
+       --url "sqlite://server/data/master.db"
+   ```
+
+### シャーディングDBへの一括適用
+
+シャーディングDBは全シャードに同じマイグレーションを適用する必要があります。
+
+```bash
+# 全シャードにマイグレーションを適用
+for i in 1 2 3 4; do
+    echo "=== Applying to sharding_db_${i}.db ==="
+    atlas migrate apply \
+        --dir file://db/migrations/sharding \
+        --url "sqlite://server/data/sharding_db_${i}.db"
+done
+```
+
+### 実験で生成されたマイグレーションファイル
+
+#### Master
+- `20251226074846_initial.sql` - 初期スキーマ
+- `20251226130113_add_experiment_table.sql` - テーブル追加実験
+- `20251226130242_add_description_column.sql` - カラム追加実験
+- `20251226130340_insert_experiment_data.sql` - データ挿入実験
+- `20251226130500_drop_experiment_table.sql` - テーブル削除実験
+- `20251226131107_sync_direct_sql_table.sql` - 直接SQL同期実験
+- `20251226131150_drop_direct_sql_table.sql` - クリーンアップ
+
+#### Sharding
+- `20251226074934_initial.sql` - 初期スキーマ
+- `20251226130618_add_sharding_experiment.sql` - テーブル追加実験
+- `20251226130721_add_sharding_experiment_desc.sql` - カラム追加実験
+- `20251226130814_insert_sharding_experiment_data.sql` - データ挿入実験
+- `20251226130931_drop_sharding_experiment.sql` - テーブル削除実験
