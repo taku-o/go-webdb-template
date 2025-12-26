@@ -110,6 +110,7 @@ func NewMasterManager(cfg *config.Config) (*MasterManager, error) {
 	// SQL Loggerの作成
 	sqlLogger, err := NewSQLLogger(
 		1, // masterはID=1
+		"master",
 		masterCfg.Driver,
 		cfg.Logging.SQLLogOutputDir,
 		cfg.Logging.SQLLogEnabled,
@@ -189,6 +190,7 @@ func NewShardingManager(cfg *config.Config) (*ShardingManager, error) {
 		// SQL Loggerの作成
 		sqlLogger, err := NewSQLLogger(
 			dbCfg.ID,
+			"sharding",
 			dbCfg.Driver,
 			cfg.Logging.SQLLogOutputDir,
 			cfg.Logging.SQLLogEnabled,
