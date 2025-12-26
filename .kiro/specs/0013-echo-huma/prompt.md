@@ -70,7 +70,7 @@ APIドキュメントが表示されるとか聞いたんだけど、どうか�
 その後、https://github.com/taku-o/go-webdb-template/issues/24 に対して
 pull requestを作成してください。
 
-/review 14
+/review 25
 
 
 
