@@ -1,0 +1,12 @@
+{
+  "feature": "0016-fix-tablesplit",
+  "description": "shardingの各データベースにテーブル番号000から031までの全てのテーブルが作られている問題を修正",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
