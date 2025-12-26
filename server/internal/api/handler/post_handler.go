@@ -41,7 +41,7 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 
 		post, err := h.postService.CreatePost(ctx, req)
 		if err != nil {
-			return nil, huma.Error400BadRequest(err.Error())
+			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
 		resp := &humaapi.PostOutput{}
