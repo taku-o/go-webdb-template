@@ -57,9 +57,49 @@ which atlas
 この要件の作業用のgitブランチを切ってください。
 ここまでの作業をcommitしてください。
 
+_serena_indexing
+
+/serena-initialize
+
+/kiro:spec-impl 0014-db-atlas
+
+db/seeds/master_seed.sqlは初期データ？
+
+いろいろ作業する前に、
+バックアップを兼ねたcommitをしておこうと思う。
+git commitしなくて良いのは、
+server/data/backup_before_atlas/
+db/migrations_legacy/
+
+db/seeds/master_seed.sql の中身は、
+db/migrations/master/20251226074846_initial.sql
+の後ろの方に入れちゃおう。
+テーブル作ったけど、データが無いことを防ぐための手法らしい。
+
+db/seedsの削除、および、ドキュメントの更新お願いします。
+>  db/seeds/ ディレクトリは不要になりました。削除しますか？
+>
+>  また、README.mdとdocs/atlas-operations.mdにシードデータの手順が書いてあるので、そちらも更新が必要です。
+
+では、
+server/data/backup_before_atlas/
+db/migrations_legacy/
+を除いて、残りの編集をいったんcommitしてください。
 
 
 
+
+
+
+
+
+
+
+
+今どこまで作業したかは、どこかに記録されていますか？
+なければ、
+.kiro/specs/0014-db-atlas/
+に作業進捗の管理ファイルを作って、記録してください。
 
 
 

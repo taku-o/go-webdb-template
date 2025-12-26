@@ -47,54 +47,50 @@ npm install
 
 ### 2. データベースのセットアップ
 
-#### 方法A: マイグレーションスクリプトを使用（推奨）
+本プロジェクトでは [Atlas](https://atlasgo.io/) を使用してデータベースマイグレーションを管理しています。
+
+#### マイグレーションスクリプトを使用
 
 ```bash
-./scripts/migrate.sh
+# 全データベースにマイグレーションを適用（初期データも含む）
+./scripts/migrate.sh all
 ```
 
-#### 方法B: 手動セットアップ
+#### 手動でAtlasコマンドを使用
 
 ```bash
 mkdir -p server/data
 
-# Master データベース（news テーブル）
-sqlite3 server/data/master.db < db/migrations/master/001_init.sql
+# マスターDBにマイグレーションを適用（初期データも含む）
+atlas migrate apply \
+    --dir file://db/migrations/master \
+    --url "sqlite://server/data/master.db"
 
-# Sharding データベース（マイグレーション生成＆適用）
-cd server
-go run cmd/migrate-gen/main.go \
-    -template ../db/migrations/sharding/templates/users.sql.template \
-    -output ../db/migrations/sharding/generated/
-go run cmd/migrate-gen/main.go \
-    -template ../db/migrations/sharding/templates/posts.sql.template \
-    -output ../db/migrations/sharding/generated/
-cd ..
-
-# DB1: テーブル _000-007
-for i in {0..7}; do
-    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
-    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
-done
-
-# DB2: テーブル _008-015
-for i in {8..15}; do
-    sqlite3 server/data/sharding_db_2.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
-    sqlite3 server/data/sharding_db_2.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
-done
-
-# DB3: テーブル _016-023
-for i in {16..23}; do
-    sqlite3 server/data/sharding_db_3.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
-    sqlite3 server/data/sharding_db_3.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
-done
-
-# DB4: テーブル _024-031
-for i in {24..31}; do
-    sqlite3 server/data/sharding_db_4.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
-    sqlite3 server/data/sharding_db_4.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+# シャーディングDBにマイグレーションを適用
+for i in 1 2 3 4; do
+    atlas migrate apply \
+        --dir file://db/migrations/sharding \
+        --url "sqlite://server/data/sharding_db_${i}.db"
 done
 ```
+
+#### スキーマ変更時のマイグレーション生成
+
+```bash
+# master.hclを変更した後
+atlas migrate diff <migration_name> \
+    --dir file://db/migrations/master \
+    --to file://db/schema/master.hcl \
+    --dev-url "sqlite://file?mode=memory"
+
+# sharding.hclを変更した後
+atlas migrate diff <migration_name> \
+    --dir file://db/migrations/sharding \
+    --to file://db/schema/sharding.hcl \
+    --dev-url "sqlite://file?mode=memory"
+```
+
+詳細は [docs/atlas-operations.md](docs/atlas-operations.md) を参照してください。
 
 ### 3. サーバー起動
 
