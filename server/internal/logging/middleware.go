@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/labstack/echo/v4"
 )
 
 const (
@@ -149,4 +151,62 @@ func readRequestBody(r *http.Request) string {
 	}
 
 	return string(bodyBytes)
+}
+
+// NewEchoAccessLogMiddleware はEcho用のアクセスログミドルウェアを作成
+func NewEchoAccessLogMiddleware(accessLogger *AccessLogger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// リクエスト開始時刻を記録
+			startTime := time.Now()
+
+			req := c.Request()
+
+			// ヘッダー情報を取得
+			headers := formatHeaders(req.Header)
+
+			// リクエストボディを取得（POST/PUT/PATCHの場合）
+			requestBody := ""
+			if shouldLogBody(req) {
+				requestBody = readRequestBody(req)
+			}
+
+			// 次のハンドラーを実行
+			err := next(c)
+
+			// レスポンス時間を計算
+			responseTime := time.Since(startTime)
+			responseTimeMs := float64(responseTime.Nanoseconds()) / 1000000.0
+
+			// リモートIPアドレスを取得
+			remoteIP := c.RealIP()
+			if remoteIP == "" {
+				remoteIP = req.RemoteAddr
+			}
+
+			// User-Agentを取得
+			userAgent := req.Header.Get("User-Agent")
+			if userAgent == "" {
+				userAgent = "-"
+			}
+
+			// ステータスコードを取得
+			statusCode := c.Response().Status
+
+			// アクセスログを出力
+			accessLogger.LogAccess(
+				req.Method,
+				req.URL.Path,
+				req.Proto,
+				statusCode,
+				responseTimeMs,
+				remoteIP,
+				userAgent,
+				headers,
+				requestBody,
+			)
+
+			return err
+		}
+	}
 }

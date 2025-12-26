@@ -16,7 +16,6 @@ import (
 	"github.com/example/go-webdb-template/internal/logging"
 	"github.com/example/go-webdb-template/internal/repository"
 	"github.com/example/go-webdb-template/internal/service"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -62,10 +61,7 @@ func main() {
 	} else {
 		defer accessLogger.Close()
 		// Echoのアクセスログミドルウェアを追加
-		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-			Format: "${time_rfc3339} ${status} ${method} ${uri} ${latency_human} ${bytes_in} ${bytes_out}\n",
-			Output: accessLogger.Writer(),
-		}))
+		e.Use(logging.NewEchoAccessLogMiddleware(accessLogger))
 		log.Printf("Access logging enabled: %s", cfg.Logging.OutputDir)
 	}
 
