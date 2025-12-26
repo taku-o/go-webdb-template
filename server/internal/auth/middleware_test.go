@@ -122,13 +122,6 @@ func TestAuthMiddleware_Middleware(t *testing.T) {
 }
 
 func TestValidateScope(t *testing.T) {
-	cfg := &config.APIConfig{
-		SecretKey:       testSecretKey,
-		CurrentVersion:  "v2",
-		InvalidVersions: []string{},
-	}
-	middleware := NewAuthMiddleware(cfg, "develop")
-
 	tests := []struct {
 		name    string
 		scope   []string
@@ -148,7 +141,7 @@ func TestValidateScope(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			claims := &JWTClaims{Scope: tt.scope}
-			err := middleware.validateScope(claims, tt.method)
+			err := validateScope(claims, tt.method)
 			if tt.wantErr {
 				require.Error(t, err)
 			} else {

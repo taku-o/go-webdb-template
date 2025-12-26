@@ -50,7 +50,7 @@ func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		}
 
 		// スコープ検証
-		if err := m.validateScope(claims, r.Method); err != nil {
+		if err := validateScope(claims, r.Method); err != nil {
 			m.writeErrorResponse(w, http.StatusForbidden, "Insufficient scope")
 			return
 		}
@@ -61,7 +61,7 @@ func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 }
 
 // validateScope はスコープを検証
-func (m *AuthMiddleware) validateScope(claims *JWTClaims, method string) error {
+func validateScope(claims *JWTClaims, method string) error {
 	hasRead := false
 	hasWrite := false
 
@@ -136,7 +136,7 @@ func NewEchoAuthMiddleware(cfg *config.APIConfig, env string) echo.MiddlewareFun
 			}
 
 			// スコープ検証
-			if err := validateScopeForEcho(claims, c.Request().Method); err != nil {
+			if err := validateScope(claims, c.Request().Method); err != nil {
 				return c.JSON(http.StatusForbidden, map[string]interface{}{
 					"code":    http.StatusForbidden,
 					"message": "Insufficient scope",
@@ -147,33 +147,6 @@ func NewEchoAuthMiddleware(cfg *config.APIConfig, env string) echo.MiddlewareFun
 			return next(c)
 		}
 	}
-}
-
-// validateScopeForEcho はスコープを検証
-func validateScopeForEcho(claims *JWTClaims, method string) error {
-	hasRead := false
-	hasWrite := false
-
-	for _, scope := range claims.Scope {
-		if scope == "read" {
-			hasRead = true
-		}
-		if scope == "write" {
-			hasWrite = true
-		}
-	}
-
-	// GETリクエストにはreadスコープが必要
-	if method == "GET" && !hasRead {
-		return errors.New("read scope required")
-	}
-
-	// POST/PUT/DELETEリクエストにはwriteスコープが必要
-	if (method == "POST" || method == "PUT" || method == "DELETE") && !hasWrite {
-		return errors.New("write scope required")
-	}
-
-	return nil
 }
 
 // NewHumaAuthMiddleware は新しいHuma形式の認証ミドルウェアを作成
@@ -219,7 +192,7 @@ func NewHumaAuthMiddleware(cfg *config.APIConfig, env string) func(ctx huma.Cont
 		}
 
 		// スコープ検証
-		if err := validateScopeForHuma(claims, ctx.Method()); err != nil {
+		if err := validateScope(claims, ctx.Method()); err != nil {
 			writeHumaError(ctx, http.StatusForbidden, "Insufficient scope")
 			return
 		}
@@ -238,33 +211,6 @@ func writeHumaError(ctx huma.Context, statusCode int, message string) {
 		"message": message,
 	}
 	json.NewEncoder(ctx.BodyWriter()).Encode(response)
-}
-
-// validateScopeForHuma はスコープを検証（Huma用）
-func validateScopeForHuma(claims *JWTClaims, method string) error {
-	hasRead := false
-	hasWrite := false
-
-	for _, scope := range claims.Scope {
-		if scope == "read" {
-			hasRead = true
-		}
-		if scope == "write" {
-			hasWrite = true
-		}
-	}
-
-	// GETリクエストにはreadスコープが必要
-	if method == "GET" && !hasRead {
-		return errors.New("read scope required")
-	}
-
-	// POST/PUT/DELETEリクエストにはwriteスコープが必要
-	if (method == "POST" || method == "PUT" || method == "DELETE") && !hasWrite {
-		return errors.New("write scope required")
-	}
-
-	return nil
 }
 
 // isOpenAPIPath はOpenAPIドキュメントのパスかどうかを判定
