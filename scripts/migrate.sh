@@ -1,12 +1,11 @@
 #!/bin/bash
-# マイグレーション適用スクリプト
+# マイグレーション適用スクリプト (Atlas版)
 # 使用方法: ./scripts/migrate.sh [master|sharding|all]
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-DB_DIR="$PROJECT_ROOT/db/migrations"
 DATA_DIR="$PROJECT_ROOT/server/data"
 
 # データディレクトリの作成
@@ -17,54 +16,28 @@ migrate_master() {
     echo "Migrating master group..."
     local master_db="$DATA_DIR/master.db"
 
-    for sql_file in "$DB_DIR/master"/*.sql; do
-        if [ -f "$sql_file" ]; then
-            echo "  Applying: $(basename "$sql_file")"
-            sqlite3 "$master_db" < "$sql_file"
-        fi
-    done
+    atlas migrate apply \
+        --dir "file://$PROJECT_ROOT/db/migrations/master" \
+        --url "sqlite://$master_db"
 
-    echo "Master group migration completed."
+    echo "Master group migration applied."
 }
 
 # シャーディンググループのマイグレーション
 migrate_sharding() {
     echo "Migrating sharding group..."
 
-    # まずテンプレートからSQLを生成
-    echo "  Generating SQL from templates..."
-    cd "$PROJECT_ROOT/server/cmd/migrate-gen"
-    go run main.go
-    cd "$PROJECT_ROOT"
-
-    # 各データベースにマイグレーションを適用
-    local db_mapping=(
-        "1:0:7"   # DB1: テーブル 000-007
-        "2:8:15"  # DB2: テーブル 008-015
-        "3:16:23" # DB3: テーブル 016-023
-        "4:24:31" # DB4: テーブル 024-031
-    )
-
-    for mapping in "${db_mapping[@]}"; do
-        IFS=':' read -r db_id start end <<< "$mapping"
+    # 各シャーディングDBにマイグレーションを適用
+    for db_id in 1 2 3 4; do
         local sharding_db="$DATA_DIR/sharding_db_${db_id}.db"
+        echo "  Migrating sharding_db_${db_id}..."
 
-        echo "  Migrating sharding_db_${db_id} (tables ${start}-${end})..."
-
-        # テーブル定義を適用
-        for table_type in users posts; do
-            for i in $(seq $start $end); do
-                suffix=$(printf "%03d" $i)
-                sql_file="$DB_DIR/sharding/generated/${table_type}_${suffix}.sql"
-
-                if [ -f "$sql_file" ]; then
-                    sqlite3 "$sharding_db" < "$sql_file"
-                fi
-            done
-        done
+        atlas migrate apply \
+            --dir "file://$PROJECT_ROOT/db/migrations/sharding" \
+            --url "sqlite://$sharding_db"
     done
 
-    echo "Sharding group migration completed."
+    echo "Sharding group migration applied."
 }
 
 # メイン処理
@@ -85,4 +58,4 @@ case "${1:-all}" in
         ;;
 esac
 
-echo "All migrations completed successfully!"
+echo "All migrations applied successfully!"
