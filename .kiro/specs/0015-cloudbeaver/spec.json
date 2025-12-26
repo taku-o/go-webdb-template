@@ -1,0 +1,12 @@
+{
+  "feature": "0015-cloudbeaver",
+  "description": "データの管理機能としてのCloudBeaverの導入",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
+
