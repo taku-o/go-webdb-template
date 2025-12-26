@@ -1,0 +1,101 @@
+{
+	"folders": {},
+	"connections": {
+		"sqlite_jdbc-19b5b71bbf6-e88aa88183cea96": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Master Database",
+			"configuration": {
+				"database": "/data/master.db",
+				"url": "jdbc:sqlite:/data/master.db",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"sqlite_jdbc-19b5b728c78-2677f59706bc31a6": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 1",
+			"configuration": {
+				"database": "/data/sharding_db_1.db",
+				"url": "jdbc:sqlite:/data/sharding_db_1.db",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"sqlite_jdbc-19b5b72e985-f1559709eadbeed": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 2",
+			"configuration": {
+				"database": "/data/sharding_db_2.db",
+				"url": "jdbc:sqlite:/data/sharding_db_2.db",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"sqlite_jdbc-19b5b73314a-98da1885fbe176d": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 3",
+			"configuration": {
+				"database": "/data/sharding_db_3.db",
+				"url": "jdbc:sqlite:/data/sharding_db_3.db",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"sqlite_jdbc-19b5b7382c0-3f47909ccf9ad977": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 4",
+			"configuration": {
+				"database": "/data/sharding_db_4.db",
+				"url": "jdbc:sqlite:/data/sharding_db_4.db",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		}
+	},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"smart-commit": false,
+			"smart-commit-recover": true,
+			"auto-close-transactions": true,
+			"close-transactions-period": 1800,
+			"auto-close-connections": true,
+			"close-connections-period": 14400
+		}
+	}
+}

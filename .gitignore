@@ -64,6 +64,10 @@ logs/*
 logs/**
 !logs/.gitkeep
 
+# CloudBeaver
+cloudbeaver/config/*/.data/.*.bak
+cloudbeaver/config/*/user-projects/*/.dbeaver/.*.bak
+
 # Misc
 *.log
 .env
