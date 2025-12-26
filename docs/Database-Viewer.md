@@ -201,14 +201,13 @@ Resource Managerに保存したスクリプトは、ユーザープロジェク�
 
 ```
 cloudbeaver/
-├── config/
-│   ├── develop/                    # 開発環境用設定
-│   │   ├── GlobalConfiguration/    # 接続設定など
-│   │   └── user-projects/          # ユーザー別スクリプト
-│   │       └── cbadmin/            # cbadminユーザーのスクリプト
-│   ├── staging/                    # ステージング環境用設定
-│   └── production/                 # 本番環境用設定
-└── scripts/                        # 共有スクリプト用（予備）
+└── config/
+    ├── develop/                    # 開発環境用設定
+    │   ├── GlobalConfiguration/    # 接続設定など
+    │   └── user-projects/          # ユーザーのスクリプト
+    │       └── cbadmin/            # cbadminユーザーのスクリプト
+    ├── staging/                    # ステージング環境用設定
+    └── production/                 # 本番環境用設定
 ```
 
 ### 環境別設定の管理

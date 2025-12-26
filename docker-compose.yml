@@ -7,7 +7,6 @@ services:
       - "${CLOUDBEAVER_PORT:-8978}:8978"
     volumes:
       - ./server/data:/data:ro
-      - ./cloudbeaver/scripts:/scripts
       - ./cloudbeaver/config/${APP_ENV:-develop}:/opt/cloudbeaver/workspace
     environment:
       - APP_ENV=${APP_ENV:-develop}

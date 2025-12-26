@@ -145,6 +145,7 @@ cloudbeaver/config/develop/user-projects/cbadmin/sql-3.sql
 その後、https://github.com/taku-o/go-webdb-template/issues/27 に対して
 pull requestを作成してください。
 
+/review 31
 
 
 
