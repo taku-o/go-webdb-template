@@ -36,7 +36,7 @@ type DeleteUserInput struct {
 // CreatePostInput は投稿作成リクエストの入力構造体
 type CreatePostInput struct {
 	Body struct {
-		UserID  string `json:"user_id" doc:"ユーザーID"`
+		UserID  int64  `json:"user_id" minimum:"1" doc:"ユーザーID"`
 		Title   string `json:"title" maxLength:"200" doc:"タイトル"`
 		Content string `json:"content" doc:"内容"`
 	}

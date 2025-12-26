@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/example/go-webdb-template/internal/api/huma"
@@ -34,13 +33,8 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Tags:          []string{"posts"},
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, input *humaapi.CreatePostInput) (*humaapi.PostOutput, error) {
-		userID, err := strconv.ParseInt(input.Body.UserID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("Invalid user_id")
-		}
-
 		req := &model.CreatePostRequest{
-			UserID:  userID,
+			UserID:  input.Body.UserID,
 			Title:   input.Body.Title,
 			Content: input.Body.Content,
 		}
