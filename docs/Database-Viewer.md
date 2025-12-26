@@ -83,7 +83,28 @@ npm run cloudbeaver:restart
 
 ### 初回設定
 
-CloudBeaver起動後、Web UIから手動でデータベース接続を設定します。
+CloudBeaver初回起動時には、管理者アカウントの設定とドライバーの有効化が必要です。
+
+#### 1. 管理者アカウントの作成
+
+1. http://localhost:8978 にアクセス
+2. セットアップウィザードが表示される
+3. 管理者アカウントを作成：
+   - **ユーザー名**: `cbadmin`
+   - **パスワード**: `Admin123`
+4. 「Next」→「Finish」をクリックして設定を終える
+
+#### 2. SQLiteドライバーの有効化
+
+初期状態ではSQLiteドライバーが無効化されています。以下の手順で有効化してください。
+
+1. 管理者アカウントでログイン
+2. 左上のメニュー（≡）→「Administration」→「Server Configuration」を開く
+3. 「DISABLED DRIVERS」セクションを確認
+4. SQLiteが含まれている場合、SQLiteを選択して削除（有効化）
+5. 「Save」をクリックして設定を保存
+
+設定が終わったら、Web UIから手動でデータベース接続を設定します。
 
 ### マスターデータベースへの接続
 
@@ -154,9 +175,12 @@ Resource Managerは、よく使うSQLスクリプトを保存・管理する機�
 
 ### スクリプトの保存場所
 
-Resource Managerに保存したスクリプトは、以下のディレクトリに保存されます：
+Resource Managerに保存したスクリプトは、ユーザープロジェクトディレクトリに保存されます：
 
-- `cloudbeaver/scripts/`
+- `cloudbeaver/config/{env}/user-projects/{username}/`
+
+例（開発環境、cbadminユーザーの場合）：
+- `cloudbeaver/config/develop/user-projects/cbadmin/sql-1.sql`
 
 スクリプトファイルはGitで管理可能です。
 
@@ -178,10 +202,13 @@ Resource Managerに保存したスクリプトは、以下のディレクトリ�
 ```
 cloudbeaver/
 ├── config/
-│   ├── develop/        # 開発環境用設定
-│   ├── staging/        # ステージング環境用設定
-│   └── production/     # 本番環境用設定
-└── scripts/            # Resource Manager用スクリプト
+│   ├── develop/                    # 開発環境用設定
+│   │   ├── GlobalConfiguration/    # 接続設定など
+│   │   └── user-projects/          # ユーザー別スクリプト
+│   │       └── cbadmin/            # cbadminユーザーのスクリプト
+│   ├── staging/                    # ステージング環境用設定
+│   └── production/                 # 本番環境用設定
+└── scripts/                        # 共有スクリプト用（予備）
 ```
 
 ### 環境別設定の管理
@@ -243,13 +270,13 @@ cloudbeaver/
 **問題**: Resource Managerにスクリプトを保存できない
 
 **対処方法**:
-1. `cloudbeaver/scripts/`ディレクトリの権限を確認
+1. ユーザープロジェクトディレクトリの権限を確認
    ```bash
-   ls -la cloudbeaver/scripts/
+   ls -la cloudbeaver/config/develop/user-projects/
    ```
 2. マウント設定を確認
    - `docker-compose.yml`の`volumes`セクションを確認
-   - `./cloudbeaver/scripts:/scripts`が正しく設定されているか確認
+   - `./cloudbeaver/config/${APP_ENV:-develop}:/opt/cloudbeaver/workspace`が正しく設定されているか確認
 
 ### 設定ファイルが保存されない
 
@@ -293,8 +320,11 @@ cloudbeaver/
 
 ### 認証設定
 
-- CloudBeaverのデフォルト認証設定を確認してください
-- 必要に応じて認証を有効化してください
+**認証情報**（開発環境）:
+- ユーザー名: `cbadmin`
+- パスワード: `Admin123`
+
+**注意事項**:
 - 本番環境での使用は想定していません（本番環境では適切なアクセス制御が必要です）
 
 ### ネットワークアクセス
@@ -309,7 +339,8 @@ cloudbeaver/
 CloudBeaverの設定ファイルはGitで管理可能です：
 
 - **設定ファイル**: `cloudbeaver/config/{env}/`
-- **スクリプト**: `cloudbeaver/scripts/`
+- **接続設定**: `cloudbeaver/config/{env}/GlobalConfiguration/`
+- **スクリプト**: `cloudbeaver/config/{env}/user-projects/{username}/`
 
 ### 設定ファイルの構造
 

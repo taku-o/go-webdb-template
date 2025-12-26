@@ -116,7 +116,36 @@ APP_ENV=develop go run cmd/admin/main.go
 
 詳細は [Admin.md](docs/Admin.md) を参照してください。
 
-### 5. クライアント起動
+### 5. データベースビューア起動（CloudBeaver）
+
+```bash
+# 開発環境（デフォルト）
+npm run cloudbeaver:start
+
+# 環境を指定して起動
+APP_ENV=develop npm run cloudbeaver:start
+APP_ENV=staging npm run cloudbeaver:start
+APP_ENV=production npm run cloudbeaver:start
+
+# 停止
+npm run cloudbeaver:stop
+```
+
+データベースビューアは http://localhost:8978 で起動します。
+
+**認証情報**（開発環境）:
+- ユーザー名: `cbadmin`
+- パスワード: `Admin123`
+
+**主な機能**:
+- Webブラウザからデータベースを操作
+- テーブル構造の確認・データ閲覧
+- SQLクエリの実行
+- SQLスクリプトの保存・管理（Resource Manager）
+
+詳細は [Database-Viewer.md](docs/Database-Viewer.md) を参照してください。
+
+### 6. クライアント起動
 
 ```bash
 cd client

@@ -1,0 +1,11 @@
+{
+  "name": "go-webdb-template",
+  "version": "1.0.0",
+  "description": "Go Web DB Template - CloudBeaver management scripts",
+  "scripts": {
+    "cloudbeaver:start": "./scripts/cloudbeaver-start.sh",
+    "cloudbeaver:stop": "docker-compose down",
+    "cloudbeaver:logs": "docker-compose logs -f cloudbeaver",
+    "cloudbeaver:restart": "npm run cloudbeaver:stop && npm run cloudbeaver:start"
+  }
+}

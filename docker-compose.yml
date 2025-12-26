@@ -1,0 +1,21 @@
+services:
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    restart: unless-stopped
+    ports:
+      - "${CLOUDBEAVER_PORT:-8978}:8978"
+    volumes:
+      - ./server/data:/data:ro
+      - ./cloudbeaver/scripts:/scripts
+      - ./cloudbeaver/config/${APP_ENV:-develop}:/opt/cloudbeaver/workspace
+    environment:
+      - APP_ENV=${APP_ENV:-develop}
+      - CB_WORKSPACE=/opt/cloudbeaver/workspace
+      - CLOUDBEAVER_APP_SUPPORTS_CUSTOM_CONNECTIONS=true
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8978"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
