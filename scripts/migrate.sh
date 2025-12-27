@@ -33,7 +33,7 @@ migrate_sharding() {
         echo "  Migrating sharding_db_${db_id}..."
 
         atlas migrate apply \
-            --dir "file://$PROJECT_ROOT/db/migrations/sharding" \
+            --dir "file://$PROJECT_ROOT/db/migrations/sharding_${db_id}" \
             --url "sqlite://$sharding_db"
     done
 
