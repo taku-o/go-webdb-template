@@ -59,6 +59,7 @@ progress.mdを更新してください。
 その後、https://github.com/taku-o/go-webdb-template/issues/32 に対して
 pull requestを作成してください。
 
+/review 35
 
 
 
