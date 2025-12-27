@@ -15,6 +15,8 @@ api-endpoint-creator
 
 think.
 
+この要件の作業用のgitブランチを切ってください。
+ここまでの作業をcommitしてください。
 
-
+/review 36
 
