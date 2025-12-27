@@ -1,0 +1,11 @@
+{
+  "feature": "0018-auth0-login",
+  "description": "Auth0によるログイン機能を実装し、JWTを取得・保存する",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
