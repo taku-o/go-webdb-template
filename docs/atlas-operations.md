@@ -12,13 +12,37 @@ Atlas は宣言的スキーマ管理ツールで、HCL ファイルでスキー�
 db/
 ├── schema/                    # スキーマ定義ファイル（HCL）
 │   ├── master.hcl            # マスターDBのスキーマ定義
-│   └── sharding.hcl          # シャーディングDBのスキーマ定義
+│   ├── sharding_1/           # シャード1用スキーマ（テーブル000-007）
+│   │   ├── _schema.hcl       # スキーマ定義（schema "main" {}）
+│   │   ├── users.hcl         # users_000 〜 users_007
+│   │   └── posts.hcl         # posts_000 〜 posts_007
+│   ├── sharding_2/           # シャード2用スキーマ（テーブル008-015）
+│   │   ├── _schema.hcl
+│   │   ├── users.hcl         # users_008 〜 users_015
+│   │   └── posts.hcl         # posts_008 〜 posts_015
+│   ├── sharding_3/           # シャード3用スキーマ（テーブル016-023）
+│   │   ├── _schema.hcl
+│   │   ├── users.hcl         # users_016 〜 users_023
+│   │   └── posts.hcl         # posts_016 〜 posts_023
+│   └── sharding_4/           # シャード4用スキーマ（テーブル024-031）
+│       ├── _schema.hcl
+│       ├── users.hcl         # users_024 〜 users_031
+│       └── posts.hcl         # posts_024 〜 posts_031
 └── migrations/               # マイグレーションファイル（初期データ含む）
     ├── master/               # マスターDB用マイグレーション
     │   ├── 20251226_initial.sql
     │   └── atlas.sum
-    └── sharding/             # シャーディングDB用マイグレーション
-        ├── 20251226_initial.sql
+    ├── sharding_1/           # sharding_db_1.db用マイグレーション（テーブル000-007）
+    │   ├── YYYYMMDD_initial.sql
+    │   └── atlas.sum
+    ├── sharding_2/           # sharding_db_2.db用マイグレーション（テーブル008-015）
+    │   ├── YYYYMMDD_initial.sql
+    │   └── atlas.sum
+    ├── sharding_3/           # sharding_db_3.db用マイグレーション（テーブル016-023）
+    │   ├── YYYYMMDD_initial.sql
+    │   └── atlas.sum
+    └── sharding_4/           # sharding_db_4.db用マイグレーション（テーブル024-031）
+        ├── YYYYMMDD_initial.sql
         └── atlas.sum
 
 config/
@@ -26,6 +50,17 @@ config/
 ├── staging/atlas.hcl         # ステージング環境用Atlas設定
 └── production/atlas.hcl      # 本番環境用Atlas設定
 ```
+
+### テーブル分割ルール
+
+シャーディングDBは4つのデータベースに分割され、各データベースには8つのテーブル分割が含まれます。
+
+| データベース | テーブル範囲 | スキーマディレクトリ | マイグレーションディレクトリ |
+|------------|-----------|------------------|----------------------|
+| sharding_db_1.db | users_000-007, posts_000-007 | db/schema/sharding_1/ | db/migrations/sharding_1/ |
+| sharding_db_2.db | users_008-015, posts_008-015 | db/schema/sharding_2/ | db/migrations/sharding_2/ |
+| sharding_db_3.db | users_016-023, posts_016-023 | db/schema/sharding_3/ | db/migrations/sharding_3/ |
+| sharding_db_4.db | users_024-031, posts_024-031 | db/schema/sharding_4/ | db/migrations/sharding_4/ |
 
 ## 基本コマンド
 
@@ -40,10 +75,29 @@ atlas migrate diff <migration_name> \
     --to file://db/schema/master.hcl \
     --dev-url "sqlite://file?mode=memory"
 
-# シャーディングDBのマイグレーション生成
+# シャーディングDBのマイグレーション生成（各シャードごとに実行）
+# シャード1
 atlas migrate diff <migration_name> \
-    --dir file://db/migrations/sharding \
-    --to file://db/schema/sharding.hcl \
+    --dir file://db/migrations/sharding_1 \
+    --to file://db/schema/sharding_1 \
+    --dev-url "sqlite://file?mode=memory"
+
+# シャード2
+atlas migrate diff <migration_name> \
+    --dir file://db/migrations/sharding_2 \
+    --to file://db/schema/sharding_2 \
+    --dev-url "sqlite://file?mode=memory"
+
+# シャード3
+atlas migrate diff <migration_name> \
+    --dir file://db/migrations/sharding_3 \
+    --to file://db/schema/sharding_3 \
+    --dev-url "sqlite://file?mode=memory"
+
+# シャード4
+atlas migrate diff <migration_name> \
+    --dir file://db/migrations/sharding_4 \
+    --to file://db/schema/sharding_4 \
     --dev-url "sqlite://file?mode=memory"
 ```
 
@@ -55,10 +109,10 @@ atlas migrate apply \
     --dir file://db/migrations/master \
     --url "sqlite://server/data/master.db"
 
-# シャーディングDBへのマイグレーション適用（全シャード）
+# シャーディングDBへのマイグレーション適用（各シャードごとに対応するマイグレーションディレクトリを使用）
 for i in 1 2 3 4; do
     atlas migrate apply \
-        --dir file://db/migrations/sharding \
+        --dir file://db/migrations/sharding_${i} \
         --url "sqlite://server/data/sharding_db_${i}.db"
 done
 ```
@@ -71,10 +125,13 @@ atlas migrate status \
     --dir file://db/migrations/master \
     --url "sqlite://server/data/master.db"
 
-# シャーディングDBのマイグレーション状態
-atlas migrate status \
-    --dir file://db/migrations/sharding \
-    --url "sqlite://server/data/sharding_db_1.db"
+# シャーディングDBのマイグレーション状態（各シャードごとに確認）
+for i in 1 2 3 4; do
+    echo "=== sharding_db_${i} ==="
+    atlas migrate status \
+        --dir file://db/migrations/sharding_${i} \
+        --url "sqlite://server/data/sharding_db_${i}.db"
+done
 ```
 
 ### スクリプトを使用したマイグレーション
@@ -275,7 +332,8 @@ rm -f server/data/master.db server/data/sharding_db_*.db
 - マイグレーションファイルは一度生成したら編集しないでください
 - `atlas.sum` ファイルはマイグレーションの整合性チェックに使用されます
 - 本番環境では必ずバックアップを取得してからマイグレーションを実行してください
-- シャーディングDBは全シャードに同じマイグレーションを適用する必要があります
+- シャーディングDBは各シャードに対応するマイグレーションディレクトリを使用して適用する必要があります
+- シャーディングスキーマを変更する場合は、4つのスキーマディレクトリ（sharding_1〜4）すべてを更新してください
 
 ## 運用実験結果
 
@@ -345,14 +403,14 @@ Atlas管理外でSQLを直接実行した場合の対処方法：
 
 ### シャーディングDBへの一括適用
 
-シャーディングDBは全シャードに同じマイグレーションを適用する必要があります。
+シャーディングDBは各シャードに対応するマイグレーションディレクトリを使用して適用します。
 
 ```bash
-# 全シャードにマイグレーションを適用
+# 全シャードにマイグレーションを適用（各シャードに対応するマイグレーションディレクトリを使用）
 for i in 1 2 3 4; do
     echo "=== Applying to sharding_db_${i}.db ==="
     atlas migrate apply \
-        --dir file://db/migrations/sharding \
+        --dir file://db/migrations/sharding_${i} \
         --url "sqlite://server/data/sharding_db_${i}.db"
 done
 ```
@@ -368,9 +426,10 @@ done
 - `20251226131107_sync_direct_sql_table.sql` - 直接SQL同期実験
 - `20251226131150_drop_direct_sql_table.sql` - クリーンアップ
 
-#### Sharding
-- `20251226074934_initial.sql` - 初期スキーマ
-- `20251226130618_add_sharding_experiment.sql` - テーブル追加実験
-- `20251226130721_add_sharding_experiment_desc.sql` - カラム追加実験
-- `20251226130814_insert_sharding_experiment_data.sql` - データ挿入実験
-- `20251226130931_drop_sharding_experiment.sql` - テーブル削除実験
+#### Sharding（現在の構成）
+各シャーディングDBに対応するマイグレーションディレクトリが存在します：
+
+- `db/migrations/sharding_1/` - sharding_db_1.db用（テーブル000-007）
+- `db/migrations/sharding_2/` - sharding_db_2.db用（テーブル008-015）
+- `db/migrations/sharding_3/` - sharding_db_3.db用（テーブル016-023）
+- `db/migrations/sharding_4/` - sharding_db_4.db用（テーブル024-031）

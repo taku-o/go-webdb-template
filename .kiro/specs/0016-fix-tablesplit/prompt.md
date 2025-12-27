@@ -47,6 +47,18 @@ spec.jsonを更新するところまで作業を進めたら、
 この要件の作業用のgitブランチを切ってください。
 ここまでの作業をcommitしてください。
 
+_serena_indexing
+
+/serena-initialize
+
+/kiro:spec-impl 0016-fix-tablesplit
+
+progress.mdを更新してください。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/32 に対して
+pull requestを作成してください。
+
 
 
 
