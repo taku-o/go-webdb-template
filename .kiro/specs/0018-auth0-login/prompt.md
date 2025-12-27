@@ -153,6 +153,13 @@ docs/Partner-Idp-Auth0-Login.mdは私が正しい情報に直しておいたよ�
 
 うん？ユーザーのログイン機能がloading...から進まなくなったか？
 
+OKです。
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/30 に対して
+pull requestを作成してください。
+
+/review 39
+
 
 
 
