@@ -83,6 +83,34 @@ MINEと疑似PARTNER間の通信を許可します。
 
 ---
 
+## 5.1. 開発環境用のコールバックURL設定
+
+Next.jsアプリケーション（PARTNER）がAuth0と連携するために、コールバックURLを設定します。
+
+1. `Applications` > `Applications` > **(PARTNERアプリ)** を選択。
+2. `Settings` タブを開く。
+3. **Allowed Callback URLs** に以下を追加:
+   ```
+   http://localhost:3000/auth/callback
+   ```
+4. **Allowed Logout URLs** に以下を追加:
+   ```
+   http://localhost:3000
+   ```
+5. 画面下部の **[Save Changes]** をクリック。
+
+### 各環境のURL一覧
+
+| 環境 | Callback URL | Logout URL |
+| --- | --- | --- |
+| 開発環境 | `http://localhost:3000/auth/callback` | `http://localhost:3000` |
+| ステージング | `https://staging.example.com/auth/callback` | `https://staging.example.com` |
+| 本番 | `https://example.com/auth/callback` | `https://example.com` |
+
+**注意**: 複数のURLを設定する場合は、カンマ区切りで追加できます。
+
+---
+
 ## 6. 動作確認 (Try Connection)
 
 1. `Authentication` > `Enterprise` > `OpenID Connect` を開く。
