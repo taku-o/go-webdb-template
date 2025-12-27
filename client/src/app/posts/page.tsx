@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
-import { Post, User } from '@/types/user'
+import { Post } from '@/types/post'
+import { User } from '@/types/user'
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([])
