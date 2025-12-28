@@ -9,3 +9,12 @@ github.com/example/go-webdb-template/internal/auth
 
 APIサーバーとクライアントサーバーを再起動して。
 
+クライアントサーバーを再起動して。
+port 3000版のサーバーだよ。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template に対して
+pull requestを作成してください。
+
+/review 43
+
