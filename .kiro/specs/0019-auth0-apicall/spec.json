@@ -1,0 +1,11 @@
+{
+  "feature": "0019-auth0-apicall",
+  "description": "Auth0から受け取ったJWTをAPIサーバーとの通信で利用する",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

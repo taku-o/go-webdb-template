@@ -42,3 +42,4 @@ api:
   secret_key: "<SECRET_KEY>"  # 必須: 秘密鍵生成ツールで生成した値を設定
   invalid_versions:
     - "v1"
+  auth0_issuer_base_url: ""

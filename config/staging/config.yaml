@@ -38,3 +38,4 @@ api:
   secret_key: "PLACEHOLDER_SECRET_KEY"
   invalid_versions:
     - "v1"
+  auth0_issuer_base_url: ""
