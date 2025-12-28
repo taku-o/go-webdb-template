@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/example/go-webdb-template/internal/db"
-	"github.com/example/go-webdb-template/internal/model"
-	"github.com/example/go-webdb-template/test/testutil"
+	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
 // TestMasterGroupConnection tests connection to master database group

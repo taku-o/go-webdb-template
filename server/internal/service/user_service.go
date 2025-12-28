@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/example/go-webdb-template/internal/model"
-	"github.com/example/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/repository"
 )
 
 // UserService はユーザーのビジネスロジックを担当

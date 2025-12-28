@@ -10,9 +10,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/gorm"
 
-	"github.com/example/go-webdb-template/internal/auth"
-	"github.com/example/go-webdb-template/internal/config"
-	"github.com/example/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/db"
 )
 
 // TestSecretKey はテスト用の秘密鍵

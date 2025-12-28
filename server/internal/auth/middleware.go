@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
 // contextKey はコンテキストキーの型

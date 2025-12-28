@@ -1,6 +1,6 @@
 package humaapi
 
-import "github.com/example/go-webdb-template/internal/model"
+import "github.com/taku-o/go-webdb-template/internal/model"
 
 // UserOutput はユーザー単体のレスポンス構造体
 type UserOutput struct {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/example/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/stretchr/testify/assert"
 )
 

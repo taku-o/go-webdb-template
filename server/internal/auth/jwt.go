@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
 // JWTType はJWTの種類

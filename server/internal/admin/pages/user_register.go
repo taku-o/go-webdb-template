@@ -10,7 +10,7 @@ import (
 
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/template/types"
-	appdb "github.com/example/go-webdb-template/internal/db"
+	appdb "github.com/taku-o/go-webdb-template/internal/db"
 )
 
 // UserRegisterPage はユーザー登録ページを返す

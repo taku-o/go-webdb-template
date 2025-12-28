@@ -5,8 +5,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/example/go-webdb-template/internal/db"
-	"github.com/example/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/model"
 )
 
 // ShardResult はシャードクエリの結果を表す

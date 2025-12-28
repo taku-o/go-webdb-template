@@ -4,7 +4,7 @@ import (
 	goadminConfig "github.com/GoAdminGroup/go-admin/modules/config"
 	"github.com/GoAdminGroup/go-admin/modules/language"
 
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
 // Config はGoAdmin管理画面の設定を管理する構造体
