@@ -85,6 +85,7 @@ OK。直りました。良い感じです。
 pull requestを作成してください。
 
 
+/review 42
 
 
 
