@@ -1,0 +1,7 @@
+# Staging環境のRedis Cluster設定
+redis:
+  cluster:
+    addrs:
+      - host1:6379
+      - host2:6379
+      - host3:6379

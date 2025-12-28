@@ -18,6 +18,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 - ✅ **環境別設定**: develop/staging/production環境で設定切り替え
 - ✅ **型安全**: TypeScriptによる型定義
 - ✅ **テスト**: ユニット/統合/E2Eテスト対応
+- ✅ **レートリミット**: IPアドレス単位でのAPI呼び出し制限（ulule/limiter使用）
 
 ## セットアップ
 
@@ -174,6 +175,78 @@ npm run dev
 
 詳細は [API.md](docs/API.md) を参照してください。
 
+## APIレートリミット
+
+APIエンドポイントへのリクエストはIPアドレス単位でレート制限されています。
+
+### レスポンスヘッダー
+
+すべてのAPIレスポンスに以下のヘッダーが付与されます：
+
+| ヘッダー | 説明 | 例 |
+|---------|------|-----|
+| `X-RateLimit-Limit` | 1分あたりの制限値 | `60` |
+| `X-RateLimit-Remaining` | 残りリクエスト数 | `45` |
+| `X-RateLimit-Reset` | リセット時刻（Unix timestamp） | `1706342400` |
+
+### レートリミット超過時
+
+制限を超過した場合、HTTP 429ステータスコードが返されます：
+
+```json
+{
+  "code": 429,
+  "message": "Too Many Requests"
+}
+```
+
+### 設定
+
+レートリミットの設定は`config/{env}/config.yaml`で管理します：
+
+```yaml
+api:
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    requests_per_hour: 1000
+```
+
+### ストレージ
+
+レートリミットのカウンターは環境に応じて異なるストレージを使用します：
+
+| 環境 | ストレージ | 設定ファイル |
+|------|----------|-------------|
+| develop | In-Memory | `config/develop/cacheserver.yaml` |
+| staging | Redis Cluster | `config/staging/cacheserver.yaml` |
+| production | Redis Cluster | `config/production/cacheserver.yaml` |
+
+Redis Clusterを使用する場合は`cacheserver.yaml`でアドレスを設定します：
+
+```yaml
+redis:
+  cluster:
+    addrs:
+      - host1:6379
+      - host2:6379
+      - host3:6379
+```
+
+`addrs`が空または未設定の場合はIn-Memoryストレージが使用されます。
+
+### 動作確認
+
+```bash
+# レートリミットヘッダーの確認
+curl -i -H "Authorization: Bearer <YOUR_API_KEY>" http://localhost:8080/api/users
+
+# レスポンスヘッダー例
+# X-RateLimit-Limit: 60
+# X-RateLimit-Remaining: 59
+# X-RateLimit-Reset: 1706342460
+```
+
 ## API認証
 
 APIエンドポイント（`/api/*`）へのアクセスにはJWTベースのPublic APIキーが必要です。
@@ -311,14 +384,17 @@ db_id = (table_number / 8) + 1  # 1-4
 ```
 config/
 ├── develop/                  # 開発環境設定ディレクトリ
-│   ├── config.yaml           # メイン設定（server, admin, logging, cors）
-│   └── database.yaml         # データベース設定（groups構造）
+│   ├── config.yaml           # メイン設定（server, admin, logging, cors, api）
+│   ├── database.yaml         # データベース設定（groups構造）
+│   └── cacheserver.yaml      # キャッシュサーバー設定（Redis Cluster）
 ├── production/               # 本番環境設定ディレクトリ
 │   ├── config.yaml.example   # メイン設定テンプレート
-│   └── database.yaml.example # データベース設定テンプレート
+│   ├── database.yaml.example # データベース設定テンプレート
+│   └── cacheserver.yaml.example # キャッシュサーバー設定テンプレート
 └── staging/                  # ステージング環境設定ディレクトリ
     ├── config.yaml           # メイン設定
-    └── database.yaml         # データベース設定
+    ├── database.yaml         # データベース設定
+    └── cacheserver.yaml      # キャッシュサーバー設定
 
 db/
 └── migrations/
@@ -335,8 +411,9 @@ db/
 
 1. メイン設定ファイル（`config/{env}/config.yaml`）を読み込み
 2. データベース設定ファイル（`config/{env}/database.yaml`）をマージ
-3. 統合された設定を`Config`構造体にマッピング
-4. 環境変数（`DB_PASSWORD_SHARD*`）でパスワードを上書き
+3. キャッシュサーバー設定ファイル（`config/{env}/cacheserver.yaml`）をマージ（オプション）
+4. 統合された設定を`Config`構造体にマッピング
+5. 環境変数（`DB_PASSWORD_SHARD*`）でパスワードを上書き
 
 ### 環境切り替え
 
@@ -376,6 +453,8 @@ database:
 - `gorm.io/sharding` (将来使用予定)
 - `github.com/labstack/echo/v4` v4.13.3 (HTTPルーター)
 - `github.com/danielgtaylor/huma/v2` v2.34.1 (OpenAPI仕様自動生成)
+- `github.com/ulule/limiter/v3` v3.11.2 (レートリミット)
+- `github.com/redis/go-redis/v9` v9.17.2 (Redis Cluster接続)
 
 詳細は [Architecture.md](docs/Architecture.md) を参照してください。
 

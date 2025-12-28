@@ -7,11 +7,13 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
 	"github.com/taku-o/go-webdb-template/internal/api/handler"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/config"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/taku-o/go-webdb-template/internal/ratelimit"
 )
 
 // NewRouter は新しいEchoルーターを作成
@@ -42,6 +44,15 @@ func NewRouter(userHandler *handler.UserHandler, postHandler *handler.PostHandle
 		AllowHeaders:     cfg.CORS.AllowedHeaders,
 		AllowCredentials: true,
 	}))
+
+	// レートリミットミドルウェア（認証ミドルウェアの前に適用）
+	rateLimitMiddleware, err := ratelimit.NewRateLimitMiddleware(cfg)
+	if err != nil {
+		// エラー時はログに記録し、サーバー起動を継続（fail-open方式）
+		logrus.WithError(err).Error("failed to create rate limit middleware")
+	} else {
+		e.Use(rateLimitMiddleware)
+	}
 
 	// Health check
 	e.GET("/health", func(c echo.Context) error {

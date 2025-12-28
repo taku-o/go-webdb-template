@@ -353,3 +353,121 @@ func TestLoad_GroupsConfig(t *testing.T) {
 		}
 	}
 }
+
+// タスク2.1: RateLimitConfig構造体のテスト
+func TestRateLimitConfig_Structure(t *testing.T) {
+	// RateLimitConfig構造体が正しいフィールドを持つことを確認
+	cfg := RateLimitConfig{
+		Enabled:           true,
+		RequestsPerMinute: 60,
+		RequestsPerHour:   1000,
+	}
+
+	if !cfg.Enabled {
+		t.Error("expected Enabled true, got false")
+	}
+	if cfg.RequestsPerMinute != 60 {
+		t.Errorf("expected RequestsPerMinute 60, got %d", cfg.RequestsPerMinute)
+	}
+	if cfg.RequestsPerHour != 1000 {
+		t.Errorf("expected RequestsPerHour 1000, got %d", cfg.RequestsPerHour)
+	}
+}
+
+// タスク2.1: APIConfigにRateLimitフィールドがあることを確認
+func TestAPIConfig_HasRateLimitField(t *testing.T) {
+	cfg := APIConfig{
+		CurrentVersion: "v2",
+		SecretKey:      "test_secret",
+		RateLimit: RateLimitConfig{
+			Enabled:           true,
+			RequestsPerMinute: 60,
+		},
+	}
+
+	if cfg.RateLimit.Enabled != true {
+		t.Error("expected RateLimit.Enabled true, got false")
+	}
+	if cfg.RateLimit.RequestsPerMinute != 60 {
+		t.Errorf("expected RateLimit.RequestsPerMinute 60, got %d", cfg.RateLimit.RequestsPerMinute)
+	}
+}
+
+// タスク2.1: CacheServerConfig構造体のテスト
+func TestCacheServerConfig_Structure(t *testing.T) {
+	cfg := CacheServerConfig{
+		Redis: RedisConfig{
+			Cluster: RedisClusterConfig{
+				Addrs: []string{"host1:6379", "host2:6379"},
+			},
+		},
+	}
+
+	if len(cfg.Redis.Cluster.Addrs) != 2 {
+		t.Errorf("expected 2 addresses, got %d", len(cfg.Redis.Cluster.Addrs))
+	}
+	if cfg.Redis.Cluster.Addrs[0] != "host1:6379" {
+		t.Errorf("expected 'host1:6379', got %s", cfg.Redis.Cluster.Addrs[0])
+	}
+}
+
+// タスク2.1: ConfigにCacheServerフィールドがあることを確認
+func TestConfig_HasCacheServerField(t *testing.T) {
+	cfg := Config{
+		CacheServer: CacheServerConfig{
+			Redis: RedisConfig{
+				Cluster: RedisClusterConfig{
+					Addrs: []string{},
+				},
+			},
+		},
+	}
+
+	if cfg.CacheServer.Redis.Cluster.Addrs == nil {
+		t.Error("expected CacheServer.Redis.Cluster.Addrs to be initialized")
+	}
+}
+
+// タスク2.2, 2.3: 設定ファイルからRateLimitConfigが読み込まれることを確認
+func TestLoad_RateLimitConfig(t *testing.T) {
+	originalEnv := os.Getenv("APP_ENV")
+	os.Setenv("APP_ENV", "develop")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	viper.Reset()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Skipf("config files not found, skipping: %v", err)
+	}
+
+	// レートリミット設定が読み込まれることを確認
+	if !cfg.API.RateLimit.Enabled {
+		t.Error("expected API.RateLimit.Enabled true, got false")
+	}
+	if cfg.API.RateLimit.RequestsPerMinute != 60 {
+		t.Errorf("expected API.RateLimit.RequestsPerMinute 60, got %d", cfg.API.RateLimit.RequestsPerMinute)
+	}
+	if cfg.API.RateLimit.RequestsPerHour != 1000 {
+		t.Errorf("expected API.RateLimit.RequestsPerHour 1000, got %d", cfg.API.RateLimit.RequestsPerHour)
+	}
+}
+
+// タスク2.2, 2.4: 設定ファイルからCacheServerConfigが読み込まれることを確認
+func TestLoad_CacheServerConfig(t *testing.T) {
+	originalEnv := os.Getenv("APP_ENV")
+	os.Setenv("APP_ENV", "develop")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	viper.Reset()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Skipf("config files not found, skipping: %v", err)
+	}
+
+	// 開発環境ではRedis Clusterのアドレスが空であることを確認
+	if len(cfg.CacheServer.Redis.Cluster.Addrs) != 0 {
+		t.Errorf("expected CacheServer.Redis.Cluster.Addrs to be empty, got %v", cfg.CacheServer.Redis.Cluster.Addrs)
+	}
+}
