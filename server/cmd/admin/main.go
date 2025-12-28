@@ -22,12 +22,12 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/gorilla/mux"
 
-	"github.com/example/go-webdb-template/internal/admin"
-	adminAuth "github.com/example/go-webdb-template/internal/admin/auth"
-	"github.com/example/go-webdb-template/internal/admin/pages"
-	"github.com/example/go-webdb-template/internal/config"
-	appdb "github.com/example/go-webdb-template/internal/db"
-	"github.com/example/go-webdb-template/internal/logging"
+	"github.com/taku-o/go-webdb-template/internal/admin"
+	adminAuth "github.com/taku-o/go-webdb-template/internal/admin/auth"
+	"github.com/taku-o/go-webdb-template/internal/admin/pages"
+	"github.com/taku-o/go-webdb-template/internal/config"
+	appdb "github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/logging"
 )
 
 func main() {

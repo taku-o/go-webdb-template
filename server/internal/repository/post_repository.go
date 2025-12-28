@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/go-webdb-template/internal/db"
-	"github.com/example/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/model"
 )
 
 // PostRepository は投稿のデータアクセスを担当

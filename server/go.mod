@@ -1,4 +1,4 @@
-module github.com/example/go-webdb-template
+module github.com/taku-o/go-webdb-template
 
 go 1.24.0
 

@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/example/go-webdb-template/internal/api/handler"
-	"github.com/example/go-webdb-template/test/testutil"
+	"github.com/taku-o/go-webdb-template/internal/api/handler"
+	"github.com/taku-o/go-webdb-template/test/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	humaapi "github.com/example/go-webdb-template/internal/api/huma"
-	"github.com/example/go-webdb-template/internal/auth"
-	"github.com/example/go-webdb-template/internal/model"
-	"github.com/example/go-webdb-template/internal/service"
+	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/service"
 )
 
 // UserHandler はユーザーAPIのハンドラー

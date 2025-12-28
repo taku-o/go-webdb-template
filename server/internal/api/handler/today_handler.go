@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/example/go-webdb-template/internal/auth"
-	humaapi "github.com/example/go-webdb-template/internal/api/huma"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 )
 
 // TodayHandler は今日の日付APIのハンドラー

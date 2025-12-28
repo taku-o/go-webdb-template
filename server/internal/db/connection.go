@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"

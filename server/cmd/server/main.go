@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/example/go-webdb-template/internal/api/handler"
-	"github.com/example/go-webdb-template/internal/api/router"
-	"github.com/example/go-webdb-template/internal/config"
-	"github.com/example/go-webdb-template/internal/db"
-	"github.com/example/go-webdb-template/internal/logging"
-	"github.com/example/go-webdb-template/internal/repository"
-	"github.com/example/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/api/handler"
+	"github.com/taku-o/go-webdb-template/internal/api/router"
+	"github.com/taku-o/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/logging"
+	"github.com/taku-o/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/service"
 )
 
 func main() {

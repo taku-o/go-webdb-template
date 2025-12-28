@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/example/go-webdb-template/internal/api/handler"
-	"github.com/example/go-webdb-template/internal/api/router"
-	"github.com/example/go-webdb-template/internal/auth"
-	"github.com/example/go-webdb-template/internal/repository"
-	"github.com/example/go-webdb-template/internal/service"
-	"github.com/example/go-webdb-template/test/testutil"
+	"github.com/taku-o/go-webdb-template/internal/api/handler"
+	"github.com/taku-o/go-webdb-template/internal/api/router"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
 func setupAuthTestServer(t *testing.T) *httptest.Server {

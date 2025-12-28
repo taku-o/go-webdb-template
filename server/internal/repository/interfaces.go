@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/example/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/model"
 )
 
 // UserRepositoryInterface はUserRepositoryの共通インターフェース

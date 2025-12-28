@@ -7,9 +7,9 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
-	"github.com/example/go-webdb-template/internal/api/handler"
-	"github.com/example/go-webdb-template/internal/auth"
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/api/handler"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )

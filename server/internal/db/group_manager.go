@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
 // =============================================================================

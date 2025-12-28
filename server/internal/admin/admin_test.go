@@ -3,7 +3,7 @@ package admin
 import (
 	"testing"
 
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
 func TestNewConfig(t *testing.T) {

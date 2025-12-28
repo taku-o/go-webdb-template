@@ -12,8 +12,8 @@ import (
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/template/types"
 
-	"github.com/example/go-webdb-template/internal/auth"
-	"github.com/example/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
 // APIKeyPage はAPIキー発行ページを返す

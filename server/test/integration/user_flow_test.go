@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/example/go-webdb-template/internal/model"
-	"github.com/example/go-webdb-template/internal/repository"
-	"github.com/example/go-webdb-template/internal/service"
-	"github.com/example/go-webdb-template/test/testutil"
+	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
 func TestUserCRUDFlow(t *testing.T) {
