@@ -3,7 +3,7 @@
 
 INPUT=$(cat)
 
-HOOK_PRE_COMMANDS_PATH="./stop_commands_rules.json"
+HOOK_PRE_COMMANDS_PATH="\"$CLAUDE_PROJECT_DIR\"/stop_commands_rules.json"
 
 # ツール名を取得
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name')
