@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useUser } from '@auth0/nextjs-auth0'
+import TodayApiButton from '@/components/TodayApiButton'
 
 export default function Home() {
   const { user, error, isLoading } = useUser()
@@ -89,6 +90,11 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        <hr className="my-8 border-gray-200" />
+
+        {/* Today API (Private Endpoint) */}
+        <TodayApiButton />
 
         <hr className="my-8 border-gray-200" />
 

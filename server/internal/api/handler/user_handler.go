@@ -6,6 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/example/go-webdb-template/internal/api/huma"
+	"github.com/example/go-webdb-template/internal/auth"
 	"github.com/example/go-webdb-template/internal/model"
 	"github.com/example/go-webdb-template/internal/service"
 )
@@ -33,6 +34,11 @@ func RegisterUserEndpoints(api huma.API, h *UserHandler) {
 		Tags:          []string{"users"},
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, input *humaapi.CreateUserInput) (*humaapi.UserOutput, error) {
+		// 公開レベルのチェック（publicエンドポイント）
+		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
+			return nil, huma.Error403Forbidden(err.Error())
+		}
+
 		req := &model.CreateUserRequest{
 			Name:  input.Body.Name,
 			Email: input.Body.Email,
@@ -56,6 +62,11 @@ func RegisterUserEndpoints(api huma.API, h *UserHandler) {
 		Summary:     "ユーザーを取得",
 		Tags:        []string{"users"},
 	}, func(ctx context.Context, input *humaapi.GetUserInput) (*humaapi.UserOutput, error) {
+		// 公開レベルのチェック（publicエンドポイント）
+		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
+			return nil, huma.Error403Forbidden(err.Error())
+		}
+
 		user, err := h.userService.GetUser(ctx, input.ID)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
@@ -74,6 +85,11 @@ func RegisterUserEndpoints(api huma.API, h *UserHandler) {
 		Summary:     "ユーザー一覧を取得",
 		Tags:        []string{"users"},
 	}, func(ctx context.Context, input *humaapi.ListUsersInput) (*humaapi.UsersOutput, error) {
+		// 公開レベルのチェック（publicエンドポイント）
+		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
+			return nil, huma.Error403Forbidden(err.Error())
+		}
+
 		users, err := h.userService.ListUsers(ctx, input.Limit, input.Offset)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
@@ -92,6 +108,11 @@ func RegisterUserEndpoints(api huma.API, h *UserHandler) {
 		Summary:     "ユーザーを更新",
 		Tags:        []string{"users"},
 	}, func(ctx context.Context, input *humaapi.UpdateUserInput) (*humaapi.UserOutput, error) {
+		// 公開レベルのチェック（publicエンドポイント）
+		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
+			return nil, huma.Error403Forbidden(err.Error())
+		}
+
 		req := &model.UpdateUserRequest{
 			Name:  input.Body.Name,
 			Email: input.Body.Email,
@@ -116,6 +137,11 @@ func RegisterUserEndpoints(api huma.API, h *UserHandler) {
 		Tags:          []string{"users"},
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, input *humaapi.DeleteUserInput) (*struct{}, error) {
+		// 公開レベルのチェック（publicエンドポイント）
+		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
+			return nil, huma.Error403Forbidden(err.Error())
+		}
+
 		err := h.userService.DeleteUser(ctx, input.ID)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())

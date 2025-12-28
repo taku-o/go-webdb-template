@@ -49,9 +49,10 @@ func main() {
 	// Handler層の初期化
 	userHandler := handler.NewUserHandler(userService)
 	postHandler := handler.NewPostHandler(postService)
+	todayHandler := handler.NewTodayHandler()
 
 	// Echoルーターの初期化
-	e := router.NewRouter(userHandler, postHandler, cfg)
+	e := router.NewRouter(userHandler, postHandler, todayHandler, cfg)
 
 	// アクセスログの初期化
 	accessLogger, err := logging.NewAccessLogger("api", cfg.Logging.OutputDir)

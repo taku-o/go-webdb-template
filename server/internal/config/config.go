@@ -94,10 +94,11 @@ type CORSConfig struct {
 
 // APIConfig はAPIキー設定
 type APIConfig struct {
-	CurrentVersion  string   `mapstructure:"current_version"`
-	PublicKey       string   `mapstructure:"public_key"`
-	SecretKey       string   `mapstructure:"secret_key"`
-	InvalidVersions []string `mapstructure:"invalid_versions"`
+	CurrentVersion     string   `mapstructure:"current_version"`
+	PublicKey          string   `mapstructure:"public_key"`
+	SecretKey          string   `mapstructure:"secret_key"`
+	InvalidVersions    []string `mapstructure:"invalid_versions"`
+	Auth0IssuerBaseURL string   `mapstructure:"auth0_issuer_base_url"` // Auth0のIssuer Base URL
 }
 
 // AdminConfig は管理画面設定

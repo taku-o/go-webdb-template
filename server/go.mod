@@ -7,6 +7,7 @@ toolchain go1.24.11
 require (
 	github.com/GoAdminGroup/go-admin v1.2.26
 	github.com/GoAdminGroup/themes v0.0.48
+	github.com/MicahParks/keyfunc/v2 v2.1.0
 	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/mux v1.8.1

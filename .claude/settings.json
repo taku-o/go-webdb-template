@@ -1,3 +1,6 @@
 {
-  "includeCoAuthoredBy": false
+  "includeCoAuthoredBy": false,
+  "enabledPlugins": {
+    "javascript-typescript@claude-code-workflows": true
+  }
 }

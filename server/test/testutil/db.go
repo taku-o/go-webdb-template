@@ -38,9 +38,10 @@ func GetTestConfig() *config.Config {
 			AllowedHeaders: []string{"*"},
 		},
 		API: config.APIConfig{
-			CurrentVersion:  "v2",
-			SecretKey:       TestSecretKey,
-			InvalidVersions: []string{"v1"},
+			CurrentVersion:     "v2",
+			SecretKey:          TestSecretKey,
+			InvalidVersions:    []string{"v1"},
+			Auth0IssuerBaseURL: "https://dev-oaa5vtzmld4dsxtd.jp.auth0.com",
 		},
 	}
 }

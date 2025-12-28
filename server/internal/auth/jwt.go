@@ -3,11 +3,21 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/example/go-webdb-template/internal/config"
+)
+
+// JWTType はJWTの種類
+type JWTType string
+
+const (
+	JWTTypeAuth0        JWTType = "auth0"
+	JWTTypePublicAPIKey JWTType = "public_api_key"
+	JWTTypeUnknown      JWTType = "unknown"
 )
 
 // JWTClaims はJWTのクレーム構造
@@ -170,4 +180,38 @@ func GeneratePublicAPIKey(secretKey string, currentVersion string, env string, i
 	}
 
 	return tokenString, nil
+}
+
+// DetectJWTType はJWTの種類を判別（署名検証前）
+func DetectJWTType(tokenString string) (JWTType, error) {
+	// 署名検証なしでパース
+	parser := jwt.NewParser()
+	token, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return JWTTypeUnknown, fmt.Errorf("failed to parse JWT: %w", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return JWTTypeUnknown, errors.New("invalid token claims")
+	}
+
+	// issによる判別
+	issuer, ok := claims["iss"].(string)
+	if !ok {
+		return JWTTypeUnknown, errors.New("missing issuer claim")
+	}
+
+	if issuer == "go-webdb-template" {
+		return JWTTypePublicAPIKey, nil
+	}
+
+	// Auth0のドメインパターンをチェック
+	if strings.HasPrefix(issuer, "https://") &&
+		(strings.Contains(issuer, ".auth0.com") ||
+			strings.Contains(issuer, ".auth0.jp")) {
+		return JWTTypeAuth0, nil
+	}
+
+	return JWTTypeUnknown, fmt.Errorf("unknown issuer: %s", issuer)
 }

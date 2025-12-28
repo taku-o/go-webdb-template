@@ -18,7 +18,7 @@ func TestOpenAPIEndpoint(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
 	// ハンドラーはnilでも登録テストは可能
-	router := NewRouter(nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, cfg)
 
 	// テスト用のAPIトークンを取得
 	token, err := testutil.GetTestAPIToken()
@@ -64,7 +64,7 @@ func TestOpenAPIEndpoint(t *testing.T) {
 func TestHealthEndpoint(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
-	router := NewRouter(nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, cfg)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()

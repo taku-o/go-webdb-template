@@ -33,9 +33,12 @@ func setupAuthTestServer(t *testing.T) *httptest.Server {
 	postService := service.NewPostService(postRepo, userRepo)
 	postHandler := handler.NewPostHandler(postService)
 
+	// TodayHandler
+	todayHandler := handler.NewTodayHandler()
+
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()
-	r := router.NewRouter(userHandler, postHandler, cfg)
+	r := router.NewRouter(userHandler, postHandler, todayHandler, cfg)
 
 	return httptest.NewServer(r)
 }

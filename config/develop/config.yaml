@@ -38,3 +38,4 @@ api:
   secret_key: "RNrxs7Rt1ZViughEGb8J08Uc1uQobSOZRRb+BmnGaag="
   invalid_versions:
     - "v1"
+  auth0_issuer_base_url: "https://dev-oaa5vtzmld4dsxtd.jp.auth0.com"
