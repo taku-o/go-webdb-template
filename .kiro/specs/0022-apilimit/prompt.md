@@ -47,7 +47,31 @@ _serena_indexing
 
 /serena-initialize
 
-/kiro:spec-impl 0020-apidoc
+/kiro:spec-impl 0022-apilimit
+
+まず、ドキュメントの更新はお願いします。
+> 2. タスク 7.1: ドキュメントの更新（推奨）- ユーザー判断が必要
+
+こちらは確認しなくていい。環境を用意するのが大変だから。
+> 1. タスク 6.3: Redis Cluster環境での動作確認（tasks.mdに「オプション」と記載）
+
+tasks.mdのチェックボックスを更新してください。
+
+既存機能の動作確認したい。
+APIサーバーと、クライアントサーバーを起動してください。
+
+ソースコードの変更後、クライアントが動かないことがよくあるみたいなんだけど。
+Failed to fetch RSC payload for http://localhost:3000/. Falling back to browser navigation.
+
+あ、わかった。クライアントのポートを変えないでください。
+3000を止めて。それからクライアントサーバーを起動。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/15 に対して
+pull requestを作成してください。
+
+/review 42
+
 
 
 

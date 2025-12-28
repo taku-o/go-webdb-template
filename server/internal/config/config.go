@@ -10,12 +10,28 @@ import (
 
 // Config はアプリケーション全体の設定を保持する構造体
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Admin    AdminConfig    `mapstructure:"admin"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Logging  LoggingConfig  `mapstructure:"logging"`
-	CORS     CORSConfig     `mapstructure:"cors"`
-	API      APIConfig      `mapstructure:"api"`
+	Server      ServerConfig      `mapstructure:"server"`
+	Admin       AdminConfig       `mapstructure:"admin"`
+	Database    DatabaseConfig    `mapstructure:"database"`
+	Logging     LoggingConfig     `mapstructure:"logging"`
+	CORS        CORSConfig        `mapstructure:"cors"`
+	API         APIConfig         `mapstructure:"api"`
+	CacheServer CacheServerConfig `mapstructure:"cache_server"` // キャッシュサーバー設定
+}
+
+// CacheServerConfig はキャッシュサーバー設定
+type CacheServerConfig struct {
+	Redis RedisConfig `mapstructure:"redis"`
+}
+
+// RedisConfig はRedis設定
+type RedisConfig struct {
+	Cluster RedisClusterConfig `mapstructure:"cluster"`
+}
+
+// RedisClusterConfig はRedis Cluster設定
+type RedisClusterConfig struct {
+	Addrs []string `mapstructure:"addrs"` // Redis Clusterのアドレスリスト
 }
 
 // ServerConfig はサーバー設定
@@ -94,11 +110,19 @@ type CORSConfig struct {
 
 // APIConfig はAPIキー設定
 type APIConfig struct {
-	CurrentVersion     string   `mapstructure:"current_version"`
-	PublicKey          string   `mapstructure:"public_key"`
-	SecretKey          string   `mapstructure:"secret_key"`
-	InvalidVersions    []string `mapstructure:"invalid_versions"`
-	Auth0IssuerBaseURL string   `mapstructure:"auth0_issuer_base_url"` // Auth0のIssuer Base URL
+	CurrentVersion     string          `mapstructure:"current_version"`
+	PublicKey          string          `mapstructure:"public_key"`
+	SecretKey          string          `mapstructure:"secret_key"`
+	InvalidVersions    []string        `mapstructure:"invalid_versions"`
+	Auth0IssuerBaseURL string          `mapstructure:"auth0_issuer_base_url"` // Auth0のIssuer Base URL
+	RateLimit          RateLimitConfig `mapstructure:"rate_limit"`            // レートリミット設定
+}
+
+// RateLimitConfig はレートリミット設定
+type RateLimitConfig struct {
+	Enabled           bool `mapstructure:"enabled"`
+	RequestsPerMinute int  `mapstructure:"requests_per_minute"`
+	RequestsPerHour   int  `mapstructure:"requests_per_hour"` // オプション
 }
 
 // AdminConfig は管理画面設定
@@ -152,6 +176,16 @@ func Load() (*Config, error) {
 	viper.SetConfigName("database")
 	if err := viper.MergeInConfig(); err != nil {
 		return nil, fmt.Errorf("failed to read database config file: %w", err)
+	}
+
+	// キャッシュサーバー設定ファイルのマージ（オプショナル）
+	viper.SetConfigName("cacheserver")
+	if err := viper.MergeInConfig(); err != nil {
+		// cacheserver.yamlが存在しない場合はエラーにしない（オプショナル）
+		// 設定ファイルが見つからないエラーの場合のみ無視
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("failed to read cacheserver config file: %w", err)
+		}
 	}
 
 	var cfg Config

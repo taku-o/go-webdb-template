@@ -39,3 +39,7 @@ api:
   invalid_versions:
     - "v1"
   auth0_issuer_base_url: "https://dev-oaa5vtzmld4dsxtd.jp.auth0.com"
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    requests_per_hour: 1000

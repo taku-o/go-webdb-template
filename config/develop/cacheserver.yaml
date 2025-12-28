@@ -1,0 +1,4 @@
+# 開発環境ではRedis Clusterを使用しない（In-Memoryストレージを使用）
+redis:
+  cluster:
+    addrs: []
