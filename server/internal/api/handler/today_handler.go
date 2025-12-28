@@ -36,8 +36,12 @@ func RegisterTodayEndpoints(api huma.API, h *TodayHandler) {
 		OperationID: "get-today",
 		Method:      http.MethodGet,
 		Path:        "/api/today",
-		Summary:     "今日の日付を取得（Auth0認証必須）",
+		Summary:     "[private] 今日の日付を取得",
+		Description: "**Access Level:** `private` (Auth0 JWT でアクセス可能)",
 		Tags:        []string{"today"},
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.GetTodayInput) (*humaapi.TodayOutput, error) {
 		date, err := h.GetToday(ctx)
 		if err != nil {

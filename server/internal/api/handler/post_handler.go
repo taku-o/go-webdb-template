@@ -31,8 +31,12 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Method:        http.MethodPost,
 		Path:          "/api/posts",
 		Summary:       "投稿を作成",
+		Description:   "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
 		Tags:          []string{"posts"},
 		DefaultStatus: http.StatusCreated,
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.CreatePostInput) (*humaapi.PostOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
@@ -61,7 +65,11 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Method:      http.MethodGet,
 		Path:        "/api/posts/{id}",
 		Summary:     "投稿を取得",
+		Description: "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
 		Tags:        []string{"posts"},
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.GetPostInput) (*humaapi.PostOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
@@ -84,7 +92,11 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Method:      http.MethodGet,
 		Path:        "/api/posts",
 		Summary:     "投稿一覧を取得",
+		Description: "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
 		Tags:        []string{"posts"},
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.ListPostsInput) (*humaapi.PostsOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
@@ -115,7 +127,11 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Method:      http.MethodPut,
 		Path:        "/api/posts/{id}",
 		Summary:     "投稿を更新",
+		Description: "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
 		Tags:        []string{"posts"},
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.UpdatePostInput) (*humaapi.PostOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
@@ -143,8 +159,12 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Method:        http.MethodDelete,
 		Path:          "/api/posts/{id}",
 		Summary:       "投稿を削除",
+		Description:   "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
 		Tags:          []string{"posts"},
 		DefaultStatus: http.StatusNoContent,
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.DeletePostInput) (*struct{}, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
@@ -165,7 +185,11 @@ func RegisterPostEndpoints(api huma.API, h *PostHandler) {
 		Method:      http.MethodGet,
 		Path:        "/api/user-posts",
 		Summary:     "ユーザーと投稿のJOIN結果を取得",
+		Description: "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
 		Tags:        []string{"posts"},
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
 	}, func(ctx context.Context, input *humaapi.GetUserPostsInput) (*humaapi.UserPostsOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
