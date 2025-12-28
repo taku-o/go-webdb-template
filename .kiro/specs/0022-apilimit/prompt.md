@@ -94,6 +94,7 @@ OK。それはそれでいい。
 その後、https://github.com/taku-o/go-webdb-template/issues/15 に対して
 pull requestを作成してください。
 
+/review 46
 
 
 
