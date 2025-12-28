@@ -58,6 +58,17 @@ func NewRouter(userHandler *handler.UserHandler, postHandler *handler.PostHandle
 		},
 	}
 
+	// SecurityScheme設定の追加
+	humaConfig.Components = &huma.Components{
+		SecuritySchemes: map[string]*huma.SecurityScheme{
+			"bearerAuth": {
+				Type:         "http",
+				Scheme:       "bearer",
+				BearerFormat: "JWT",
+			},
+		},
+	}
+
 	// Huma APIインスタンスの作成（ルートレベル、認証なし）
 	humaAPI := humaecho.New(e, humaConfig)
 
