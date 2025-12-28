@@ -1,4 +1,37 @@
 {
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/stop_words.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/block-multiedit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/stop_commands.sh"
+          }
+        ]
+      }
+    ]
+  },
   "includeCoAuthoredBy": false,
   "enabledPlugins": {
     "javascript-typescript@claude-code-workflows": true
