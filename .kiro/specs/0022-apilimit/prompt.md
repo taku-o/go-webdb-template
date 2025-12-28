@@ -70,7 +70,7 @@ Failed to fetch RSC payload for http://localhost:3000/. Falling back to browser 
 その後、https://github.com/taku-o/go-webdb-template/issues/15 に対して
 pull requestを作成してください。
 
-/review 42
+/review 44
 
 
 
