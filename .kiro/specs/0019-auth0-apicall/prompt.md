@@ -185,6 +185,21 @@ export const config = {
 };
 ```
 
+OK。不要なエラーログは止まりました。
+
+ちょっと前に
+エラーログを止めるために、
+/auth/profileルートを追加したでしょ。
+それは必要な実装？
+
+挙動は良さそうだ。
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/40 に対して
+pull requestを作成してください。
+
+/review 41
+
+
 
 
 
