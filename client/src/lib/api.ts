@@ -19,14 +19,18 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options?: RequestInit
+    options?: RequestInit,
+    jwt?: string
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
+
+    // JWTの取得（引数で渡された場合はそれを使用、なければapiKeyを使用）
+    const token = jwt || this.apiKey
 
     // Authorizationヘッダーを追加
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${token}`,
       ...options?.headers,
     }
 
@@ -120,6 +124,11 @@ class ApiClient {
   // User-Post JOIN API
   async getUserPosts(limit = 20, offset = 0): Promise<UserPost[]> {
     return this.request<UserPost[]>(`/api/user-posts?limit=${limit}&offset=${offset}`)
+  }
+
+  // Today API (private - requires Auth0 JWT)
+  async getToday(jwt: string): Promise<{ date: string }> {
+    return this.request<{ date: string }>('/api/today', undefined, jwt)
   }
 }
 

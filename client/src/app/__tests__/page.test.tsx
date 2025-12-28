@@ -6,6 +6,12 @@ jest.mock('@auth0/nextjs-auth0', () => ({
   useUser: jest.fn(),
 }))
 
+// Mock TodayApiButton component
+jest.mock('@/components/TodayApiButton', () => ({
+  __esModule: true,
+  default: () => <div data-testid="today-api-button">TodayApiButton</div>,
+}))
+
 import { useUser } from '@auth0/nextjs-auth0'
 
 const mockUseUser = useUser as jest.MockedFunction<typeof useUser>
@@ -47,13 +53,18 @@ describe('HomePage', () => {
     expect(userPostLinks.length).toBeGreaterThan(0)
   })
 
-  it('displays tech stack', () => {
+  it('displays project description', () => {
     render(<HomePage />)
 
-    // Check for tech stack descriptions
-    expect(screen.getByText(/Go \(Sharding対応\)/)).toBeInTheDocument()
-    expect(screen.getByText(/Next\.js 14 \(App Router\)/)).toBeInTheDocument()
-    expect(screen.getByText(/TypeScript/)).toBeInTheDocument()
+    // Check for project description
+    expect(screen.getByText(/Go \+ Next\.js \+ Sharding対応のサンプルプロジェクトです/)).toBeInTheDocument()
+  })
+
+  it('renders TodayApiButton component', () => {
+    render(<HomePage />)
+
+    // Check for TodayApiButton component (mocked)
+    expect(screen.getByTestId('today-api-button')).toBeInTheDocument()
   })
 
   it('has links with correct hrefs', () => {

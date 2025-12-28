@@ -76,3 +76,7 @@ type GetUserPostsInput struct {
 	Limit  int `query:"limit" default:"20" minimum:"1" maximum:"100" doc:"取得件数"`
 	Offset int `query:"offset" default:"0" minimum:"0" doc:"オフセット"`
 }
+
+// GetTodayInput は今日の日付取得リクエストの入力構造体
+type GetTodayInput struct {
+}

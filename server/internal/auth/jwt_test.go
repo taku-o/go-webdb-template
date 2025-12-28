@@ -225,3 +225,73 @@ func TestParseJWTClaims_InvalidToken(t *testing.T) {
 	_, err := ParseJWTClaims("invalid-token")
 	require.Error(t, err)
 }
+
+func TestDetectJWTType(t *testing.T) {
+	tests := []struct {
+		name      string
+		claims    jwt.MapClaims
+		wantType  JWTType
+		wantErr   bool
+	}{
+		{
+			name: "Public API Key JWT",
+			claims: jwt.MapClaims{
+				"iss": "go-webdb-template",
+				"sub": "public_client",
+			},
+			wantType: JWTTypePublicAPIKey,
+			wantErr:  false,
+		},
+		{
+			name: "Auth0 JWT with .auth0.com domain",
+			claims: jwt.MapClaims{
+				"iss": "https://dev-oaa5vtzmld4dsxtd.jp.auth0.com/",
+				"sub": "auth0|123456",
+			},
+			wantType: JWTTypeAuth0,
+			wantErr:  false,
+		},
+		{
+			name: "Auth0 JWT with .auth0.jp domain",
+			claims: jwt.MapClaims{
+				"iss": "https://example.auth0.jp/",
+				"sub": "auth0|123456",
+			},
+			wantType: JWTTypeAuth0,
+			wantErr:  false,
+		},
+		{
+			name: "Unknown issuer",
+			claims: jwt.MapClaims{
+				"iss": "https://unknown.example.com/",
+				"sub": "user123",
+			},
+			wantType: JWTTypeUnknown,
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// テスト用のJWTトークンを生成（署名は検証しないのでどんな署名でも良い）
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, tt.claims)
+			tokenString, err := token.SignedString([]byte("test-secret"))
+			require.NoError(t, err)
+
+			gotType, err := DetectJWTType(tokenString)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantType, gotType)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantType, gotType)
+			}
+		})
+	}
+}
+
+func TestDetectJWTType_InvalidToken(t *testing.T) {
+	_, err := DetectJWTType("invalid-token")
+	require.Error(t, err)
+}

@@ -34,3 +34,10 @@ type UserPostsOutput struct {
 // DeletePostOutput は投稿削除のレスポンス構造体（204 No Content用）
 type DeletePostOutput struct {
 }
+
+// TodayOutput は今日の日付のレスポンス構造体
+type TodayOutput struct {
+	Body struct {
+		Date string `json:"date" doc:"今日の日付（YYYY-MM-DD形式）"`
+	}
+}

@@ -129,6 +129,63 @@ _serena_indexing
 
 /kiro:spec-impl 0019-auth0-apicall
 
+APIサーバーとクライアントサーバーを起動してください。
+
+ログイン後、
+Get Todayボタンが
+Error: Invalid token format
+となった。
+
+AUTH0_AUDIENCE の設定を追加した。
+
+この手順はドキュメントに追加したい。
+docs/Partner-Idp-Auth0-Login.md を修正して。
+>  Auth0ダッシュボードでの確認手順:
+>  1. Auth0ダッシュボードにログイン
+>  2. Applications > APIs に移動
+>  3. APIがない場合は「+ Create API」で作成
+>    - Name: go-webdb-template API
+>    - Identifier: https://go-webdb-template/api (任意の識別子)
+>  4. Identifierの値がAUTH0_AUDIENCEに設定する値です
+
+Get Todayボタン、うまく動作した。
+publicなAPIの方も大丈夫だった。
+
+
+追加で、ここを直したい。
+
+未ログイン時に、トップページにアクセス時、
+Failed to load resource: the server responded with a status of 401 (Unauthorized)
+とブラウザのコンソールログが出るのがあまり嬉しくない。
+障害が発生したと誤解されてしまうし、ログが埋まる。
+この出力は止められる？
+
+
+クライアントサーバーを再起動してくれますか？
+
+
+今回の修正では、エラーログがとまらないみたい。
+どうすれば良いか、聞いてきた。
+
+Next.js を使っている場合、すべてのページで Auth0 のチェックが走らないように middleware.ts の matcher を調整するのが最も効果的です。
+
+```
+export const config = {
+  matcher: [
+    /*
+     * 以下のパス以外にのみ Middleware を適用する
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - 公開ページ (例: /public)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+  ],
+};
+```
+
+
 
 
 
