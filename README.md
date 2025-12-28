@@ -183,11 +183,21 @@ APIエンドポイントへのリクエストはIPアドレス単位でレート
 
 すべてのAPIレスポンスに以下のヘッダーが付与されます：
 
+**分制限（常に付与）:**
+
 | ヘッダー | 説明 | 例 |
 |---------|------|-----|
 | `X-RateLimit-Limit` | 1分あたりの制限値 | `60` |
 | `X-RateLimit-Remaining` | 残りリクエスト数 | `45` |
 | `X-RateLimit-Reset` | リセット時刻（Unix timestamp） | `1706342400` |
+
+**時間制限（`requests_per_hour`が設定されている場合のみ）:**
+
+| ヘッダー | 説明 | 例 |
+|---------|------|-----|
+| `X-RateLimit-Hour-Limit` | 1時間あたりの制限値 | `1000` |
+| `X-RateLimit-Hour-Remaining` | 残りリクエスト数 | `950` |
+| `X-RateLimit-Hour-Reset` | リセット時刻（Unix timestamp） | `1706346000` |
 
 ### レートリミット超過時
 

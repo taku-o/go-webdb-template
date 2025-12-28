@@ -25,14 +25,14 @@ func NewRateLimitMiddleware(cfg *config.Config) (echo.MiddlewareFunc, error) {
 		}, nil
 	}
 
-	// レートリミットの設定（1分あたりのリクエスト数）
-	rate := limiter.Rate{
+	// 分あたりのレートリミット設定
+	minuteRate := limiter.Rate{
 		Period: time.Minute,
 		Limit:  int64(cfg.API.RateLimit.RequestsPerMinute),
 	}
 
-	// ストレージの初期化
-	store, err := initStore(cfg)
+	// ストレージの初期化（分制限用）
+	minuteStore, err := initStore(cfg, "ratelimit")
 	if err != nil {
 		// fail-open方式: エラー時はログに記録し、リクエストを許可
 		logrus.WithError(err).Error("failed to initialize rate limit store, allowing all requests")
@@ -43,8 +43,29 @@ func NewRateLimitMiddleware(cfg *config.Config) (echo.MiddlewareFunc, error) {
 		}, nil
 	}
 
-	// limiterインスタンスの作成
-	instance := limiter.New(store, rate)
+	// 分制限limiterインスタンスの作成
+	minuteLimiter := limiter.New(minuteStore, minuteRate)
+
+	// 時間制限limiterインスタンスの作成（設定されている場合のみ）
+	var hourLimiter *limiter.Limiter
+	if cfg.API.RateLimit.RequestsPerHour > 0 {
+		hourRate := limiter.Rate{
+			Period: time.Hour,
+			Limit:  int64(cfg.API.RateLimit.RequestsPerHour),
+		}
+
+		hourStore, err := initStore(cfg, "ratelimit_hour")
+		if err != nil {
+			logrus.WithError(err).Error("failed to initialize hourly rate limit store, allowing all requests")
+			return func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					return next(c)
+				}
+			}, nil
+		}
+
+		hourLimiter = limiter.New(hourStore, hourRate)
+	}
 
 	// ミドルウェア関数の返却
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -56,25 +77,48 @@ func NewRateLimitMiddleware(cfg *config.Config) (echo.MiddlewareFunc, error) {
 				return next(c)
 			}
 
-			// レートリミットチェック
-			context, err := instance.Get(c.Request().Context(), ip)
+			// 分制限のレートリミットチェック
+			minuteContext, err := minuteLimiter.Get(c.Request().Context(), ip)
 			if err != nil {
 				// fail-open方式: エラー時はログに記録し、リクエストを許可
-				logrus.WithError(err).WithField("ip", ip).Warn("rate limit check failed, allowing request")
+				logrus.WithError(err).WithField("ip", ip).Warn("minute rate limit check failed, allowing request")
 				return next(c)
 			}
 
-			// X-RateLimit-*ヘッダーの設定
-			c.Response().Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", context.Limit))
-			c.Response().Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", context.Remaining))
-			c.Response().Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", context.Reset))
+			// X-RateLimit-*ヘッダーの設定（分制限の情報）
+			c.Response().Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", minuteContext.Limit))
+			c.Response().Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", minuteContext.Remaining))
+			c.Response().Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", minuteContext.Reset))
 
-			// レートリミット超過時
-			if context.Reached {
+			// 分制限超過時
+			if minuteContext.Reached {
 				return c.JSON(http.StatusTooManyRequests, map[string]interface{}{
 					"code":    429,
 					"message": "Too Many Requests",
 				})
+			}
+
+			// 時間制限のレートリミットチェック（設定されている場合のみ）
+			if hourLimiter != nil {
+				hourContext, err := hourLimiter.Get(c.Request().Context(), ip)
+				if err != nil {
+					// fail-open方式: エラー時はログに記録し、リクエストを許可
+					logrus.WithError(err).WithField("ip", ip).Warn("hourly rate limit check failed, allowing request")
+					return next(c)
+				}
+
+				// X-RateLimit-Hour-*ヘッダーの設定（時間制限の情報）
+				c.Response().Header().Set("X-RateLimit-Hour-Limit", fmt.Sprintf("%d", hourContext.Limit))
+				c.Response().Header().Set("X-RateLimit-Hour-Remaining", fmt.Sprintf("%d", hourContext.Remaining))
+				c.Response().Header().Set("X-RateLimit-Hour-Reset", fmt.Sprintf("%d", hourContext.Reset))
+
+				// 時間制限超過時
+				if hourContext.Reached {
+					return c.JSON(http.StatusTooManyRequests, map[string]interface{}{
+						"code":    429,
+						"message": "Too Many Requests",
+					})
+				}
 			}
 
 			// レートリミット内の場合は次のハンドラーを実行
@@ -84,7 +128,7 @@ func NewRateLimitMiddleware(cfg *config.Config) (echo.MiddlewareFunc, error) {
 }
 
 // initStore は環境に応じたストレージを初期化
-func initStore(cfg *config.Config) (limiter.Store, error) {
+func initStore(cfg *config.Config, prefix string) (limiter.Store, error) {
 	// キャッシュサーバー設定からRedis Clusterのアドレスを取得
 	if len(cfg.CacheServer.Redis.Cluster.Addrs) == 0 {
 		// In-Memoryストレージを使用
@@ -98,6 +142,6 @@ func initStore(cfg *config.Config) (limiter.Store, error) {
 
 	// Redisストアの作成
 	return redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
-		Prefix: "ratelimit",
+		Prefix: prefix,
 	})
 }
