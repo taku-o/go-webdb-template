@@ -177,6 +177,100 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 	}
 }
 
+// SetupTestGroupManager8Sharding creates a GroupManager with 8 sharding entries and 4 databases
+// This simulates the production 8-sharding configuration with connection sharing
+// - 8 sharding entries, each handling 4 tables
+// - 4 actual database files (entries with same DB share connections)
+// - Entries 1,2 -> sharding_db_1.db (tables 0-7)
+// - Entries 3,4 -> sharding_db_2.db (tables 8-15)
+// - Entries 5,6 -> sharding_db_3.db (tables 16-23)
+// - Entries 7,8 -> sharding_db_4.db (tables 24-31)
+func SetupTestGroupManager8Sharding(t *testing.T) *db.GroupManager {
+	// Create temporary directory for test databases
+	tmpDir := t.TempDir()
+
+	// Create master database config
+	masterDBPath := filepath.Join(tmpDir, "test_master.db")
+	masterDB := config.ShardConfig{
+		ID:           1,
+		Driver:       "sqlite3",
+		DSN:          masterDBPath,
+		WriterDSN:    masterDBPath,
+		ReaderDSNs:   []string{masterDBPath},
+		ReaderPolicy: "random",
+	}
+
+	// Create 8 sharding entries with connection sharing (4 actual databases)
+	dbPaths := make([]string, 4)
+	for i := 0; i < 4; i++ {
+		dbPaths[i] = filepath.Join(tmpDir, fmt.Sprintf("test_sharding_%d.db", i+1))
+	}
+
+	shardingDBs := []config.ShardConfig{
+		// Entries 1,2 -> sharding_db_1.db
+		{ID: 1, Driver: "sqlite3", DSN: dbPaths[0], WriterDSN: dbPaths[0], ReaderDSNs: []string{dbPaths[0]}, ReaderPolicy: "random", TableRange: [2]int{0, 3}},
+		{ID: 2, Driver: "sqlite3", DSN: dbPaths[0], WriterDSN: dbPaths[0], ReaderDSNs: []string{dbPaths[0]}, ReaderPolicy: "random", TableRange: [2]int{4, 7}},
+		// Entries 3,4 -> sharding_db_2.db
+		{ID: 3, Driver: "sqlite3", DSN: dbPaths[1], WriterDSN: dbPaths[1], ReaderDSNs: []string{dbPaths[1]}, ReaderPolicy: "random", TableRange: [2]int{8, 11}},
+		{ID: 4, Driver: "sqlite3", DSN: dbPaths[1], WriterDSN: dbPaths[1], ReaderDSNs: []string{dbPaths[1]}, ReaderPolicy: "random", TableRange: [2]int{12, 15}},
+		// Entries 5,6 -> sharding_db_3.db
+		{ID: 5, Driver: "sqlite3", DSN: dbPaths[2], WriterDSN: dbPaths[2], ReaderDSNs: []string{dbPaths[2]}, ReaderPolicy: "random", TableRange: [2]int{16, 19}},
+		{ID: 6, Driver: "sqlite3", DSN: dbPaths[2], WriterDSN: dbPaths[2], ReaderDSNs: []string{dbPaths[2]}, ReaderPolicy: "random", TableRange: [2]int{20, 23}},
+		// Entries 7,8 -> sharding_db_4.db
+		{ID: 7, Driver: "sqlite3", DSN: dbPaths[3], WriterDSN: dbPaths[3], ReaderDSNs: []string{dbPaths[3]}, ReaderPolicy: "random", TableRange: [2]int{24, 27}},
+		{ID: 8, Driver: "sqlite3", DSN: dbPaths[3], WriterDSN: dbPaths[3], ReaderDSNs: []string{dbPaths[3]}, ReaderPolicy: "random", TableRange: [2]int{28, 31}},
+	}
+
+	// Create table configs
+	tables := []config.ShardingTableConfig{
+		{Name: "users", SuffixCount: 32},
+		{Name: "posts", SuffixCount: 32},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{
+			Groups: config.DatabaseGroupsConfig{
+				Master: []config.ShardConfig{masterDB},
+				Sharding: config.ShardingGroupConfig{
+					Databases: shardingDBs,
+					Tables:    tables,
+				},
+			},
+		},
+	}
+
+	manager, err := db.NewGroupManager(cfg)
+	require.NoError(t, err)
+
+	// Initialize master database schema (news table)
+	masterConn, err := manager.GetMasterConnection()
+	require.NoError(t, err)
+	InitMasterSchema(t, masterConn.DB)
+
+	// Initialize sharding database schemas (users_XXX and posts_XXX tables)
+	// With connection sharing, we need to create tables based on table_range for each entry
+	// DB1 (ShardID=1): tables 0-7
+	// DB2 (ShardID=3): tables 8-15
+	// DB3 (ShardID=5): tables 16-23
+	// DB4 (ShardID=7): tables 24-31
+	tableRanges := map[int][2]int{
+		1: {0, 7},   // Entries 1,2 -> tables 0-7
+		3: {8, 15},  // Entries 3,4 -> tables 8-15
+		5: {16, 23}, // Entries 5,6 -> tables 16-23
+		7: {24, 31}, // Entries 7,8 -> tables 24-31
+	}
+
+	connections := manager.GetAllShardingConnections()
+	for _, conn := range connections {
+		tableRange, ok := tableRanges[conn.ShardID]
+		if ok {
+			InitShardingSchema(t, conn.DB, tableRange[0], tableRange[1])
+		}
+	}
+
+	return manager
+}
+
 // CleanupTestGroupManager closes all GroupManager database connections
 func CleanupTestGroupManager(manager *db.GroupManager) {
 	if manager != nil {

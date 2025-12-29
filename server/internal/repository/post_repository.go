@@ -155,50 +155,50 @@ func (r *PostRepository) ListByUserID(ctx context.Context, userID int64, limit, 
 
 // List はすべての投稿を取得（クロステーブルクエリ）
 func (r *PostRepository) List(ctx context.Context, limit, offset int) ([]*model.Post, error) {
-	connections := r.groupManager.GetAllShardingConnections()
 	posts := make([]*model.Post, 0)
 
-	// 各データベースの各テーブルからデータを取得
-	for _, conn := range connections {
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
+		}
+
 		sqlDB, err := conn.DB.DB()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get sql.DB for shard %d: %w", conn.ShardID, err)
+			return nil, fmt.Errorf("failed to get sql.DB for table %d: %w", tableNum, err)
 		}
 
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
+		tableName := fmt.Sprintf("posts_%03d", tableNum)
 
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			tableName := fmt.Sprintf("posts_%03d", tableNum)
+		query := fmt.Sprintf(`
+			SELECT id, user_id, title, content, created_at, updated_at
+			FROM %s
+			ORDER BY created_at DESC
+			LIMIT ? OFFSET ?
+		`, tableName)
 
-			query := fmt.Sprintf(`
-				SELECT id, user_id, title, content, created_at, updated_at
-				FROM %s
-				ORDER BY created_at DESC
-				LIMIT ? OFFSET ?
-			`, tableName)
+		rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+		}
 
-			rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
-			}
-
-			for rows.Next() {
-				var post model.Post
-				if err := rows.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt); err != nil {
-					rows.Close()
-					return nil, fmt.Errorf("failed to scan post: %w", err)
-				}
-				posts = append(posts, &post)
-			}
-
-			if err := rows.Err(); err != nil {
+		for rows.Next() {
+			var post model.Post
+			if err := rows.Scan(&post.ID, &post.UserID, &post.Title, &post.Content, &post.CreatedAt, &post.UpdatedAt); err != nil {
 				rows.Close()
-				return nil, fmt.Errorf("rows error: %w", err)
+				return nil, fmt.Errorf("failed to scan post: %w", err)
 			}
-			rows.Close()
+			posts = append(posts, &post)
 		}
+
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return nil, fmt.Errorf("rows error: %w", err)
+		}
+		rows.Close()
 	}
 
 	return posts, nil
@@ -206,59 +206,59 @@ func (r *PostRepository) List(ctx context.Context, limit, offset int) ([]*model.
 
 // GetUserPosts はユーザーと投稿をJOINして取得（クロステーブルクエリ）
 func (r *PostRepository) GetUserPosts(ctx context.Context, limit, offset int) ([]*model.UserPost, error) {
-	connections := r.groupManager.GetAllShardingConnections()
 	userPosts := make([]*model.UserPost, 0)
 
-	// 各データベースの各テーブルからデータを取得
-	for _, conn := range connections {
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
+		}
+
 		sqlDB, err := conn.DB.DB()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get sql.DB for shard %d: %w", conn.ShardID, err)
+			return nil, fmt.Errorf("failed to get sql.DB for table %d: %w", tableNum, err)
 		}
 
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
+		postsTable := fmt.Sprintf("posts_%03d", tableNum)
+		usersTable := fmt.Sprintf("users_%03d", tableNum)
 
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			postsTable := fmt.Sprintf("posts_%03d", tableNum)
-			usersTable := fmt.Sprintf("users_%03d", tableNum)
+		query := fmt.Sprintf(`
+			SELECT
+				p.id as post_id,
+				p.title as post_title,
+				p.content as post_content,
+				u.id as user_id,
+				u.name as user_name,
+				u.email as user_email,
+				p.created_at
+			FROM %s p
+			INNER JOIN %s u ON p.user_id = u.id
+			ORDER BY p.created_at DESC
+			LIMIT ? OFFSET ?
+		`, postsTable, usersTable)
 
-			query := fmt.Sprintf(`
-				SELECT
-					p.id as post_id,
-					p.title as post_title,
-					p.content as post_content,
-					u.id as user_id,
-					u.name as user_name,
-					u.email as user_email,
-					p.created_at
-				FROM %s p
-				INNER JOIN %s u ON p.user_id = u.id
-				ORDER BY p.created_at DESC
-				LIMIT ? OFFSET ?
-			`, postsTable, usersTable)
+		rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
+		}
 
-			rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
-			}
-
-			for rows.Next() {
-				var up model.UserPost
-				if err := rows.Scan(&up.PostID, &up.PostTitle, &up.PostContent, &up.UserID, &up.UserName, &up.UserEmail, &up.CreatedAt); err != nil {
-					rows.Close()
-					return nil, fmt.Errorf("failed to scan user post: %w", err)
-				}
-				userPosts = append(userPosts, &up)
-			}
-
-			if err := rows.Err(); err != nil {
+		for rows.Next() {
+			var up model.UserPost
+			if err := rows.Scan(&up.PostID, &up.PostTitle, &up.PostContent, &up.UserID, &up.UserName, &up.UserEmail, &up.CreatedAt); err != nil {
 				rows.Close()
-				return nil, fmt.Errorf("rows error: %w", err)
+				return nil, fmt.Errorf("failed to scan user post: %w", err)
 			}
-			rows.Close()
+			userPosts = append(userPosts, &up)
 		}
+
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return nil, fmt.Errorf("rows error: %w", err)
+		}
+		rows.Close()
 	}
 
 	return userPosts, nil

@@ -102,29 +102,29 @@ func (r *PostRepositoryGORM) ListByUserID(ctx context.Context, userID int64, lim
 
 // List はすべての投稿を取得（クロステーブルクエリ）
 func (r *PostRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.Post, error) {
-	connections := r.groupManager.GetAllShardingConnections()
 	posts := make([]*model.Post, 0)
 
-	// 各データベースの各テーブルからデータを取得
-	for _, conn := range connections {
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
-
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			tableName := fmt.Sprintf("posts_%03d", tableNum)
-
-			var tablePosts []*model.Post
-			if err := conn.DB.WithContext(ctx).
-				Table(tableName).
-				Order("created_at DESC").
-				Limit(limit).
-				Offset(offset).
-				Find(&tablePosts).Error; err != nil {
-				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
-			}
-			posts = append(posts, tablePosts...)
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
 		}
+
+		tableName := fmt.Sprintf("posts_%03d", tableNum)
+
+		var tablePosts []*model.Post
+		if err := conn.DB.WithContext(ctx).
+			Table(tableName).
+			Order("created_at DESC").
+			Limit(limit).
+			Offset(offset).
+			Find(&tablePosts).Error; err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+		}
+		posts = append(posts, tablePosts...)
 	}
 
 	return posts, nil
@@ -132,42 +132,42 @@ func (r *PostRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*mo
 
 // GetUserPosts はユーザーと投稿をJOINして取得（クロステーブルクエリ）
 func (r *PostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset int) ([]*model.UserPost, error) {
-	connections := r.groupManager.GetAllShardingConnections()
 	userPosts := make([]*model.UserPost, 0)
 
-	// 各データベースの各テーブルからデータを取得
-	for _, conn := range connections {
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
-
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			postsTable := fmt.Sprintf("posts_%03d", tableNum)
-			usersTable := fmt.Sprintf("users_%03d", tableNum)
-
-			var tableUserPosts []*model.UserPost
-			err := conn.DB.WithContext(ctx).
-				Table(postsTable+" p").
-				Select(`
-					p.id as post_id,
-					p.title as post_title,
-					p.content as post_content,
-					u.id as user_id,
-					u.name as user_name,
-					u.email as user_email,
-					p.created_at
-				`).
-				Joins(fmt.Sprintf("INNER JOIN %s u ON p.user_id = u.id", usersTable)).
-				Order("p.created_at DESC").
-				Limit(limit).
-				Offset(offset).
-				Find(&tableUserPosts).Error
-
-			if err != nil {
-				return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
-			}
-			userPosts = append(userPosts, tableUserPosts...)
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
 		}
+
+		postsTable := fmt.Sprintf("posts_%03d", tableNum)
+		usersTable := fmt.Sprintf("users_%03d", tableNum)
+
+		var tableUserPosts []*model.UserPost
+		err = conn.DB.WithContext(ctx).
+			Table(postsTable+" p").
+			Select(`
+				p.id as post_id,
+				p.title as post_title,
+				p.content as post_content,
+				u.id as user_id,
+				u.name as user_name,
+				u.email as user_email,
+				p.created_at
+			`).
+			Joins(fmt.Sprintf("INNER JOIN %s u ON p.user_id = u.id", usersTable)).
+			Order("p.created_at DESC").
+			Limit(limit).
+			Offset(offset).
+			Find(&tableUserPosts).Error
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
+		}
+		userPosts = append(userPosts, tableUserPosts...)
 	}
 
 	return userPosts, nil

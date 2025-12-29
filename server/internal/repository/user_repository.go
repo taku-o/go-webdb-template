@@ -108,50 +108,50 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, er
 
 // List はすべてのユーザーを取得（クロステーブルクエリ）
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*model.User, error) {
-	connections := r.groupManager.GetAllShardingConnections()
 	users := make([]*model.User, 0)
 
-	// 各データベースの各テーブルからデータを取得
-	for _, conn := range connections {
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
+		}
+
 		sqlDB, err := conn.DB.DB()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get sql.DB for shard %d: %w", conn.ShardID, err)
+			return nil, fmt.Errorf("failed to get sql.DB for table %d: %w", tableNum, err)
 		}
 
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
+		tableName := fmt.Sprintf("users_%03d", tableNum)
 
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			tableName := fmt.Sprintf("users_%03d", tableNum)
+		query := fmt.Sprintf(`
+			SELECT id, name, email, created_at, updated_at
+			FROM %s
+			ORDER BY id
+			LIMIT ? OFFSET ?
+		`, tableName)
 
-			query := fmt.Sprintf(`
-				SELECT id, name, email, created_at, updated_at
-				FROM %s
-				ORDER BY id
-				LIMIT ? OFFSET ?
-			`, tableName)
+		rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+		}
 
-			rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
-			if err != nil {
-				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
-			}
-
-			for rows.Next() {
-				var user model.User
-				if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-					rows.Close()
-					return nil, fmt.Errorf("failed to scan user: %w", err)
-				}
-				users = append(users, &user)
-			}
-
-			if err := rows.Err(); err != nil {
+		for rows.Next() {
+			var user model.User
+			if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
 				rows.Close()
-				return nil, fmt.Errorf("rows error: %w", err)
+				return nil, fmt.Errorf("failed to scan user: %w", err)
 			}
-			rows.Close()
+			users = append(users, &user)
 		}
+
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return nil, fmt.Errorf("rows error: %w", err)
+		}
+		rows.Close()
 	}
 
 	return users, nil

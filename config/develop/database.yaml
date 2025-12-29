@@ -14,6 +14,7 @@ database:
 
     sharding:
       databases:
+        # sharding 1: テーブル _000-003（4テーブル）→ sharding_db_1.db
         - id: 1
           driver: sqlite3
           dsn: ./data/sharding_db_1.db
@@ -24,8 +25,21 @@ database:
           max_connections: 10
           max_idle_connections: 5
           connection_max_lifetime: 300s
-          table_range: [0, 7]
+          table_range: [0, 3]
+        # sharding 2: テーブル _004-007（4テーブル）→ sharding_db_1.db
         - id: 2
+          driver: sqlite3
+          dsn: ./data/sharding_db_1.db
+          writer_dsn: ./data/sharding_db_1.db
+          reader_dsns:
+            - ./data/sharding_db_1.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [4, 7]
+        # sharding 3: テーブル _008-011（4テーブル）→ sharding_db_2.db
+        - id: 3
           driver: sqlite3
           dsn: ./data/sharding_db_2.db
           writer_dsn: ./data/sharding_db_2.db
@@ -35,8 +49,21 @@ database:
           max_connections: 10
           max_idle_connections: 5
           connection_max_lifetime: 300s
-          table_range: [8, 15]
-        - id: 3
+          table_range: [8, 11]
+        # sharding 4: テーブル _012-015（4テーブル）→ sharding_db_2.db
+        - id: 4
+          driver: sqlite3
+          dsn: ./data/sharding_db_2.db
+          writer_dsn: ./data/sharding_db_2.db
+          reader_dsns:
+            - ./data/sharding_db_2.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [12, 15]
+        # sharding 5: テーブル _016-019（4テーブル）→ sharding_db_3.db
+        - id: 5
           driver: sqlite3
           dsn: ./data/sharding_db_3.db
           writer_dsn: ./data/sharding_db_3.db
@@ -46,8 +73,21 @@ database:
           max_connections: 10
           max_idle_connections: 5
           connection_max_lifetime: 300s
-          table_range: [16, 23]
-        - id: 4
+          table_range: [16, 19]
+        # sharding 6: テーブル _020-023（4テーブル）→ sharding_db_3.db
+        - id: 6
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db
+          writer_dsn: ./data/sharding_db_3.db
+          reader_dsns:
+            - ./data/sharding_db_3.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [20, 23]
+        # sharding 7: テーブル _024-027（4テーブル）→ sharding_db_4.db
+        - id: 7
           driver: sqlite3
           dsn: ./data/sharding_db_4.db
           writer_dsn: ./data/sharding_db_4.db
@@ -57,7 +97,19 @@ database:
           max_connections: 10
           max_idle_connections: 5
           connection_max_lifetime: 300s
-          table_range: [24, 31]
+          table_range: [24, 27]
+        # sharding 8: テーブル _028-031（4テーブル）→ sharding_db_4.db
+        - id: 8
+          driver: sqlite3
+          dsn: ./data/sharding_db_4.db
+          writer_dsn: ./data/sharding_db_4.db
+          reader_dsns:
+            - ./data/sharding_db_4.db
+          reader_policy: random
+          max_connections: 10
+          max_idle_connections: 5
+          connection_max_lifetime: 300s
+          table_range: [28, 31]
 
       tables:
         - name: users

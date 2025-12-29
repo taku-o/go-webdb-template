@@ -329,14 +329,15 @@ func TestLoad_GroupsConfig(t *testing.T) {
 		}
 	}
 
-	// Shardingグループの確認
-	if len(cfg.Database.Groups.Sharding.Databases) != 4 {
-		t.Errorf("expected 4 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
+	// Shardingグループの確認（8シャーディングエントリ構成）
+	if len(cfg.Database.Groups.Sharding.Databases) != 8 {
+		t.Errorf("expected 8 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
 	}
 	if len(cfg.Database.Groups.Sharding.Databases) > 0 {
 		db1 := cfg.Database.Groups.Sharding.Databases[0]
-		if db1.TableRange[0] != 0 || db1.TableRange[1] != 7 {
-			t.Errorf("expected table_range [0, 7], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
+		// 8シャーディング構成では各エントリが4テーブルを担当
+		if db1.TableRange[0] != 0 || db1.TableRange[1] != 3 {
+			t.Errorf("expected table_range [0, 3], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
 		}
 	}
 

@@ -94,10 +94,10 @@ database:
         max_idle_connections: 20
         connection_max_lifetime: 600s
 
-    # shardingグループ: 4つのデータベース、32分割されたテーブル
+    # shardingグループ: 8つのシャーディングエントリ、4つのデータベース、32分割されたテーブル
     sharding:
       databases:
-        # sharding_db_1: テーブル _000 〜 _007（8テーブル）
+        # sharding 1: テーブル _000-003（4テーブル）→ sharding1
         - id: 1
           driver: postgres
           host: prod-db-sharding1.example.com
@@ -113,9 +113,26 @@ database:
           max_connections: 50
           max_idle_connections: 20
           connection_max_lifetime: 600s
-          table_range: [0, 7]
-        # sharding_db_2: テーブル _008 〜 _015（8テーブル）
+          table_range: [0, 3]
+        # sharding 2: テーブル _004-007（4テーブル）→ sharding1
         - id: 2
+          driver: postgres
+          host: prod-db-sharding1.example.com
+          port: 5432
+          name: app_db_sharding1
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING1}  # 環境変数から読み込み
+          writer_dsn: host=prod-db-sharding1-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING1} dbname=app_db_sharding1 sslmode=require
+          reader_dsns:
+            - host=prod-db-sharding1-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING1} dbname=app_db_sharding1 sslmode=require
+            - host=prod-db-sharding1-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING1} dbname=app_db_sharding1 sslmode=require
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [4, 7]
+        # sharding 3: テーブル _008-011（4テーブル）→ sharding2
+        - id: 3
           driver: postgres
           host: prod-db-sharding2.example.com
           port: 5432
@@ -130,9 +147,26 @@ database:
           max_connections: 50
           max_idle_connections: 20
           connection_max_lifetime: 600s
-          table_range: [8, 15]
-        # sharding_db_3: テーブル _016 〜 _023（8テーブル）
-        - id: 3
+          table_range: [8, 11]
+        # sharding 4: テーブル _012-015（4テーブル）→ sharding2
+        - id: 4
+          driver: postgres
+          host: prod-db-sharding2.example.com
+          port: 5432
+          name: app_db_sharding2
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING2}  # 環境変数から読み込み
+          writer_dsn: host=prod-db-sharding2-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING2} dbname=app_db_sharding2 sslmode=require
+          reader_dsns:
+            - host=prod-db-sharding2-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING2} dbname=app_db_sharding2 sslmode=require
+            - host=prod-db-sharding2-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING2} dbname=app_db_sharding2 sslmode=require
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [12, 15]
+        # sharding 5: テーブル _016-019（4テーブル）→ sharding3
+        - id: 5
           driver: postgres
           host: prod-db-sharding3.example.com
           port: 5432
@@ -147,9 +181,26 @@ database:
           max_connections: 50
           max_idle_connections: 20
           connection_max_lifetime: 600s
-          table_range: [16, 23]
-        # sharding_db_4: テーブル _024 〜 _031（8テーブル）
-        - id: 4
+          table_range: [16, 19]
+        # sharding 6: テーブル _020-023（4テーブル）→ sharding3
+        - id: 6
+          driver: postgres
+          host: prod-db-sharding3.example.com
+          port: 5432
+          name: app_db_sharding3
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING3}  # 環境変数から読み込み
+          writer_dsn: host=prod-db-sharding3-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING3} dbname=app_db_sharding3 sslmode=require
+          reader_dsns:
+            - host=prod-db-sharding3-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING3} dbname=app_db_sharding3 sslmode=require
+            - host=prod-db-sharding3-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING3} dbname=app_db_sharding3 sslmode=require
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [20, 23]
+        # sharding 7: テーブル _024-027（4テーブル）→ sharding4
+        - id: 7
           driver: postgres
           host: prod-db-sharding4.example.com
           port: 5432
@@ -164,7 +215,24 @@ database:
           max_connections: 50
           max_idle_connections: 20
           connection_max_lifetime: 600s
-          table_range: [24, 31]
+          table_range: [24, 27]
+        # sharding 8: テーブル _028-031（4テーブル）→ sharding4
+        - id: 8
+          driver: postgres
+          host: prod-db-sharding4.example.com
+          port: 5432
+          name: app_db_sharding4
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING4}  # 環境変数から読み込み
+          writer_dsn: host=prod-db-sharding4-writer.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING4} dbname=app_db_sharding4 sslmode=require
+          reader_dsns:
+            - host=prod-db-sharding4-reader1.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING4} dbname=app_db_sharding4 sslmode=require
+            - host=prod-db-sharding4-reader2.example.com port=5432 user=prod_user password=${DB_PASSWORD_SHARDING4} dbname=app_db_sharding4 sslmode=require
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [28, 31]
 
       # テーブル定義: テーブル名 -> 分割数
       tables:
