@@ -76,29 +76,29 @@ func (r *UserRepositoryGORM) GetByID(ctx context.Context, id int64) (*model.User
 
 // List はすべてのユーザーを取得（クロステーブルクエリ）
 func (r *UserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.User, error) {
-	connections := r.groupManager.GetAllShardingConnections()
 	users := make([]*model.User, 0)
 
-	// 各データベースの各テーブルからデータを取得
-	for _, conn := range connections {
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
-
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			tableName := fmt.Sprintf("users_%03d", tableNum)
-
-			var tableUsers []*model.User
-			if err := conn.DB.WithContext(ctx).
-				Table(tableName).
-				Order("id").
-				Limit(limit).
-				Offset(offset).
-				Find(&tableUsers).Error; err != nil {
-				return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
-			}
-			users = append(users, tableUsers...)
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
 		}
+
+		tableName := fmt.Sprintf("users_%03d", tableNum)
+
+		var tableUsers []*model.User
+		if err := conn.DB.WithContext(ctx).
+			Table(tableName).
+			Order("id").
+			Limit(limit).
+			Offset(offset).
+			Find(&tableUsers).Error; err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+		}
+		users = append(users, tableUsers...)
 	}
 
 	return users, nil

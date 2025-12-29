@@ -12,40 +12,66 @@ This project implements database sharding to distribute data across multiple dat
 ### Database Groups
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      GroupManager                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────┐    ┌─────────────────────────────────┐ │
-│  │  MasterManager  │    │       ShardingManager          │ │
-│  │                 │    │                                 │ │
-│  │  ┌───────────┐  │    │  ┌─────────┐  ┌─────────┐     │ │
-│  │  │ master.db │  │    │  │  DB 1   │  │  DB 2   │     │ │
-│  │  │ (news)    │  │    │  │ _000-007│  │ _008-015│     │ │
-│  │  └───────────┘  │    │  └─────────┘  └─────────┘     │ │
-│  └─────────────────┘    │                                 │ │
-│                         │  ┌─────────┐  ┌─────────┐     │ │
-│                         │  │  DB 3   │  │  DB 4   │     │ │
-│                         │  │ _016-023│  │ _024-031│     │ │
-│                         │  └─────────┘  └─────────┘     │ │
-│                         └─────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           GroupManager                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────┐    ┌─────────────────────────────────────────────┐ │
+│  │  MasterManager  │    │              ShardingManager                │ │
+│  │                 │    │                                             │ │
+│  │  ┌───────────┐  │    │  8 Sharding Entries → 4 Databases           │ │
+│  │  │ master.db │  │    │  (Connection Sharing for same DSN)         │ │
+│  │  │ (news)    │  │    │                                             │ │
+│  │  └───────────┘  │    │  ┌──────────────────┐ ┌──────────────────┐ │ │
+│  └─────────────────┘    │  │ DB 1             │ │ DB 2             │ │ │
+│                         │  │ Entry 1: _000-003│ │ Entry 3: _008-011│ │ │
+│                         │  │ Entry 2: _004-007│ │ Entry 4: _012-015│ │ │
+│                         │  └──────────────────┘ └──────────────────┘ │ │
+│                         │                                             │ │
+│                         │  ┌──────────────────┐ ┌──────────────────┐ │ │
+│                         │  │ DB 3             │ │ DB 4             │ │ │
+│                         │  │ Entry 5: _016-019│ │ Entry 7: _024-027│ │ │
+│                         │  │ Entry 6: _020-023│ │ Entry 8: _028-031│ │ │
+│                         │  └──────────────────┘ └──────────────────┘ │ │
+│                         └─────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Sharding Entries and Connection Sharing
+
+The system uses **8 sharding entries** distributed across **4 physical databases**:
+
+| Entry ID | Table Range | Database | Connection |
+|----------|-------------|----------|------------|
+| Entry 1 | _000 〜 _003 | sharding_db_1 | Shared (conn1) |
+| Entry 2 | _004 〜 _007 | sharding_db_1 | Shared (conn1) |
+| Entry 3 | _008 〜 _011 | sharding_db_2 | Shared (conn2) |
+| Entry 4 | _012 〜 _015 | sharding_db_2 | Shared (conn2) |
+| Entry 5 | _016 〜 _019 | sharding_db_3 | Shared (conn3) |
+| Entry 6 | _020 〜 _023 | sharding_db_3 | Shared (conn3) |
+| Entry 7 | _024 〜 _027 | sharding_db_4 | Shared (conn4) |
+| Entry 8 | _028 〜 _031 | sharding_db_4 | Shared (conn4) |
+
+**Key Points**:
+- 8 logical entries for fine-grained control
+- 4 physical databases for actual storage
+- Entries with same DSN share connections (connection pooling)
+- Each entry handles 4 tables (for future scalability)
 
 ### Table Distribution
 
-| Database | Table Range | Tables |
-|----------|------------|--------|
-| sharding_db_1 | _000 〜 _007 | users_000, users_001, ..., users_007 |
-| sharding_db_2 | _008 〜 _015 | users_008, users_009, ..., users_015 |
-| sharding_db_3 | _016 〜 _023 | users_016, users_017, ..., users_023 |
-| sharding_db_4 | _024 〜 _031 | users_024, users_025, ..., users_031 |
+| Database | Entries | Table Range | Tables |
+|----------|---------|-------------|--------|
+| sharding_db_1 | 1, 2 | _000 〜 _007 | users_000, users_001, ..., users_007 |
+| sharding_db_2 | 3, 4 | _008 〜 _015 | users_008, users_009, ..., users_015 |
+| sharding_db_3 | 5, 6 | _016 〜 _023 | users_016, users_017, ..., users_023 |
+| sharding_db_4 | 7, 8 | _024 〜 _031 | users_024, users_025, ..., users_031 |
 
 ## Sharding Strategy
 
 ### Table-Based Sharding
 
-The application uses **table-based sharding** with 32 table partitions.
+The application uses **table-based sharding** with 32 table partitions and 8 sharding entries.
 
 **Algorithm**:
 ```go
@@ -55,8 +81,8 @@ tableNumber := id % 32  // Range: 0-31
 // Table name generation
 tableName := fmt.Sprintf("users_%03d", tableNumber)  // e.g., "users_005"
 
-// Database selection
-dbID := (tableNumber / 8) + 1  // Range: 1-4
+// Connection selection (O(1) lookup via tableNumberToDBID map)
+conn := shardingManager.GetConnectionByTableNumber(tableNumber)
 ```
 
 **Key Points**:
@@ -64,7 +90,9 @@ dbID := (tableNumber / 8) + 1  // Range: 1-4
 - Table number range: 0 to 31
 - Same `id` always maps to the same table
 - Posts use `user_id` as the sharding key
-- Each database holds 8 tables
+- 8 sharding entries, each handling 4 tables
+- 4 physical databases, each containing 8 tables
+- Connection sharing: entries with same DSN share connections
 
 ### Why Table-Based Sharding?
 
@@ -103,50 +131,42 @@ database:
 
     sharding:
       databases:
+        # Entry 1,2 → sharding_db_1.db (tables _000-007)
         - id: 1
           driver: sqlite3
           dsn: ./data/sharding_db_1.db
-          writer_dsn: ./data/sharding_db_1.db
-          reader_dsns:
-            - ./data/sharding_db_1.db
-          reader_policy: random
-          max_connections: 10
-          max_idle_connections: 5
-          connection_max_lifetime: 300s
-          table_range: [0, 7]  # _000-007
+          table_range: [0, 3]
         - id: 2
           driver: sqlite3
-          dsn: ./data/sharding_db_2.db
-          writer_dsn: ./data/sharding_db_2.db
-          reader_dsns:
-            - ./data/sharding_db_2.db
-          reader_policy: random
-          max_connections: 10
-          max_idle_connections: 5
-          connection_max_lifetime: 300s
-          table_range: [8, 15]  # _008-015
+          dsn: ./data/sharding_db_1.db  # Same DSN = shared connection
+          table_range: [4, 7]
+        # Entry 3,4 → sharding_db_2.db (tables _008-015)
         - id: 3
           driver: sqlite3
-          dsn: ./data/sharding_db_3.db
-          writer_dsn: ./data/sharding_db_3.db
-          reader_dsns:
-            - ./data/sharding_db_3.db
-          reader_policy: random
-          max_connections: 10
-          max_idle_connections: 5
-          connection_max_lifetime: 300s
-          table_range: [16, 23]  # _016-023
+          dsn: ./data/sharding_db_2.db
+          table_range: [8, 11]
         - id: 4
           driver: sqlite3
+          dsn: ./data/sharding_db_2.db  # Same DSN = shared connection
+          table_range: [12, 15]
+        # Entry 5,6 → sharding_db_3.db (tables _016-023)
+        - id: 5
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db
+          table_range: [16, 19]
+        - id: 6
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db  # Same DSN = shared connection
+          table_range: [20, 23]
+        # Entry 7,8 → sharding_db_4.db (tables _024-031)
+        - id: 7
+          driver: sqlite3
           dsn: ./data/sharding_db_4.db
-          writer_dsn: ./data/sharding_db_4.db
-          reader_dsns:
-            - ./data/sharding_db_4.db
-          reader_policy: random
-          max_connections: 10
-          max_idle_connections: 5
-          connection_max_lifetime: 300s
-          table_range: [24, 31]  # _024-031
+          table_range: [24, 27]
+        - id: 8
+          driver: sqlite3
+          dsn: ./data/sharding_db_4.db  # Same DSN = shared connection
+          table_range: [28, 31]
 
       tables:
         - name: users
@@ -154,6 +174,8 @@ database:
         - name: posts
           suffix_count: 32
 ```
+
+**Connection Sharing**: Entries 1 & 2 share the same DSN, so they share the same database connection. This reduces connection overhead while maintaining logical separation for future scalability.
 
 ### Production Environment
 
@@ -177,38 +199,58 @@ database:
 
     sharding:
       databases:
+        # Entry 1,2 → sharding1 (tables _000-007)
         - id: 1
           driver: postgres
-          host: prod-db-shard1.example.com
-          port: 5432
-          name: app_shard1
-          user: prod_user
-          password: ${DB_PASSWORD_SHARD1}
-          table_range: [0, 7]
+          host: prod-db-sharding1.example.com
+          name: app_sharding1
+          password: ${DB_PASSWORD_SHARDING1}
+          table_range: [0, 3]
         - id: 2
           driver: postgres
-          host: prod-db-shard2.example.com
-          port: 5432
-          name: app_shard2
-          user: prod_user
-          password: ${DB_PASSWORD_SHARD2}
-          table_range: [8, 15]
+          host: prod-db-sharding1.example.com  # Same host = shared connection
+          name: app_sharding1
+          password: ${DB_PASSWORD_SHARDING1}
+          table_range: [4, 7]
+        # Entry 3,4 → sharding2 (tables _008-015)
         - id: 3
           driver: postgres
-          host: prod-db-shard3.example.com
-          port: 5432
-          name: app_shard3
-          user: prod_user
-          password: ${DB_PASSWORD_SHARD3}
-          table_range: [16, 23]
+          host: prod-db-sharding2.example.com
+          name: app_sharding2
+          password: ${DB_PASSWORD_SHARDING2}
+          table_range: [8, 11]
         - id: 4
           driver: postgres
-          host: prod-db-shard4.example.com
-          port: 5432
-          name: app_shard4
-          user: prod_user
-          password: ${DB_PASSWORD_SHARD4}
-          table_range: [24, 31]
+          host: prod-db-sharding2.example.com  # Same host = shared connection
+          name: app_sharding2
+          password: ${DB_PASSWORD_SHARDING2}
+          table_range: [12, 15]
+        # Entry 5,6 → sharding3 (tables _016-023)
+        - id: 5
+          driver: postgres
+          host: prod-db-sharding3.example.com
+          name: app_sharding3
+          password: ${DB_PASSWORD_SHARDING3}
+          table_range: [16, 19]
+        - id: 6
+          driver: postgres
+          host: prod-db-sharding3.example.com  # Same host = shared connection
+          name: app_sharding3
+          password: ${DB_PASSWORD_SHARDING3}
+          table_range: [20, 23]
+        # Entry 7,8 → sharding4 (tables _024-031)
+        - id: 7
+          driver: postgres
+          host: prod-db-sharding4.example.com
+          name: app_sharding4
+          password: ${DB_PASSWORD_SHARDING4}
+          table_range: [24, 27]
+        - id: 8
+          driver: postgres
+          host: prod-db-sharding4.example.com  # Same host = shared connection
+          name: app_sharding4
+          password: ${DB_PASSWORD_SHARDING4}
+          table_range: [28, 31]
 
       tables:
         - name: users
@@ -465,7 +507,7 @@ connections := groupManager.GetAllShardingConnections()
 The `TableSelector` handles table name generation:
 
 ```go
-tableSelector := db.NewTableSelector(32, 8)  // 32 tables, 8 per database
+tableSelector := db.NewTableSelector(32, 8)  // 32 tables, 8 sharding entries
 
 // Get table number from ID
 tableNumber := tableSelector.GetTableNumber(userID)  // e.g., 5
@@ -473,9 +515,28 @@ tableNumber := tableSelector.GetTableNumber(userID)  // e.g., 5
 // Get table name
 tableName := tableSelector.GetTableName("users", userID)  // e.g., "users_005"
 
-// Get database ID from table number
-dbID := tableSelector.GetDBID(tableNumber)  // e.g., 1
+// Get entry ID from table number (uses 4 tables per entry with 8 entries)
+entryID := tableSelector.GetDBID(tableNumber)  // e.g., 2 for table 5
 ```
+
+### ShardingManager Internal Architecture
+
+The `ShardingManager` uses several internal maps for efficient connection management:
+
+```go
+type ShardingManager struct {
+    connections       map[int]*GORMConnection  // Entry ID → Connection
+    tableRange        map[int][2]int           // Entry ID → [min, max] table numbers
+    connectionPool    map[string]*GORMConnection  // DSN → Connection (shared)
+    tableNumberToDBID map[int]int              // Table number → Entry ID (O(1) lookup)
+    mu                sync.RWMutex
+}
+```
+
+**Connection Sharing**:
+- Entries with the same DSN share the same connection object
+- `connectionPool` stores unique connections by DSN
+- `GetAllConnections()` returns only unique connections (4 connections for 8 entries)
 
 ## GORM Support
 
@@ -564,6 +625,13 @@ SELECT 'users_001', COUNT(*) FROM users_001
 2. **Table Suffix Required**: Post operations require `user_id` to determine table
 3. **Limited Range Queries**: Queries like "get users 1-100" require checking multiple tables
 4. **32-Table Fixed**: Currently fixed at 32 table partitions
+
+### Future Scalability
+
+The 8-entry configuration allows for future database expansion:
+- Currently: 8 entries → 4 databases (2 entries per DB share connections)
+- Future: 8 entries → 8 databases (1 entry per DB, separate connections)
+- Requires only configuration change, no code modification
 
 ### Backward Compatibility
 
