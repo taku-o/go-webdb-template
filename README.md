@@ -146,7 +146,37 @@ npm run cloudbeaver:stop
 
 詳細は [Database-Viewer.md](docs/Database-Viewer.md) を参照してください。
 
-### 6. クライアント起動
+### 6. データ可視化ツール起動（Metabase）
+
+```bash
+# 開発環境（デフォルト）
+npm run metabase:start
+
+# 環境を指定して起動
+APP_ENV=develop npm run metabase:start
+APP_ENV=staging npm run metabase:start
+APP_ENV=production npm run metabase:start
+
+# 停止
+npm run metabase:stop
+```
+
+Metabaseは http://localhost:8970 で起動します。
+
+**主な機能**:
+- データの可視化・グラフ作成
+- ダッシュボードの作成・共有
+- 非エンジニア向けのデータ分析
+
+**CloudBeaverとMetabaseの使い分け**:
+- **CloudBeaver**: データの直接編集・操作、テーブル構造の確認
+- **Metabase**: データの可視化・分析、ダッシュボード作成
+
+**注意**: CloudBeaverとMetabaseはメモリ使用量が大きいため、開発環境では片方ずつしか起動しない運用を推奨します。
+
+詳細は [Metabase.md](docs/Metabase.md) を参照してください。
+
+### 7. クライアント起動
 
 ```bash
 cd client

@@ -5,4 +5,4 @@
 export APP_ENV=${APP_ENV:-develop}
 
 # Docker ComposeでCloudBeaverを起動
-docker-compose up -d
+docker-compose -f docker-compose.cloudbeaver.yml up -d
