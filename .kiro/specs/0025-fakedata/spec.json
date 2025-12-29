@@ -1,0 +1,11 @@
+{
+  "feature": "0025-fakedata",
+  "description": "Gofakeitによる開発用サンプルデータの生成機能",
+  "language": "ja",
+  "createdAt": "2025-12-29",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
