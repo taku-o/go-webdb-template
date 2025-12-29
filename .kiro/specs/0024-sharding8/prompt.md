@@ -91,9 +91,52 @@ for ( i = 0; i < shard_count; i ++ ) {
 > この方針で修正してよいですか？
 
 
-余計なファイルが作られている。
+OK。良さそうです。
+
+途中の作業で余計なファイルが作られています。
+おそらく不要なファイルなので削除してください。
 db/sharding_db_1.db
 db/sharding_db_2.db
+
+ここも直す必要があるんじゃない？
+atlasの仕様上、無理？
+db/schema/sharding_*
+
+つまり、開発環境、本番環境で、データベースの分割規則が違っていたら、
+成り立たなくなる？
+think.
+
+実際のデータベースの構成と合っているのは管理上悪くない。
+問題は設定の置き場所だ。次のように、環境によって置き場所を変えたい。
+できますか？
+ db/{env}/schema/
+ db/{env}/migrations/
+
+
+お願いします。
+> この変更を行いますか？
+
+いや、ごめん。スキーマの管理が面倒だ。
+develop、staging、productionでシャーディングの構成は(なるべく)合わせて貰うことにしよう。
+変更は中止して。
+
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/49 に対して
+pull requestを作成してください。
+
+/review 51
+
+
+こんなレビューの指摘が来たけど、どうだろう？
+>  2. GetAllConnectionsの最適化
+>    - 現在の実装:
+>    for _, conn := range sm.connectionPool {
+>      conns = append(conns, conn)
+>  }
+>    - connectionPool自体がユニークなのでseenマップは不要
+think.
+
 
 
 
