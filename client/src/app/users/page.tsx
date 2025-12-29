@@ -118,8 +118,8 @@ export default function UsersPage() {
             <p className="text-gray-500">ユーザーがいません。上のフォームから作成してください。</p>
           ) : (
             <div className="space-y-2">
-              {users.map((user) => (
-                <div key={user.id} className="p-4 border rounded-lg flex justify-between items-center">
+              {users.map((user, index) => (
+                <div key={index} className="p-4 border rounded-lg flex justify-between items-center">
                   <div>
                     <div className="font-medium">{user.name}</div>
                     <div className="text-sm text-gray-600">{user.email}</div>
