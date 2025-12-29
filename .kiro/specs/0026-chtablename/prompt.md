@@ -230,7 +230,14 @@ http://localhost:8081/admin/dm_user/register
 http://localhost:8081/admin/dm-user/register
 
 
+GoAdminを再起動してください。
+
 list-dm-users をビルドしてください。
+
+commitして、pull requestを更新してください。
+
+/review 55
+
 
 
 
