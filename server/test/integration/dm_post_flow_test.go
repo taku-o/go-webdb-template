@@ -14,7 +14,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestPostCRUDFlow(t *testing.T) {
+func TestDmPostCRUDFlow(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
@@ -25,12 +25,12 @@ func TestPostCRUDFlow(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 
-	// Create a test user first
-	dmUser := fixtures.CreateTestUser(t, dmUserService, "PostTestUser")
+	// Create a test dm_user first
+	dmUser := fixtures.CreateTestDmUser(t, dmUserService, "PostTestUser")
 
-	// Test Create Post
+	// Test Create DmPost
 	ctx := context.Background()
-	t.Run("Create Post", func(t *testing.T) {
+	t.Run("Create DmPost", func(t *testing.T) {
 		createReq := &model.CreateDmPostRequest{
 			UserID:  dmUser.ID,
 			Title:   "Integration Test Post",
@@ -44,7 +44,7 @@ func TestPostCRUDFlow(t *testing.T) {
 		assert.Equal(t, "This is a test post content", dmPost.Content)
 
 		// Test Read
-		t.Run("Get Post by ID", func(t *testing.T) {
+		t.Run("Get DmPost by ID", func(t *testing.T) {
 			retrieved, err := dmPostService.GetDmPost(ctx, dmPost.ID, dmUser.ID)
 			require.NoError(t, err)
 			assert.Equal(t, dmPost.ID, retrieved.ID)
@@ -52,7 +52,7 @@ func TestPostCRUDFlow(t *testing.T) {
 		})
 
 		// Test Update
-		t.Run("Update Post", func(t *testing.T) {
+		t.Run("Update DmPost", func(t *testing.T) {
 			updateReq := &model.UpdateDmPostRequest{
 				Title:   "Updated Title",
 				Content: "Updated content",
@@ -64,7 +64,7 @@ func TestPostCRUDFlow(t *testing.T) {
 		})
 
 		// Test Delete
-		t.Run("Delete Post", func(t *testing.T) {
+		t.Run("Delete DmPost", func(t *testing.T) {
 			err := dmPostService.DeleteDmPost(ctx, dmPost.ID, dmUser.ID)
 			assert.NoError(t, err)
 
@@ -75,7 +75,7 @@ func TestPostCRUDFlow(t *testing.T) {
 	})
 }
 
-func TestCrossShardJoin(t *testing.T) {
+func TestDmPostCrossShardJoin(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
@@ -86,44 +86,44 @@ func TestCrossShardJoin(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 
-	// Create multiple users
-	dmUser1 := fixtures.CreateTestUser(t, dmUserService, "User1")
-	dmUser2 := fixtures.CreateTestUser(t, dmUserService, "User2")
+	// Create multiple dm_users
+	dmUser1 := fixtures.CreateTestDmUser(t, dmUserService, "User1")
+	dmUser2 := fixtures.CreateTestDmUser(t, dmUserService, "User2")
 
-	// Create posts for each user
-	dmPost1 := fixtures.CreateTestPost(t, dmPostService, dmUser1.ID, "User1 Post")
-	dmPost2 := fixtures.CreateTestPost(t, dmPostService, dmUser2.ID, "User2 Post")
+	// Create dm_posts for each dm_user
+	dmPost1 := fixtures.CreateTestDmPost(t, dmPostService, dmUser1.ID, "User1 Post")
+	dmPost2 := fixtures.CreateTestDmPost(t, dmPostService, dmUser2.ID, "User2 Post")
 
-	t.Logf("Created User1 (ID=%d)", dmUser1.ID)
-	t.Logf("Created User2 (ID=%d)", dmUser2.ID)
+	t.Logf("Created DmUser1 (ID=%d)", dmUser1.ID)
+	t.Logf("Created DmUser2 (ID=%d)", dmUser2.ID)
 
 	// Test cross-shard JOIN
 	ctx := context.Background()
-	t.Run("GetUserPosts returns data from all shards", func(t *testing.T) {
+	t.Run("GetDmUserPosts returns data from all shards", func(t *testing.T) {
 		dmUserPosts, err := dmPostService.GetDmUserPosts(ctx, 100, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(dmUserPosts), 2)
 
-		// Verify data contains our test posts with user info
-		foundPost1 := false
-		foundPost2 := false
+		// Verify data contains our test dm_posts with dm_user info
+		foundDmPost1 := false
+		foundDmPost2 := false
 
 		for _, up := range dmUserPosts {
 			if up.PostID == dmPost1.ID {
 				assert.Equal(t, dmUser1.ID, up.UserID)
 				assert.Equal(t, dmUser1.Name, up.UserName)
 				assert.Equal(t, dmPost1.Title, up.PostTitle)
-				foundPost1 = true
+				foundDmPost1 = true
 			}
 			if up.PostID == dmPost2.ID {
 				assert.Equal(t, dmUser2.ID, up.UserID)
 				assert.Equal(t, dmUser2.Name, up.UserName)
 				assert.Equal(t, dmPost2.Title, up.PostTitle)
-				foundPost2 = true
+				foundDmPost2 = true
 			}
 		}
 
-		assert.True(t, foundPost1, "Should find post 1 with user data")
-		assert.True(t, foundPost2, "Should find post 2 with user data")
+		assert.True(t, foundDmPost1, "Should find dm_post 1 with dm_user data")
+		assert.True(t, foundDmPost2, "Should find dm_post 2 with dm_user data")
 	})
 }

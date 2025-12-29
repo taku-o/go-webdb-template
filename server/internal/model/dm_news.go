@@ -19,16 +19,16 @@ func (DmNews) TableName() string {
 	return "dm_news"
 }
 
-// CreateNewsRequest はニュース作成リクエスト
-type CreateNewsRequest struct {
+// CreateDmNewsRequest はニュース作成リクエスト
+type CreateDmNewsRequest struct {
 	Title       string     `json:"title" validate:"required,min=1,max=255"`
 	Content     string     `json:"content" validate:"required,min=1"`
 	AuthorID    *int64     `json:"author_id,omitempty"`
 	PublishedAt *time.Time `json:"published_at,omitempty"`
 }
 
-// UpdateNewsRequest はニュース更新リクエスト
-type UpdateNewsRequest struct {
+// UpdateDmNewsRequest はニュース更新リクエスト
+type UpdateDmNewsRequest struct {
 	Title       string     `json:"title" validate:"omitempty,min=1,max=255"`
 	Content     string     `json:"content" validate:"omitempty,min=1"`
 	AuthorID    *int64     `json:"author_id,omitempty"`

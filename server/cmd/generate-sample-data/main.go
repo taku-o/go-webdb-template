@@ -42,18 +42,18 @@ func main() {
 	log.Println("Starting sample data generation...")
 
 	// 4. dm_usersテーブルへのデータ生成
-	userIDs, err := generateUsers(groupManager, totalCount)
+	dmUserIDs, err := generateDmUsers(groupManager, totalCount)
 	if err != nil {
 		log.Fatalf("Failed to generate users: %v", err)
 	}
 
 	// 5. dm_postsテーブルへのデータ生成
-	if err := generatePosts(groupManager, userIDs, totalCount); err != nil {
+	if err := generateDmPosts(groupManager, dmUserIDs, totalCount); err != nil {
 		log.Fatalf("Failed to generate posts: %v", err)
 	}
 
 	// 6. dm_newsテーブルへのデータ生成
-	if err := generateNews(groupManager, totalCount); err != nil {
+	if err := generateDmNews(groupManager, totalCount); err != nil {
 		log.Fatalf("Failed to generate news: %v", err)
 	}
 
@@ -62,12 +62,12 @@ func main() {
 	os.Exit(0)
 }
 
-// generateUsers はdm_usersテーブルにデータを生成
-// 戻り値: 生成されたuser_idのリスト（posts生成時に使用）
-func generateUsers(groupManager *db.GroupManager, totalCount int) ([]int64, error) {
+// generateDmUsers はdm_usersテーブルにデータを生成
+// 戻り値: 生成されたdm_user_idのリスト（dm_posts生成時に使用）
+func generateDmUsers(groupManager *db.GroupManager, totalCount int) ([]int64, error) {
 	countPerTable := totalCount / tableCount // 各テーブルに約3～4件
 
-	var allUserIDs []int64
+	var allDmUserIDs []int64
 
 	// 各テーブル（0～31）に対してデータ生成
 	for tableNumber := 0; tableNumber < tableCount; tableNumber++ {
@@ -81,44 +81,44 @@ func generateUsers(groupManager *db.GroupManager, totalCount int) ([]int64, erro
 		tableName := fmt.Sprintf("dm_users_%03d", tableNumber)
 
 		// バッチでデータ生成
-		var users []*model.DmUser
+		var dmUsers []*model.DmUser
 		for i := 0; i < countPerTable; i++ {
-			user := &model.DmUser{
+			dmUser := &model.DmUser{
 				Name:      gofakeit.Name(),
 				Email:     gofakeit.Email(),
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			}
-			users = append(users, user)
+			dmUsers = append(dmUsers, dmUser)
 		}
 
 		// バッチ挿入
-		if len(users) > 0 {
-			if err := insertUsersBatch(conn.DB, tableName, users); err != nil {
+		if len(dmUsers) > 0 {
+			if err := insertDmUsersBatch(conn.DB, tableName, dmUsers); err != nil {
 				return nil, fmt.Errorf("failed to insert batch to %s: %w", tableName, err)
 			}
 
-			// 挿入後にuser_idを取得
-			ids, err := fetchUserIDs(conn.DB, tableName, len(users))
+			// 挿入後にdm_user_idを取得
+			ids, err := fetchDmUserIDs(conn.DB, tableName, len(dmUsers))
 			if err != nil {
-				return nil, fmt.Errorf("failed to fetch user IDs from %s: %w", tableName, err)
+				return nil, fmt.Errorf("failed to fetch dm_user IDs from %s: %w", tableName, err)
 			}
-			allUserIDs = append(allUserIDs, ids...)
+			allDmUserIDs = append(allDmUserIDs, ids...)
 		}
 
-		log.Printf("Generated %d users in %s", countPerTable, tableName)
+		log.Printf("Generated %d dm_users in %s", countPerTable, tableName)
 	}
 
-	return allUserIDs, nil
+	return allDmUserIDs, nil
 }
 
-// generatePosts はdm_postsテーブルにデータを生成
-// userIDs: 既存のdm_usersテーブルから取得したuser_idのリスト
-func generatePosts(groupManager *db.GroupManager, userIDs []int64, totalCount int) error {
+// generateDmPosts はdm_postsテーブルにデータを生成
+// dmUserIDs: 既存のdm_usersテーブルから取得したdm_user_idのリスト
+func generateDmPosts(groupManager *db.GroupManager, dmUserIDs []int64, totalCount int) error {
 	countPerTable := totalCount / tableCount // 各テーブルに約3～4件
 
-	if len(userIDs) == 0 {
-		return fmt.Errorf("no user IDs available for posts generation")
+	if len(dmUserIDs) == 0 {
+		return fmt.Errorf("no dm_user IDs available for dm_posts generation")
 	}
 
 	// 各テーブル（0～31）に対してデータ生成
@@ -133,36 +133,36 @@ func generatePosts(groupManager *db.GroupManager, userIDs []int64, totalCount in
 		tableName := fmt.Sprintf("dm_posts_%03d", tableNumber)
 
 		// バッチでデータ生成
-		var posts []*model.DmPost
+		var dmPosts []*model.DmPost
 		for i := 0; i < countPerTable; i++ {
-			// user_idをランダムに選択
-			userID := userIDs[gofakeit.IntRange(0, len(userIDs)-1)]
+			// dm_user_idをランダムに選択
+			dmUserID := dmUserIDs[gofakeit.IntRange(0, len(dmUserIDs)-1)]
 
-			post := &model.DmPost{
-				UserID:    userID,
+			dmPost := &model.DmPost{
+				UserID:    dmUserID,
 				Title:     gofakeit.Sentence(5),
 				Content:   gofakeit.Paragraph(3, 5, 10, "\n"),
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			}
-			posts = append(posts, post)
+			dmPosts = append(dmPosts, dmPost)
 		}
 
 		// バッチ挿入
-		if len(posts) > 0 {
-			if err := insertPostsBatch(conn.DB, tableName, posts); err != nil {
+		if len(dmPosts) > 0 {
+			if err := insertDmPostsBatch(conn.DB, tableName, dmPosts); err != nil {
 				return fmt.Errorf("failed to insert batch to %s: %w", tableName, err)
 			}
 		}
 
-		log.Printf("Generated %d posts in %s", countPerTable, tableName)
+		log.Printf("Generated %d dm_posts in %s", countPerTable, tableName)
 	}
 
 	return nil
 }
 
-// generateNews はdm_newsテーブルにデータを生成
-func generateNews(groupManager *db.GroupManager, totalCount int) error {
+// generateDmNews はdm_newsテーブルにデータを生成
+func generateDmNews(groupManager *db.GroupManager, totalCount int) error {
 	// master接続を取得
 	conn, err := groupManager.GetMasterConnection()
 	if err != nil {
@@ -170,7 +170,7 @@ func generateNews(groupManager *db.GroupManager, totalCount int) error {
 	}
 
 	// バッチでデータ生成
-	var news []*model.DmNews
+	var dmNews []*model.DmNews
 	for i := 0; i < totalCount; i++ {
 		authorID := gofakeit.Int64()
 		publishedAt := gofakeit.Date()
@@ -183,42 +183,42 @@ func generateNews(groupManager *db.GroupManager, totalCount int) error {
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
-		news = append(news, n)
+		dmNews = append(dmNews, n)
 	}
 
 	// バッチ挿入
-	if len(news) > 0 {
-		if err := insertNewsBatch(conn.DB, news); err != nil {
-			return fmt.Errorf("failed to insert batch to news: %w", err)
+	if len(dmNews) > 0 {
+		if err := insertDmNewsBatch(conn.DB, dmNews); err != nil {
+			return fmt.Errorf("failed to insert batch to dm_news: %w", err)
 		}
 	}
 
-	log.Printf("Generated %d news articles", totalCount)
+	log.Printf("Generated %d dm_news articles", totalCount)
 	return nil
 }
 
-// insertUsersBatch はdm_usersテーブルにバッチでデータを挿入
-func insertUsersBatch(db *gorm.DB, tableName string, users []*model.DmUser) error {
-	if len(users) == 0 {
+// insertDmUsersBatch はdm_usersテーブルにバッチでデータを挿入
+func insertDmUsersBatch(db *gorm.DB, tableName string, dmUsers []*model.DmUser) error {
+	if len(dmUsers) == 0 {
 		return nil
 	}
 
 	// バッチサイズを考慮して分割
-	for i := 0; i < len(users); i += batchSize {
+	for i := 0; i < len(dmUsers); i += batchSize {
 		end := i + batchSize
-		if end > len(users) {
-			end = len(users)
+		if end > len(dmUsers) {
+			end = len(dmUsers)
 		}
-		batch := users[i:end]
+		batch := dmUsers[i:end]
 
 		// 生SQLでバッチ挿入（動的テーブル名対応）
 		query := fmt.Sprintf("INSERT INTO %s (name, email, created_at, updated_at) VALUES ", tableName)
 		var values []interface{}
 		var placeholders []string
 
-		for _, user := range batch {
+		for _, dmUser := range batch {
 			placeholders = append(placeholders, "(?, ?, ?, ?)")
-			values = append(values, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
+			values = append(values, dmUser.Name, dmUser.Email, dmUser.CreatedAt, dmUser.UpdatedAt)
 		}
 
 		query += strings.Join(placeholders, ", ")
@@ -231,28 +231,28 @@ func insertUsersBatch(db *gorm.DB, tableName string, users []*model.DmUser) erro
 	return nil
 }
 
-// insertPostsBatch はdm_postsテーブルにバッチでデータを挿入
-func insertPostsBatch(db *gorm.DB, tableName string, posts []*model.DmPost) error {
-	if len(posts) == 0 {
+// insertDmPostsBatch はdm_postsテーブルにバッチでデータを挿入
+func insertDmPostsBatch(db *gorm.DB, tableName string, dmPosts []*model.DmPost) error {
+	if len(dmPosts) == 0 {
 		return nil
 	}
 
 	// バッチサイズを考慮して分割
-	for i := 0; i < len(posts); i += batchSize {
+	for i := 0; i < len(dmPosts); i += batchSize {
 		end := i + batchSize
-		if end > len(posts) {
-			end = len(posts)
+		if end > len(dmPosts) {
+			end = len(dmPosts)
 		}
-		batch := posts[i:end]
+		batch := dmPosts[i:end]
 
 		// 生SQLでバッチ挿入（動的テーブル名対応）
 		query := fmt.Sprintf("INSERT INTO %s (user_id, title, content, created_at, updated_at) VALUES ", tableName)
 		var values []interface{}
 		var placeholders []string
 
-		for _, post := range batch {
+		for _, dmPost := range batch {
 			placeholders = append(placeholders, "(?, ?, ?, ?, ?)")
-			values = append(values, post.UserID, post.Title, post.Content, post.CreatedAt, post.UpdatedAt)
+			values = append(values, dmPost.UserID, dmPost.Title, dmPost.Content, dmPost.CreatedAt, dmPost.UpdatedAt)
 		}
 
 		query += strings.Join(placeholders, ", ")
@@ -265,19 +265,19 @@ func insertPostsBatch(db *gorm.DB, tableName string, posts []*model.DmPost) erro
 	return nil
 }
 
-// insertNewsBatch はdm_newsテーブルにバッチでデータを挿入
-func insertNewsBatch(db *gorm.DB, news []*model.DmNews) error {
-	if len(news) == 0 {
+// insertDmNewsBatch はdm_newsテーブルにバッチでデータを挿入
+func insertDmNewsBatch(db *gorm.DB, dmNews []*model.DmNews) error {
+	if len(dmNews) == 0 {
 		return nil
 	}
 
 	// バッチサイズを考慮して分割
-	for i := 0; i < len(news); i += batchSize {
+	for i := 0; i < len(dmNews); i += batchSize {
 		end := i + batchSize
-		if end > len(news) {
-			end = len(news)
+		if end > len(dmNews) {
+			end = len(dmNews)
 		}
-		batch := news[i:end]
+		batch := dmNews[i:end]
 
 		// GORMのCreateInBatchesを使用（固定テーブル名）
 		if err := db.Table("dm_news").CreateInBatches(batch, len(batch)).Error; err != nil {
@@ -288,12 +288,12 @@ func insertNewsBatch(db *gorm.DB, news []*model.DmNews) error {
 	return nil
 }
 
-// fetchUserIDs は挿入後のuser_idを取得
-func fetchUserIDs(db *gorm.DB, tableName string, limit int) ([]int64, error) {
+// fetchDmUserIDs は挿入後のdm_user_idを取得
+func fetchDmUserIDs(db *gorm.DB, tableName string, limit int) ([]int64, error) {
 	var ids []int64
 	query := fmt.Sprintf("SELECT id FROM %s ORDER BY id DESC LIMIT ?", tableName)
 	if err := db.Raw(query, limit).Scan(&ids).Error; err != nil {
-		return nil, fmt.Errorf("failed to fetch user IDs: %w", err)
+		return nil, fmt.Errorf("failed to fetch dm_user IDs: %w", err)
 	}
 	return ids, nil
 }

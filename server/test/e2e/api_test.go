@@ -72,11 +72,11 @@ func setupTestServer(t *testing.T) *httptest.Server {
 	return httptest.NewServer(r)
 }
 
-func TestUserAPI_CreateAndRetrieve(t *testing.T) {
+func TestDmUserAPI_CreateAndRetrieve(t *testing.T) {
 	server := setupTestServer(t)
 	defer server.Close()
 
-	// Create user
+	// Create dm_user
 	createReq := map[string]string{
 		"name":  "E2E Test User",
 		"email": "e2e@example.com",
@@ -88,25 +88,25 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	var user map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&user)
+	var dmUser map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&dmUser)
 	require.NoError(t, err)
-	assert.Equal(t, "E2E Test User", user["name"])
-	assert.Equal(t, "e2e@example.com", user["email"])
+	assert.Equal(t, "E2E Test User", dmUser["name"])
+	assert.Equal(t, "e2e@example.com", dmUser["email"])
 
-	userIDStr := user["id"].(string)
-	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	dmUserIDStr := dmUser["id"].(string)
+	dmUserID, err := strconv.ParseInt(dmUserIDStr, 10, 64)
 	require.NoError(t, err)
 
-	// Retrieve user
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), nil)
+	// Retrieve dm_user
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	// Debug: print response if not OK
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		t.Logf("Expected 200 but got %d, body: %s, userID: %d", resp.StatusCode, string(body), userID)
+		t.Logf("Expected 200 but got %d, body: %s, dmUserID: %d", resp.StatusCode, string(body), dmUserID)
 		// Re-create reader for subsequent decode
 		resp.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
@@ -120,11 +120,11 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	assert.Equal(t, "e2e@example.com", retrieved["email"])
 }
 
-func TestUserAPI_UpdateAndDelete(t *testing.T) {
+func TestDmUserAPI_UpdateAndDelete(t *testing.T) {
 	server := setupTestServer(t)
 	defer server.Close()
 
-	// Create user
+	// Create dm_user
 	createReq := map[string]string{
 		"name":  "Original Name",
 		"email": "original@example.com",
@@ -134,19 +134,19 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	var user map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&user)
-	userIDStr := user["id"].(string)
-	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	var dmUser map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&dmUser)
+	dmUserIDStr := dmUser["id"].(string)
+	dmUserID, err := strconv.ParseInt(dmUserIDStr, 10, 64)
 	require.NoError(t, err)
 
-	// Update user
+	// Update dm_user
 	updateReq := map[string]string{
 		"name":  "Updated Name",
 		"email": "updated@example.com",
 	}
 	body, _ = json.Marshal(updateReq)
-	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), body)
+	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -155,88 +155,88 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&updated)
 	assert.Equal(t, "Updated Name", updated["name"])
 
-	// Delete user
-	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), nil)
+	// Delete dm_user
+	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// Verify deletion
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
 
-func TestPostAPI_CompleteFlow(t *testing.T) {
+func TestDmPostAPI_CompleteFlow(t *testing.T) {
 	server := setupTestServer(t)
 	defer server.Close()
 
-	// Create user first
-	userReq := map[string]string{
+	// Create dm_user first
+	dmUserReq := map[string]string{
 		"name":  "Post Test User",
 		"email": "posttest@example.com",
 	}
-	body, _ := json.Marshal(userReq)
+	body, _ := json.Marshal(dmUserReq)
 	resp, err := doRequestWithAuth("POST", server.URL+"/api/dm-users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	var user map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&user)
-	userIDStr := user["id"].(string)
-	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	var dmUser map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&dmUser)
+	dmUserIDStr := dmUser["id"].(string)
+	dmUserID, err := strconv.ParseInt(dmUserIDStr, 10, 64)
 	require.NoError(t, err)
 
-	// Create post
-	postReq := map[string]interface{}{
-		"user_id": userID,
+	// Create dm_post
+	dmPostReq := map[string]interface{}{
+		"user_id": dmUserID,
 		"title":   "Test Post",
 		"content": "Test content",
 	}
-	body, _ = json.Marshal(postReq)
+	body, _ = json.Marshal(dmPostReq)
 	resp, err = doRequestWithAuth("POST", server.URL+"/api/dm-posts", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	var post map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&post)
-	postIDStr := post["id"].(string)
-	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	var dmPost map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&dmPost)
+	dmPostIDStr := dmPost["id"].(string)
+	dmPostID, err := strconv.ParseInt(dmPostIDStr, 10, 64)
 	require.NoError(t, err)
-	assert.Equal(t, "Test Post", post["title"])
+	assert.Equal(t, "Test Post", dmPost["title"])
 
-	// Get post
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-posts/%d?user_id=%d", postID, userID), nil)
+	// Get dm_post
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-posts/%d?user_id=%d", dmPostID, dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Get user posts (JOIN)
+	// Get dm_user_posts (JOIN)
 	resp, err = doRequestWithAuth("GET", server.URL+"/api/dm-user-posts", nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var userPosts []map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&userPosts)
-	assert.Greater(t, len(userPosts), 0)
+	var dmUserPosts []map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&dmUserPosts)
+	assert.Greater(t, len(dmUserPosts), 0)
 
-	// Find our post in the results
+	// Find our dm_post in the results
 	found := false
-	for _, up := range userPosts {
+	for _, up := range dmUserPosts {
 		upPostIDStr := up["post_id"].(string)
 		upPostID, _ := strconv.ParseInt(upPostIDStr, 10, 64)
-		if upPostID == postID {
+		if upPostID == dmPostID {
 			upUserIDStr := up["user_id"].(string)
 			upUserID, _ := strconv.ParseInt(upUserIDStr, 10, 64)
-			assert.Equal(t, userID, upUserID)
+			assert.Equal(t, dmUserID, upUserID)
 			assert.Equal(t, "Post Test User", up["user_name"])
 			assert.Equal(t, "Test Post", up["post_title"])
 			found = true
 			break
 		}
 	}
-	assert.True(t, found, "Should find our post in user-posts results")
+	assert.True(t, found, "Should find our dm_post in dm_user-posts results")
 }

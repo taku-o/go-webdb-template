@@ -206,7 +206,7 @@ func (r *DmPostRepository) List(ctx context.Context, limit, offset int) ([]*mode
 
 // GetUserPosts はユーザーと投稿をJOINして取得（クロステーブルクエリ）
 func (r *DmPostRepository) GetUserPosts(ctx context.Context, limit, offset int) ([]*model.DmUserPost, error) {
-	userPosts := make([]*model.DmUserPost, 0)
+	dmUserPosts := make([]*model.DmUserPost, 0)
 
 	// テーブル数分ループして各テーブルからデータを取得
 	tableCount := r.tableSelector.GetTableCount()
@@ -251,7 +251,7 @@ func (r *DmPostRepository) GetUserPosts(ctx context.Context, limit, offset int) 
 				rows.Close()
 				return nil, fmt.Errorf("failed to scan user post: %w", err)
 			}
-			userPosts = append(userPosts, &up)
+			dmUserPosts = append(dmUserPosts, &up)
 		}
 
 		if err := rows.Err(); err != nil {
@@ -261,7 +261,7 @@ func (r *DmPostRepository) GetUserPosts(ctx context.Context, limit, offset int) 
 		rows.Close()
 	}
 
-	return userPosts, nil
+	return dmUserPosts, nil
 }
 
 // Update は投稿を更新

@@ -1,0 +1,11 @@
+{
+  "feature": "0027-chtablename-retry",
+  "description": "テーブル名変更機能修正（変数名・関数名の修正漏れ対応）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

@@ -12,7 +12,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestPostRepositoryGORM_Create(t *testing.T) {
+func TestDmPostRepositoryGORM_Create(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -36,7 +36,7 @@ func TestPostRepositoryGORM_Create(t *testing.T) {
 	assert.NotZero(t, dmPost.UpdatedAt)
 }
 
-func TestPostRepositoryGORM_GetByID(t *testing.T) {
+func TestDmPostRepositoryGORM_GetByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -62,7 +62,7 @@ func TestPostRepositoryGORM_GetByID(t *testing.T) {
 	assert.Equal(t, "Test content", dmPost.Content)
 }
 
-func TestPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
+func TestDmPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -75,7 +75,7 @@ func TestPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	assert.Nil(t, dmPost)
 }
 
-func TestPostRepositoryGORM_Update(t *testing.T) {
+func TestDmPostRepositoryGORM_Update(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -109,7 +109,7 @@ func TestPostRepositoryGORM_Update(t *testing.T) {
 	assert.Equal(t, "Updated content", dmPost.Content)
 }
 
-func TestPostRepositoryGORM_Delete(t *testing.T) {
+func TestDmPostRepositoryGORM_Delete(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -135,7 +135,7 @@ func TestPostRepositoryGORM_Delete(t *testing.T) {
 	assert.Nil(t, dmPost)
 }
 
-func TestPostRepositoryGORM_ListByUserID(t *testing.T) {
+func TestDmPostRepositoryGORM_ListByUserID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -165,7 +165,7 @@ func TestPostRepositoryGORM_ListByUserID(t *testing.T) {
 	assert.Len(t, dmPosts, 2)
 }
 
-func TestPostRepositoryGORM_List(t *testing.T) {
+func TestDmPostRepositoryGORM_List(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -195,7 +195,7 @@ func TestPostRepositoryGORM_List(t *testing.T) {
 	assert.Len(t, dmPosts, 2)
 }
 
-func TestPostRepositoryGORM_GetUserPosts(t *testing.T) {
+func TestDmPostRepositoryGORM_GetUserPosts(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 

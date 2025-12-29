@@ -10,15 +10,15 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 )
 
-// UserRegisterCompletePage はユーザー登録完了ページを返す
-func UserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
+// DmUserRegisterCompletePage はユーザー登録完了ページを返す
+func DmUserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
 	_ = conn // connは将来の拡張用
 	// クエリパラメータから登録情報を取得
-	userID := ctx.Query("id")
-	userName := ctx.Query("name")
-	userEmail := ctx.Query("email")
+	dmUserID := ctx.Query("id")
+	dmUserName := ctx.Query("name")
+	dmUserEmail := ctx.Query("email")
 
-	if userID == "" || userName == "" || userEmail == "" {
+	if dmUserID == "" || dmUserName == "" || dmUserEmail == "" {
 		// 情報がない場合は登録ページへ戻る
 		return types.Panel{
 			Title:       "エラー",
@@ -65,9 +65,9 @@ func UserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.P
         </a>
     </div>
 </div>
-`, template.HTMLEscapeString(userID),
-		template.HTMLEscapeString(userName),
-		template.HTMLEscapeString(userEmail),
+`, template.HTMLEscapeString(dmUserID),
+		template.HTMLEscapeString(dmUserName),
+		template.HTMLEscapeString(dmUserEmail),
 		registeredAt)
 
 	return types.Panel{

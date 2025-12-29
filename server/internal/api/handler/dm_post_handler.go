@@ -23,8 +23,8 @@ func NewDmPostHandler(dmPostService *service.DmPostService) *DmPostHandler {
 	}
 }
 
-// RegisterPostEndpoints はHuma APIに投稿エンドポイントを登録
-func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
+// RegisterDmPostEndpoints はHuma APIに投稿エンドポイントを登録
+func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 	// POST /api/dm-posts - 投稿作成
 	huma.Register(api, huma.Operation{
 		OperationID:   "create-post",
@@ -37,7 +37,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.CreatePostInput) (*humaapi.PostOutput, error) {
+	}, func(ctx context.Context, input *humaapi.CreateDmPostInput) (*humaapi.DmPostOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -54,7 +54,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.PostOutput{}
+		resp := &humaapi.DmPostOutput{}
 		resp.Body = *dmPost
 		return resp, nil
 	})
@@ -70,7 +70,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.GetPostInput) (*humaapi.PostOutput, error) {
+	}, func(ctx context.Context, input *humaapi.GetDmPostInput) (*humaapi.DmPostOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -81,7 +81,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error404NotFound(err.Error())
 		}
 
-		resp := &humaapi.PostOutput{}
+		resp := &humaapi.DmPostOutput{}
 		resp.Body = *dmPost
 		return resp, nil
 	})
@@ -97,7 +97,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.ListPostsInput) (*humaapi.PostsOutput, error) {
+	}, func(ctx context.Context, input *humaapi.ListDmPostsInput) (*humaapi.DmPostsOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -116,7 +116,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.PostsOutput{}
+		resp := &humaapi.DmPostsOutput{}
 		resp.Body = dmPosts
 		return resp, nil
 	})
@@ -132,7 +132,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.UpdatePostInput) (*humaapi.PostOutput, error) {
+	}, func(ctx context.Context, input *humaapi.UpdateDmPostInput) (*humaapi.DmPostOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -148,7 +148,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.PostOutput{}
+		resp := &humaapi.DmPostOutput{}
 		resp.Body = *dmPost
 		return resp, nil
 	})
@@ -165,7 +165,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.DeletePostInput) (*struct{}, error) {
+	}, func(ctx context.Context, input *humaapi.DeleteDmPostInput) (*struct{}, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -190,7 +190,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.GetUserPostsInput) (*humaapi.UserPostsOutput, error) {
+	}, func(ctx context.Context, input *humaapi.GetDmUserPostsInput) (*humaapi.DmUserPostsOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -201,7 +201,7 @@ func RegisterPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.UserPostsOutput{}
+		resp := &humaapi.DmUserPostsOutput{}
 		resp.Body = dmUserPosts
 		return resp, nil
 	})
