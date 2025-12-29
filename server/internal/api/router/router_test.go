@@ -74,19 +74,19 @@ func TestHealthEndpoint(t *testing.T) {
 	assert.Equal(t, "OK", rec.Body.String())
 }
 
-// TestRegisterUserEndpointsIntegration はユーザーエンドポイントが登録されることを確認
-func TestRegisterUserEndpointsIntegration(t *testing.T) {
-	// RegisterUserEndpoints関数のシグネチャを確認
+// TestRegisterDmUserEndpointsIntegration はユーザーエンドポイントが登録されることを確認
+func TestRegisterDmUserEndpointsIntegration(t *testing.T) {
+	// RegisterDmUserEndpoints関数のシグネチャを確認
 	var _ func(*handler.DmUserHandler) = func(h *handler.DmUserHandler) {
-		// handler.RegisterUserEndpoints(api, h) の形式で呼び出し可能
+		// handler.RegisterDmUserEndpoints(api, h) の形式で呼び出し可能
 	}
 }
 
-// TestRegisterPostEndpointsIntegration は投稿エンドポイントが登録されることを確認
-func TestRegisterPostEndpointsIntegration(t *testing.T) {
-	// RegisterPostEndpoints関数のシグネチャを確認
+// TestRegisterDmPostEndpointsIntegration は投稿エンドポイントが登録されることを確認
+func TestRegisterDmPostEndpointsIntegration(t *testing.T) {
+	// RegisterDmPostEndpoints関数のシグネチャを確認
 	var _ func(*handler.DmPostHandler) = func(h *handler.DmPostHandler) {
-		// handler.RegisterPostEndpoints(api, h) の形式で呼び出し可能
+		// handler.RegisterDmPostEndpoints(api, h) の形式で呼び出し可能
 	}
 }
 

@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-// TestCreateUserInput はCreateUserInputの構造を確認
-func TestCreateUserInput(t *testing.T) {
-	input := CreateUserInput{}
+// TestCreateDmUserInput はCreateDmUserInputの構造を確認
+func TestCreateDmUserInput(t *testing.T) {
+	input := CreateDmUserInput{}
 
 	// Body構造体の存在を確認
 	bodyType := reflect.TypeOf(input.Body)
@@ -33,29 +33,29 @@ func TestCreateUserInput(t *testing.T) {
 	}
 }
 
-// TestGetUserInput はGetUserInputの構造を確認
-func TestGetUserInput(t *testing.T) {
-	input := GetUserInput{}
+// TestGetDmUserInput はGetDmUserInputの構造を確認
+func TestGetDmUserInput(t *testing.T) {
+	input := GetDmUserInput{}
 
 	// IDフィールドの存在を確認
 	inputType := reflect.TypeOf(input)
 	idField, ok := inputType.FieldByName("ID")
 	if !ok {
-		t.Error("GetUserInput should have ID field")
+		t.Error("GetDmUserInput should have ID field")
 	}
 	if idField.Tag.Get("path") != "id" {
 		t.Error("ID should have path:\"id\" tag")
 	}
 }
 
-// TestListUsersInput はListUsersInputの構造を確認
-func TestListUsersInput(t *testing.T) {
-	input := ListUsersInput{}
+// TestListDmUsersInput はListDmUsersInputの構造を確認
+func TestListDmUsersInput(t *testing.T) {
+	input := ListDmUsersInput{}
 
 	inputType := reflect.TypeOf(input)
 	limitField, ok := inputType.FieldByName("Limit")
 	if !ok {
-		t.Error("ListUsersInput should have Limit field")
+		t.Error("ListDmUsersInput should have Limit field")
 	}
 	if limitField.Tag.Get("query") != "limit" {
 		t.Error("Limit should have query:\"limit\" tag")
@@ -63,21 +63,21 @@ func TestListUsersInput(t *testing.T) {
 
 	offsetField, ok := inputType.FieldByName("Offset")
 	if !ok {
-		t.Error("ListUsersInput should have Offset field")
+		t.Error("ListDmUsersInput should have Offset field")
 	}
 	if offsetField.Tag.Get("query") != "offset" {
 		t.Error("Offset should have query:\"offset\" tag")
 	}
 }
 
-// TestUpdateUserInput はUpdateUserInputの構造を確認
-func TestUpdateUserInput(t *testing.T) {
-	input := UpdateUserInput{}
+// TestUpdateDmUserInput はUpdateDmUserInputの構造を確認
+func TestUpdateDmUserInput(t *testing.T) {
+	input := UpdateDmUserInput{}
 
 	inputType := reflect.TypeOf(input)
 	idField, ok := inputType.FieldByName("ID")
 	if !ok {
-		t.Error("UpdateUserInput should have ID field")
+		t.Error("UpdateDmUserInput should have ID field")
 	}
 	if idField.Tag.Get("path") != "id" {
 		t.Error("ID should have path:\"id\" tag")
@@ -90,23 +90,23 @@ func TestUpdateUserInput(t *testing.T) {
 	}
 }
 
-// TestDeleteUserInput はDeleteUserInputの構造を確認
-func TestDeleteUserInput(t *testing.T) {
-	input := DeleteUserInput{}
+// TestDeleteDmUserInput はDeleteDmUserInputの構造を確認
+func TestDeleteDmUserInput(t *testing.T) {
+	input := DeleteDmUserInput{}
 
 	inputType := reflect.TypeOf(input)
 	idField, ok := inputType.FieldByName("ID")
 	if !ok {
-		t.Error("DeleteUserInput should have ID field")
+		t.Error("DeleteDmUserInput should have ID field")
 	}
 	if idField.Tag.Get("path") != "id" {
 		t.Error("ID should have path:\"id\" tag")
 	}
 }
 
-// TestUserOutput はUserOutputの構造を確認
-func TestUserOutput(t *testing.T) {
-	output := UserOutput{}
+// TestDmUserOutput はDmUserOutputの構造を確認
+func TestDmUserOutput(t *testing.T) {
+	output := DmUserOutput{}
 
 	// Body構造体の存在を確認
 	bodyType := reflect.TypeOf(output.Body)
@@ -115,9 +115,9 @@ func TestUserOutput(t *testing.T) {
 	}
 }
 
-// TestUsersOutput はUsersOutputの構造を確認
-func TestUsersOutput(t *testing.T) {
-	output := UsersOutput{}
+// TestDmUsersOutput はDmUsersOutputの構造を確認
+func TestDmUsersOutput(t *testing.T) {
+	output := DmUsersOutput{}
 
 	// Bodyがスライス型であることを確認
 	bodyType := reflect.TypeOf(output.Body)
@@ -126,15 +126,15 @@ func TestUsersOutput(t *testing.T) {
 	}
 }
 
-// TestDeleteUserOutput はDeleteUserOutputの構造を確認
-func TestDeleteUserOutput(t *testing.T) {
-	_ = DeleteUserOutput{}
+// TestDeleteDmUserOutput はDeleteDmUserOutputの構造を確認
+func TestDeleteDmUserOutput(t *testing.T) {
+	_ = DeleteDmUserOutput{}
 	// 204 No Contentなのでフィールドは不要
 }
 
-// TestCreatePostInput はCreatePostInputの構造を確認
-func TestCreatePostInput(t *testing.T) {
-	input := CreatePostInput{}
+// TestCreateDmPostInput はCreateDmPostInputの構造を確認
+func TestCreateDmPostInput(t *testing.T) {
+	input := CreateDmPostInput{}
 
 	// Body構造体の存在を確認
 	bodyType := reflect.TypeOf(input.Body)
@@ -160,14 +160,14 @@ func TestCreatePostInput(t *testing.T) {
 	}
 }
 
-// TestGetPostInput はGetPostInputの構造を確認
-func TestGetPostInput(t *testing.T) {
-	input := GetPostInput{}
+// TestGetDmPostInput はGetDmPostInputの構造を確認
+func TestGetDmPostInput(t *testing.T) {
+	input := GetDmPostInput{}
 
 	inputType := reflect.TypeOf(input)
 	idField, ok := inputType.FieldByName("ID")
 	if !ok {
-		t.Error("GetPostInput should have ID field")
+		t.Error("GetDmPostInput should have ID field")
 	}
 	if idField.Tag.Get("path") != "id" {
 		t.Error("ID should have path:\"id\" tag")
@@ -175,21 +175,21 @@ func TestGetPostInput(t *testing.T) {
 
 	userIDField, ok := inputType.FieldByName("UserID")
 	if !ok {
-		t.Error("GetPostInput should have UserID field")
+		t.Error("GetDmPostInput should have UserID field")
 	}
 	if userIDField.Tag.Get("query") != "user_id" {
 		t.Error("UserID should have query:\"user_id\" tag")
 	}
 }
 
-// TestListPostsInput はListPostsInputの構造を確認
-func TestListPostsInput(t *testing.T) {
-	input := ListPostsInput{}
+// TestListDmPostsInput はListDmPostsInputの構造を確認
+func TestListDmPostsInput(t *testing.T) {
+	input := ListDmPostsInput{}
 
 	inputType := reflect.TypeOf(input)
 	limitField, ok := inputType.FieldByName("Limit")
 	if !ok {
-		t.Error("ListPostsInput should have Limit field")
+		t.Error("ListDmPostsInput should have Limit field")
 	}
 	if limitField.Tag.Get("query") != "limit" {
 		t.Error("Limit should have query:\"limit\" tag")
@@ -197,30 +197,30 @@ func TestListPostsInput(t *testing.T) {
 
 	userIDField, ok := inputType.FieldByName("UserID")
 	if !ok {
-		t.Error("ListPostsInput should have UserID field")
+		t.Error("ListDmPostsInput should have UserID field")
 	}
 	if userIDField.Tag.Get("query") != "user_id" {
 		t.Error("UserID should have query:\"user_id\" tag")
 	}
 }
 
-// TestGetUserPostsInput はGetUserPostsInputの構造を確認
-func TestGetUserPostsInput(t *testing.T) {
-	input := GetUserPostsInput{}
+// TestGetDmUserPostsInput はGetDmUserPostsInputの構造を確認
+func TestGetDmUserPostsInput(t *testing.T) {
+	input := GetDmUserPostsInput{}
 
 	inputType := reflect.TypeOf(input)
 	limitField, ok := inputType.FieldByName("Limit")
 	if !ok {
-		t.Error("GetUserPostsInput should have Limit field")
+		t.Error("GetDmUserPostsInput should have Limit field")
 	}
 	if limitField.Tag.Get("query") != "limit" {
 		t.Error("Limit should have query:\"limit\" tag")
 	}
 }
 
-// TestPostOutput はPostOutputの構造を確認
-func TestPostOutput(t *testing.T) {
-	output := PostOutput{}
+// TestDmPostOutput はDmPostOutputの構造を確認
+func TestDmPostOutput(t *testing.T) {
+	output := DmPostOutput{}
 
 	// Body構造体の存在を確認
 	bodyType := reflect.TypeOf(output.Body)
@@ -229,9 +229,9 @@ func TestPostOutput(t *testing.T) {
 	}
 }
 
-// TestPostsOutput はPostsOutputの構造を確認
-func TestPostsOutput(t *testing.T) {
-	output := PostsOutput{}
+// TestDmPostsOutput はDmPostsOutputの構造を確認
+func TestDmPostsOutput(t *testing.T) {
+	output := DmPostsOutput{}
 
 	// Bodyがスライス型であることを確認
 	bodyType := reflect.TypeOf(output.Body)
@@ -240,9 +240,9 @@ func TestPostsOutput(t *testing.T) {
 	}
 }
 
-// TestUserPostsOutput はUserPostsOutputの構造を確認
-func TestUserPostsOutput(t *testing.T) {
-	output := UserPostsOutput{}
+// TestDmUserPostsOutput はDmUserPostsOutputの構造を確認
+func TestDmUserPostsOutput(t *testing.T) {
+	output := DmUserPostsOutput{}
 
 	// Bodyがスライス型であることを確認
 	bodyType := reflect.TypeOf(output.Body)
@@ -251,8 +251,8 @@ func TestUserPostsOutput(t *testing.T) {
 	}
 }
 
-// TestDeletePostOutput はDeletePostOutputの構造を確認
-func TestDeletePostOutput(t *testing.T) {
-	_ = DeletePostOutput{}
+// TestDeleteDmPostOutput はDeleteDmPostOutputの構造を確認
+func TestDeleteDmPostOutput(t *testing.T) {
+	_ = DeleteDmPostOutput{}
 	// 204 No Contentなのでフィールドは不要
 }

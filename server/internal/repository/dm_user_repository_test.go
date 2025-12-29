@@ -12,7 +12,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestUserRepository_Create(t *testing.T) {
+func TestDmUserRepository_Create(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -24,24 +24,24 @@ func TestUserRepository_Create(t *testing.T) {
 		Email: "test@example.com",
 	}
 
-	user, err := repo.Create(ctx, req)
+	dmUser, err := repo.Create(ctx, req)
 	assert.NoError(t, err)
-	assert.NotNil(t, user)
-	assert.NotZero(t, user.ID)
-	assert.Equal(t, "Test User", user.Name)
-	assert.Equal(t, "test@example.com", user.Email)
-	assert.NotZero(t, user.CreatedAt)
-	assert.NotZero(t, user.UpdatedAt)
+	assert.NotNil(t, dmUser)
+	assert.NotZero(t, dmUser.ID)
+	assert.Equal(t, "Test User", dmUser.Name)
+	assert.Equal(t, "test@example.com", dmUser.Email)
+	assert.NotZero(t, dmUser.CreatedAt)
+	assert.NotZero(t, dmUser.UpdatedAt)
 }
 
-func TestUserRepository_GetByID(t *testing.T) {
+func TestDmUserRepository_GetByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	repo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
-	// Create test user first
+	// Create test dm_user first
 	req := &model.CreateDmUserRequest{
 		Name:  "Test User",
 		Email: "test@example.com",
@@ -50,35 +50,35 @@ func TestUserRepository_GetByID(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test retrieval
-	user, err := repo.GetByID(ctx, created.ID)
+	dmUser, err := repo.GetByID(ctx, created.ID)
 	assert.NoError(t, err)
-	assert.NotNil(t, user)
-	assert.Equal(t, created.ID, user.ID)
-	assert.Equal(t, "Test User", user.Name)
-	assert.Equal(t, "test@example.com", user.Email)
+	assert.NotNil(t, dmUser)
+	assert.Equal(t, created.ID, dmUser.ID)
+	assert.Equal(t, "Test User", dmUser.Name)
+	assert.Equal(t, "test@example.com", dmUser.Email)
 }
 
-func TestUserRepository_GetByID_NotFound(t *testing.T) {
+func TestDmUserRepository_GetByID_NotFound(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	repo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
-	// Test retrieval of non-existent user
-	user, err := repo.GetByID(ctx, 999)
+	// Test retrieval of non-existent dm_user
+	dmUser, err := repo.GetByID(ctx, 999)
 	assert.Error(t, err)
-	assert.Nil(t, user)
+	assert.Nil(t, dmUser)
 }
 
-func TestUserRepository_Update(t *testing.T) {
+func TestDmUserRepository_Update(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	repo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
-	// Create test user first
+	// Create test dm_user first
 	createReq := &model.CreateDmUserRequest{
 		Name:  "Original Name",
 		Email: "original@example.com",
@@ -86,7 +86,7 @@ func TestUserRepository_Update(t *testing.T) {
 	created, err := repo.Create(ctx, createReq)
 	require.NoError(t, err)
 
-	// Update user
+	// Update dm_user
 	updateReq := &model.UpdateDmUserRequest{
 		Name:  "Updated Name",
 		Email: "updated@example.com",
@@ -98,20 +98,20 @@ func TestUserRepository_Update(t *testing.T) {
 	assert.Equal(t, "updated@example.com", updated.Email)
 
 	// Verify update
-	user, err := repo.GetByID(ctx, created.ID)
+	dmUser, err := repo.GetByID(ctx, created.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "Updated Name", user.Name)
-	assert.Equal(t, "updated@example.com", user.Email)
+	assert.Equal(t, "Updated Name", dmUser.Name)
+	assert.Equal(t, "updated@example.com", dmUser.Email)
 }
 
-func TestUserRepository_Delete(t *testing.T) {
+func TestDmUserRepository_Delete(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	repo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
-	// Create test user first
+	// Create test dm_user first
 	req := &model.CreateDmUserRequest{
 		Name:  "Test User",
 		Email: "test@example.com",
@@ -119,24 +119,24 @@ func TestUserRepository_Delete(t *testing.T) {
 	created, err := repo.Create(ctx, req)
 	require.NoError(t, err)
 
-	// Delete user
+	// Delete dm_user
 	err = repo.Delete(ctx, created.ID)
 	assert.NoError(t, err)
 
 	// Verify deletion
-	user, err := repo.GetByID(ctx, created.ID)
+	dmUser, err := repo.GetByID(ctx, created.ID)
 	assert.Error(t, err)
-	assert.Nil(t, user)
+	assert.Nil(t, dmUser)
 }
 
-func TestUserRepository_List(t *testing.T) {
+func TestDmUserRepository_List(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	repo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
-	// Create test users
+	// Create test dm_users
 	req1 := &model.CreateDmUserRequest{
 		Name:  "User 1",
 		Email: "user1@example.com",
@@ -151,8 +151,8 @@ func TestUserRepository_List(t *testing.T) {
 	_, err = repo.Create(ctx, req2)
 	require.NoError(t, err)
 
-	// List users
-	users, err := repo.List(ctx, 10, 0)
+	// List dm_users
+	dmUsers, err := repo.List(ctx, 10, 0)
 	assert.NoError(t, err)
-	assert.Len(t, users, 2)
+	assert.Len(t, dmUsers, 2)
 }

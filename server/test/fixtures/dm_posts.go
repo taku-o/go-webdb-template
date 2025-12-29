@@ -11,36 +11,36 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/service"
 )
 
-// CreateTestPost creates a test post using the service layer
-func CreateTestPost(t *testing.T, svc *service.DmPostService, userID int64, title string) *model.DmPost {
+// CreateTestDmPost creates a test dm_post using the service layer
+func CreateTestDmPost(t *testing.T, svc *service.DmPostService, userID int64, title string) *model.DmPost {
 	req := &model.CreateDmPostRequest{
 		UserID:  userID,
 		Title:   title,
 		Content: "Content for " + title,
 	}
-	post, err := svc.CreateDmPost(context.Background(), req)
+	dmPost, err := svc.CreateDmPost(context.Background(), req)
 	require.NoError(t, err)
-	return post
+	return dmPost
 }
 
-// CreateTestPostWithContent creates a test post with specific content
-func CreateTestPostWithContent(t *testing.T, svc *service.DmPostService, userID int64, title, content string) *model.DmPost {
+// CreateTestDmPostWithContent creates a test dm_post with specific content
+func CreateTestDmPostWithContent(t *testing.T, svc *service.DmPostService, userID int64, title, content string) *model.DmPost {
 	req := &model.CreateDmPostRequest{
 		UserID:  userID,
 		Title:   title,
 		Content: content,
 	}
-	post, err := svc.CreateDmPost(context.Background(), req)
+	dmPost, err := svc.CreateDmPost(context.Background(), req)
 	require.NoError(t, err)
-	return post
+	return dmPost
 }
 
-// CreateMultipleTestPosts creates multiple test posts for a user
-func CreateMultipleTestPosts(t *testing.T, svc *service.DmPostService, userID int64, count int) []*model.DmPost {
-	posts := make([]*model.DmPost, count)
+// CreateMultipleTestDmPosts creates multiple test dm_posts for a dm_user
+func CreateMultipleTestDmPosts(t *testing.T, svc *service.DmPostService, userID int64, count int) []*model.DmPost {
+	dmPosts := make([]*model.DmPost, count)
 	for i := 0; i < count; i++ {
 		title := fmt.Sprintf("Post %d", i+1)
-		posts[i] = CreateTestPost(t, svc, userID, title)
+		dmPosts[i] = CreateTestDmPost(t, svc, userID, title)
 	}
-	return posts
+	return dmPosts
 }

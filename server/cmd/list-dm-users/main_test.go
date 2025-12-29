@@ -12,22 +12,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPrintUsersTSV(t *testing.T) {
+func TestPrintDmUsersTSV(t *testing.T) {
 	tests := []struct {
 		name     string
-		users    []*model.DmUser
+		dmUsers  []*model.DmUser
 		wantRows int
 		wantCols []string
 	}{
 		{
-			name:     "empty users",
-			users:    []*model.DmUser{},
+			name:     "empty dm_users",
+			dmUsers:  []*model.DmUser{},
 			wantRows: 1, // header only
 			wantCols: []string{"ID", "Name", "Email", "CreatedAt", "UpdatedAt"},
 		},
 		{
-			name: "single user",
-			users: []*model.DmUser{
+			name: "single dm_user",
+			dmUsers: []*model.DmUser{
 				{
 					ID:        1234567890123456789,
 					Name:      "John Doe",
@@ -36,12 +36,12 @@ func TestPrintUsersTSV(t *testing.T) {
 					UpdatedAt: time.Date(2025, 1, 27, 10, 30, 0, 0, time.UTC),
 				},
 			},
-			wantRows: 2, // header + 1 user
+			wantRows: 2, // header + 1 dm_user
 			wantCols: []string{"ID", "Name", "Email", "CreatedAt", "UpdatedAt"},
 		},
 		{
-			name: "multiple users",
-			users: []*model.DmUser{
+			name: "multiple dm_users",
+			dmUsers: []*model.DmUser{
 				{
 					ID:        1234567890123456789,
 					Name:      "John Doe",
@@ -57,7 +57,7 @@ func TestPrintUsersTSV(t *testing.T) {
 					UpdatedAt: time.Date(2025, 1, 27, 11, 0, 0, 0, time.UTC),
 				},
 			},
-			wantRows: 3, // header + 2 users
+			wantRows: 3, // header + 2 dm_users
 			wantCols: []string{"ID", "Name", "Email", "CreatedAt", "UpdatedAt"},
 		},
 	}
@@ -69,7 +69,7 @@ func TestPrintUsersTSV(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
-			printUsersTSV(tt.users)
+			printDmUsersTSV(tt.dmUsers)
 
 			w.Close()
 			os.Stdout = oldStdout
@@ -89,19 +89,19 @@ func TestPrintUsersTSV(t *testing.T) {
 			assert.Equal(t, tt.wantCols, headerCols, "unexpected header columns")
 
 			// Check data rows
-			for i, user := range tt.users {
+			for i, dmUser := range tt.dmUsers {
 				dataCols := strings.Split(lines[i+1], "\t")
 				assert.Equal(t, 5, len(dataCols), "unexpected number of columns in data row")
 
 				// Check ID
-				expectedID := fmt.Sprintf("%d", user.ID)
+				expectedID := fmt.Sprintf("%d", dmUser.ID)
 				assert.Equal(t, expectedID, dataCols[0], "ID should match")
 
 				// Check Name
-				assert.Equal(t, user.Name, dataCols[1], "Name should match")
+				assert.Equal(t, dmUser.Name, dataCols[1], "Name should match")
 
 				// Check Email
-				assert.Equal(t, user.Email, dataCols[2], "Email should match")
+				assert.Equal(t, dmUser.Email, dataCols[2], "Email should match")
 
 				// Check date format (RFC3339)
 				assert.Contains(t, dataCols[3], "2025-01-27T", "CreatedAt should be in RFC3339 format")
@@ -111,11 +111,11 @@ func TestPrintUsersTSV(t *testing.T) {
 	}
 }
 
-func TestPrintUsersTSV_RFC3339Format(t *testing.T) {
-	users := []*model.DmUser{
+func TestPrintDmUsersTSV_RFC3339Format(t *testing.T) {
+	dmUsers := []*model.DmUser{
 		{
 			ID:        1234567890123456789,
-			Name:      "Test User",
+			Name:      "Test DmUser",
 			Email:     "test@example.com",
 			CreatedAt: time.Date(2025, 1, 27, 10, 30, 0, 0, time.UTC),
 			UpdatedAt: time.Date(2025, 1, 27, 15, 45, 30, 0, time.UTC),
@@ -127,7 +127,7 @@ func TestPrintUsersTSV_RFC3339Format(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	printUsersTSV(users)
+	printDmUsersTSV(dmUsers)
 
 	w.Close()
 	os.Stdout = oldStdout

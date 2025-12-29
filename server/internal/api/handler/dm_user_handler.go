@@ -23,8 +23,8 @@ func NewDmUserHandler(dmUserService *service.DmUserService) *DmUserHandler {
 	}
 }
 
-// RegisterUserEndpoints はHuma APIにユーザーエンドポイントを登録
-func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
+// RegisterDmUserEndpoints はHuma APIにユーザーエンドポイントを登録
+func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 	// POST /api/dm-users - ユーザー作成
 	huma.Register(api, huma.Operation{
 		OperationID:   "create-user",
@@ -37,7 +37,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.CreateUserInput) (*humaapi.UserOutput, error) {
+	}, func(ctx context.Context, input *humaapi.CreateDmUserInput) (*humaapi.DmUserOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -53,7 +53,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.UserOutput{}
+		resp := &humaapi.DmUserOutput{}
 		resp.Body = *dmUser
 		return resp, nil
 	})
@@ -69,7 +69,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.GetUserInput) (*humaapi.UserOutput, error) {
+	}, func(ctx context.Context, input *humaapi.GetDmUserInput) (*humaapi.DmUserOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -80,7 +80,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error404NotFound(err.Error())
 		}
 
-		resp := &humaapi.UserOutput{}
+		resp := &humaapi.DmUserOutput{}
 		resp.Body = *dmUser
 		return resp, nil
 	})
@@ -96,7 +96,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.ListUsersInput) (*humaapi.UsersOutput, error) {
+	}, func(ctx context.Context, input *humaapi.ListDmUsersInput) (*humaapi.DmUsersOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -107,7 +107,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.UsersOutput{}
+		resp := &humaapi.DmUsersOutput{}
 		resp.Body = dmUsers
 		return resp, nil
 	})
@@ -123,7 +123,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.UpdateUserInput) (*humaapi.UserOutput, error) {
+	}, func(ctx context.Context, input *humaapi.UpdateDmUserInput) (*humaapi.DmUserOutput, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())
@@ -139,7 +139,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
 
-		resp := &humaapi.UserOutput{}
+		resp := &humaapi.DmUserOutput{}
 		resp.Body = *dmUser
 		return resp, nil
 	})
@@ -156,7 +156,7 @@ func RegisterUserEndpoints(api huma.API, h *DmUserHandler) {
 		Security: []map[string][]string{
 			{"bearerAuth": {}},
 		},
-	}, func(ctx context.Context, input *humaapi.DeleteUserInput) (*struct{}, error) {
+	}, func(ctx context.Context, input *humaapi.DeleteDmUserInput) (*struct{}, error) {
 		// 公開レベルのチェック（publicエンドポイント）
 		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
 			return nil, huma.Error403Forbidden(err.Error())

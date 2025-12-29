@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// TSV形式での出力
-	printUsersTSV(dmUsers)
+	printDmUsersTSV(dmUsers)
 
 	os.Exit(0)
 }
@@ -89,8 +89,8 @@ func validateLimit(limit int) (int, error, bool) {
 	return limit, nil, false
 }
 
-// printUsersTSV prints users in TSV format to stdout.
-func printUsersTSV(dmUsers []*model.DmUser) {
+// printDmUsersTSV prints dm_users in TSV format to stdout.
+func printDmUsersTSV(dmUsers []*model.DmUser) {
 	// ヘッダー行の出力
 	fmt.Println("ID\tName\tEmail\tCreatedAt\tUpdatedAt")
 

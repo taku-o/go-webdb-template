@@ -10,34 +10,34 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/service"
 )
 
-// CreateTestUser creates a test user using the service layer
-func CreateTestUser(t *testing.T, svc *service.DmUserService, name string) *model.DmUser {
+// CreateTestDmUser creates a test dm_user using the service layer
+func CreateTestDmUser(t *testing.T, svc *service.DmUserService, name string) *model.DmUser {
 	req := &model.CreateDmUserRequest{
 		Name:  name,
 		Email: name + "@example.com",
 	}
-	user, err := svc.CreateDmUser(context.Background(), req)
+	dmUser, err := svc.CreateDmUser(context.Background(), req)
 	require.NoError(t, err)
-	return user
+	return dmUser
 }
 
-// CreateTestUserWithEmail creates a test user with a specific email
-func CreateTestUserWithEmail(t *testing.T, svc *service.DmUserService, name, email string) *model.DmUser {
+// CreateTestDmUserWithEmail creates a test dm_user with a specific email
+func CreateTestDmUserWithEmail(t *testing.T, svc *service.DmUserService, name, email string) *model.DmUser {
 	req := &model.CreateDmUserRequest{
 		Name:  name,
 		Email: email,
 	}
-	user, err := svc.CreateDmUser(context.Background(), req)
+	dmUser, err := svc.CreateDmUser(context.Background(), req)
 	require.NoError(t, err)
-	return user
+	return dmUser
 }
 
-// CreateMultipleTestUsers creates multiple test users
-func CreateMultipleTestUsers(t *testing.T, svc *service.DmUserService, count int) []*model.DmUser {
-	users := make([]*model.DmUser, count)
+// CreateMultipleTestDmUsers creates multiple test dm_users
+func CreateMultipleTestDmUsers(t *testing.T, svc *service.DmUserService, count int) []*model.DmUser {
+	dmUsers := make([]*model.DmUser, count)
 	for i := 0; i < count; i++ {
 		name := "User" + string(rune('A'+i))
-		users[i] = CreateTestUser(t, svc, name)
+		dmUsers[i] = CreateTestDmUser(t, svc, name)
 	}
-	return users
+	return dmUsers
 }

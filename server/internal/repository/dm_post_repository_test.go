@@ -12,7 +12,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestPostRepository_Create(t *testing.T) {
+func TestDmPostRepository_Create(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -36,7 +36,7 @@ func TestPostRepository_Create(t *testing.T) {
 	assert.NotZero(t, post.UpdatedAt)
 }
 
-func TestPostRepository_GetByID(t *testing.T) {
+func TestDmPostRepository_GetByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -62,7 +62,7 @@ func TestPostRepository_GetByID(t *testing.T) {
 	assert.Equal(t, "Test content", post.Content)
 }
 
-func TestPostRepository_GetByID_NotFound(t *testing.T) {
+func TestDmPostRepository_GetByID_NotFound(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -75,7 +75,7 @@ func TestPostRepository_GetByID_NotFound(t *testing.T) {
 	assert.Nil(t, post)
 }
 
-func TestPostRepository_Update(t *testing.T) {
+func TestDmPostRepository_Update(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -109,7 +109,7 @@ func TestPostRepository_Update(t *testing.T) {
 	assert.Equal(t, "Updated content", post.Content)
 }
 
-func TestPostRepository_Delete(t *testing.T) {
+func TestDmPostRepository_Delete(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -135,7 +135,7 @@ func TestPostRepository_Delete(t *testing.T) {
 	assert.Nil(t, post)
 }
 
-func TestPostRepository_ListByUserID(t *testing.T) {
+func TestDmPostRepository_ListByUserID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 

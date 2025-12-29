@@ -8,10 +8,10 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 )
 
-// GetNewsTable はdm_newsテーブルのGoAdmin設定を返す
+// GetDmNewsTable はdm_newsテーブルのGoAdmin設定を返す
 // 注意: GoAdminはmasterグループのデータベースのみを使用するため、
 // dm_users/dm_postsテーブル（shardingグループ）はGoAdminで管理できません
-func GetNewsTable(ctx *context.Context) table.Table {
+func GetDmNewsTable(ctx *context.Context) table.Table {
 	newsTable := table.NewDefaultTable(ctx, table.Config{
 		Driver:     db.DriverSqlite,
 		CanAdd:     true,
@@ -68,5 +68,5 @@ func GetNewsTable(ctx *context.Context) table.Table {
 // 注意: dm_usersとdm_postsはシャーディンググループにあるため、
 // GoAdmin（masterグループのみ使用）では管理できません
 var Generators = map[string]table.Generator{
-	"dm-news": GetNewsTable,
+	"dm-news": GetDmNewsTable,
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestPostCRUDFlowGORM(t *testing.T) {
+func TestDmPostCRUDFlowGORM(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
@@ -21,7 +21,7 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 
-	// Create a test user first
+	// Create a test dm_user first
 	ctx := context.Background()
 	dmUser, err := dmUserRepo.Create(ctx, &model.CreateDmUserRequest{
 		Name:  "PostTestUser GORM",
@@ -29,8 +29,8 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Test Create Post
-	t.Run("Create Post", func(t *testing.T) {
+	// Test Create DmPost
+	t.Run("Create DmPost", func(t *testing.T) {
 		createReq := &model.CreateDmPostRequest{
 			UserID:  dmUser.ID,
 			Title:   "Integration Test Post GORM",
@@ -44,7 +44,7 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 		assert.Equal(t, "This is a GORM test post content", dmPost.Content)
 
 		// Test Read
-		t.Run("Get Post by ID", func(t *testing.T) {
+		t.Run("Get DmPost by ID", func(t *testing.T) {
 			retrieved, err := dmPostRepo.GetByID(ctx, dmPost.ID, dmUser.ID)
 			require.NoError(t, err)
 			assert.Equal(t, dmPost.ID, retrieved.ID)
@@ -52,7 +52,7 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 		})
 
 		// Test Update
-		t.Run("Update Post", func(t *testing.T) {
+		t.Run("Update DmPost", func(t *testing.T) {
 			updateReq := &model.UpdateDmPostRequest{
 				Title:   "Updated Title GORM",
 				Content: "Updated content GORM",
@@ -64,7 +64,7 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 		})
 
 		// Test Delete
-		t.Run("Delete Post", func(t *testing.T) {
+		t.Run("Delete DmPost", func(t *testing.T) {
 			err := dmPostRepo.Delete(ctx, dmPost.ID, dmUser.ID)
 			assert.NoError(t, err)
 
@@ -75,7 +75,7 @@ func TestPostCRUDFlowGORM(t *testing.T) {
 	})
 }
 
-func TestCrossShardJoinGORM(t *testing.T) {
+func TestDmPostCrossShardJoinGORM(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
@@ -86,7 +86,7 @@ func TestCrossShardJoinGORM(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create multiple users
+	// Create multiple dm_users
 	dmUser1, err := dmUserRepo.Create(ctx, &model.CreateDmUserRequest{
 		Name:  "User1 GORM",
 		Email: "user1.gorm@example.com",
@@ -99,7 +99,7 @@ func TestCrossShardJoinGORM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Create posts for each user
+	// Create dm_posts for each dm_user
 	dmPost1, err := dmPostRepo.Create(ctx, &model.CreateDmPostRequest{
 		UserID:  dmUser1.ID,
 		Title:   "User1 Post GORM",
@@ -114,40 +114,40 @@ func TestCrossShardJoinGORM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t.Logf("Created User1 (ID=%d)", dmUser1.ID)
-	t.Logf("Created User2 (ID=%d)", dmUser2.ID)
+	t.Logf("Created DmUser1 (ID=%d)", dmUser1.ID)
+	t.Logf("Created DmUser2 (ID=%d)", dmUser2.ID)
 
 	// Test cross-shard JOIN
-	t.Run("GetUserPosts returns data from all shards", func(t *testing.T) {
+	t.Run("GetDmUserPosts returns data from all shards", func(t *testing.T) {
 		dmUserPosts, err := dmPostRepo.GetUserPosts(ctx, 100, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(dmUserPosts), 2)
 
-		// Verify data contains our test posts with user info
-		foundPost1 := false
-		foundPost2 := false
+		// Verify data contains our test dm_posts with dm_user info
+		foundDmPost1 := false
+		foundDmPost2 := false
 
 		for _, up := range dmUserPosts {
 			if up.PostID == dmPost1.ID {
 				assert.Equal(t, dmUser1.ID, up.UserID)
 				assert.Equal(t, dmUser1.Name, up.UserName)
 				assert.Equal(t, dmPost1.Title, up.PostTitle)
-				foundPost1 = true
+				foundDmPost1 = true
 			}
 			if up.PostID == dmPost2.ID {
 				assert.Equal(t, dmUser2.ID, up.UserID)
 				assert.Equal(t, dmUser2.Name, up.UserName)
 				assert.Equal(t, dmPost2.Title, up.PostTitle)
-				foundPost2 = true
+				foundDmPost2 = true
 			}
 		}
 
-		assert.True(t, foundPost1, "Should find post 1 with user data")
-		assert.True(t, foundPost2, "Should find post 2 with user data")
+		assert.True(t, foundDmPost1, "Should find dm_post 1 with dm_user data")
+		assert.True(t, foundDmPost2, "Should find dm_post 2 with dm_user data")
 	})
 
 	// Test cross-shard List
-	t.Run("List returns posts from all shards", func(t *testing.T) {
+	t.Run("List returns dm_posts from all shards", func(t *testing.T) {
 		allDmPosts, err := dmPostRepo.List(ctx, 100, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(allDmPosts), 2)
@@ -157,7 +157,7 @@ func TestCrossShardJoinGORM(t *testing.T) {
 			dmPostIDs[dmPost.ID] = true
 		}
 
-		assert.True(t, dmPostIDs[dmPost1.ID], "Post 1 should be in results")
-		assert.True(t, dmPostIDs[dmPost2.ID], "Post 2 should be in results")
+		assert.True(t, dmPostIDs[dmPost1.ID], "DmPost 1 should be in results")
+		assert.True(t, dmPostIDs[dmPost2.ID], "DmPost 2 should be in results")
 	})
 }

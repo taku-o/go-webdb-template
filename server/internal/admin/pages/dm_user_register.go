@@ -13,43 +13,43 @@ import (
 	appdb "github.com/taku-o/go-webdb-template/internal/db"
 )
 
-// UserRegisterPage はユーザー登録ページを返す
-func UserRegisterPage(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
+// DmUserRegisterPage はユーザー登録ページを返す
+func DmUserRegisterPage(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
 	if ctx.Method() == http.MethodPost {
-		return handleUserRegisterPost(ctx, groupManager)
+		return handleDmUserRegisterPost(ctx, groupManager)
 	}
-	return renderUserRegisterForm(ctx, "", "", nil)
+	return renderDmUserRegisterForm(ctx, "", "", nil)
 }
 
-// handleUserRegisterPost はPOSTリクエストを処理する
-func handleUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
+// handleDmUserRegisterPost はPOSTリクエストを処理する
+func handleDmUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
 	name := strings.TrimSpace(ctx.FormValue("name"))
 	email := strings.TrimSpace(ctx.FormValue("email"))
 
 	// バリデーション
-	errors := validateUserInput(name, email)
+	errors := validateDmUserInput(name, email)
 	if len(errors) > 0 {
-		return renderUserRegisterForm(ctx, name, email, errors)
+		return renderDmUserRegisterForm(ctx, name, email, errors)
 	}
 
 	// メールアドレスの重複チェック（全シャードを検索）
 	exists, err := checkEmailExistsSharded(groupManager, email)
 	if err != nil {
-		return renderUserRegisterForm(ctx, name, email, []string{"データベースエラーが発生しました"})
+		return renderDmUserRegisterForm(ctx, name, email, []string{"データベースエラーが発生しました"})
 	}
 	if exists {
-		return renderUserRegisterForm(ctx, name, email, []string{"このメールアドレスは既に登録されています"})
+		return renderDmUserRegisterForm(ctx, name, email, []string{"このメールアドレスは既に登録されています"})
 	}
 
-	// ユーザー登録（シャーディング対応）
-	userID, err := insertUserSharded(groupManager, name, email)
+	// dm_user登録（シャーディング対応）
+	dmUserID, err := insertDmUserSharded(groupManager, name, email)
 	if err != nil {
-		return renderUserRegisterForm(ctx, name, email, []string{"ユーザー登録に失敗しました: " + err.Error()})
+		return renderDmUserRegisterForm(ctx, name, email, []string{"ユーザー登録に失敗しました: " + err.Error()})
 	}
 
 	// 登録完了ページへリダイレクト（クエリパラメータで情報を渡す）
 	redirectURL := fmt.Sprintf("/admin/dm-user/register/new?id=%d&name=%s&email=%s",
-		userID,
+		dmUserID,
 		url.QueryEscape(name),
 		url.QueryEscape(email),
 	)
@@ -63,8 +63,8 @@ func handleUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupManag
 	}, nil
 }
 
-// validateUserInput は入力値をバリデーションする
-func validateUserInput(name, email string) []string {
+// validateDmUserInput は入力値をバリデーションする
+func validateDmUserInput(name, email string) []string {
 	var errors []string
 
 	if name == "" {
@@ -115,15 +115,15 @@ func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bo
 	return false, nil
 }
 
-// insertUserSharded はユーザーを登録する（シャーディング対応）
-func insertUserSharded(groupManager *appdb.GroupManager, name, email string) (int64, error) {
+// insertDmUserSharded はdm_userを登録する（シャーディング対応）
+func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (int64, error) {
 	now := time.Now()
 
 	// IDを生成（タイムスタンプベース）
-	userID := now.UnixNano()
+	dmUserID := now.UnixNano()
 
 	// テーブル番号を計算
-	tableNumber := int(userID % appdb.DBShardingTableCount)
+	tableNumber := int(dmUserID % appdb.DBShardingTableCount)
 	tableName := fmt.Sprintf("dm_users_%03d", tableNumber)
 
 	// 接続の取得
@@ -138,22 +138,22 @@ func insertUserSharded(groupManager *appdb.GroupManager, name, email string) (in
 		return 0, fmt.Errorf("failed to get sql.DB: %w", err)
 	}
 
-	// ユーザーを挿入
+	// dm_userを挿入
 	query := fmt.Sprintf(`
 		INSERT INTO %s (id, name, email, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?)
 	`, tableName)
 
-	_, err = sqlDB.Exec(query, userID, name, email, now, now)
+	_, err = sqlDB.Exec(query, dmUserID, name, email, now, now)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert user: %w", err)
+		return 0, fmt.Errorf("failed to insert dm_user: %w", err)
 	}
 
-	return userID, nil
+	return dmUserID, nil
 }
 
-// renderUserRegisterForm はユーザー登録フォームをレンダリングする
-func renderUserRegisterForm(ctx *context.Context, name, email string, errors []string) (types.Panel, error) {
+// renderDmUserRegisterForm はユーザー登録フォームをレンダリングする
+func renderDmUserRegisterForm(ctx *context.Context, name, email string, errors []string) (types.Panel, error) {
 	errorHTML := ""
 	if len(errors) > 0 {
 		errorHTML = `<div class="alert alert-danger"><ul>`

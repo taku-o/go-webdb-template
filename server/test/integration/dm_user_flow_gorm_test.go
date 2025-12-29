@@ -12,7 +12,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestUserCRUDFlowGORM(t *testing.T) {
+func TestDmUserCRUDFlowGORM(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
@@ -22,7 +22,7 @@ func TestUserCRUDFlowGORM(t *testing.T) {
 	ctx := context.Background()
 
 	// Test Create
-	t.Run("Create User", func(t *testing.T) {
+	t.Run("Create DmUser", func(t *testing.T) {
 		createReq := &model.CreateDmUserRequest{
 			Name:  "Integration Test User GORM",
 			Email: "integration.gorm@example.com",
@@ -36,7 +36,7 @@ func TestUserCRUDFlowGORM(t *testing.T) {
 		assert.NotZero(t, dmUser.UpdatedAt)
 
 		// Test Read
-		t.Run("Get User by ID", func(t *testing.T) {
+		t.Run("Get DmUser by ID", func(t *testing.T) {
 			retrieved, err := dmUserRepo.GetByID(ctx, dmUser.ID)
 			require.NoError(t, err)
 			assert.Equal(t, dmUser.ID, retrieved.ID)
@@ -45,7 +45,7 @@ func TestUserCRUDFlowGORM(t *testing.T) {
 		})
 
 		// Test Update
-		t.Run("Update User", func(t *testing.T) {
+		t.Run("Update DmUser", func(t *testing.T) {
 			updateReq := &model.UpdateDmUserRequest{
 				Name:  "Updated Name GORM",
 				Email: "updated.gorm@example.com",
@@ -63,7 +63,7 @@ func TestUserCRUDFlowGORM(t *testing.T) {
 		})
 
 		// Test Delete
-		t.Run("Delete User", func(t *testing.T) {
+		t.Run("Delete DmUser", func(t *testing.T) {
 			err := dmUserRepo.Delete(ctx, dmUser.ID)
 			assert.NoError(t, err)
 
@@ -74,14 +74,14 @@ func TestUserCRUDFlowGORM(t *testing.T) {
 	})
 }
 
-func TestUserCrossShardOperationsGORM(t *testing.T) {
+func TestDmUserCrossShardOperationsGORM(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 
-	// Create multiple users
+	// Create multiple dm_users
 	ctx := context.Background()
 	dmUser1, err := dmUserRepo.Create(ctx, &model.CreateDmUserRequest{
 		Name:  "User 1 GORM",
@@ -101,25 +101,25 @@ func TestUserCrossShardOperationsGORM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Log user IDs (shard distribution is internal)
-	t.Logf("Created User 1 (ID=%d)", dmUser1.ID)
-	t.Logf("Created User 2 (ID=%d)", dmUser2.ID)
-	t.Logf("Created User 3 (ID=%d)", dmUser3.ID)
+	// Log dm_user IDs (shard distribution is internal)
+	t.Logf("Created DmUser 1 (ID=%d)", dmUser1.ID)
+	t.Logf("Created DmUser 2 (ID=%d)", dmUser2.ID)
+	t.Logf("Created DmUser 3 (ID=%d)", dmUser3.ID)
 
-	// Test GetAll returns users from all shards
-	t.Run("GetAll returns users from all shards", func(t *testing.T) {
+	// Test GetAll returns dm_users from all shards
+	t.Run("GetAll returns dm_users from all shards", func(t *testing.T) {
 		allDmUsers, err := dmUserRepo.List(ctx, 100, 0)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(allDmUsers), 3)
 
-		// Verify all our users are in the result
+		// Verify all our dm_users are in the result
 		dmUserIDs := make(map[int64]bool)
 		for _, dmUser := range allDmUsers {
 			dmUserIDs[dmUser.ID] = true
 		}
 
-		assert.True(t, dmUserIDs[dmUser1.ID], "User 1 should be in results")
-		assert.True(t, dmUserIDs[dmUser2.ID], "User 2 should be in results")
-		assert.True(t, dmUserIDs[dmUser3.ID], "User 3 should be in results")
+		assert.True(t, dmUserIDs[dmUser1.ID], "DmUser 1 should be in results")
+		assert.True(t, dmUserIDs[dmUser2.ID], "DmUser 2 should be in results")
+		assert.True(t, dmUserIDs[dmUser3.ID], "DmUser 3 should be in results")
 	})
 }

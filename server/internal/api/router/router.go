@@ -17,7 +17,7 @@ import (
 )
 
 // NewRouter は新しいEchoルーターを作成
-func NewRouter(userHandler *handler.DmUserHandler, postHandler *handler.DmPostHandler, todayHandler *handler.TodayHandler, cfg *config.Config) *echo.Echo {
+func NewRouter(dmUserHandler *handler.DmUserHandler, dmPostHandler *handler.DmPostHandler, todayHandler *handler.TodayHandler, cfg *config.Config) *echo.Echo {
 	e := echo.New()
 
 	// デバッグモードの設定（開発環境のみ）
@@ -87,8 +87,8 @@ func NewRouter(userHandler *handler.DmUserHandler, postHandler *handler.DmPostHa
 	humaAPI.UseMiddleware(auth.NewHumaAuthMiddleware(&cfg.API, env, cfg.API.Auth0IssuerBaseURL))
 
 	// Humaエンドポイントの登録
-	handler.RegisterUserEndpoints(humaAPI, userHandler)
-	handler.RegisterPostEndpoints(humaAPI, postHandler)
+	handler.RegisterDmUserEndpoints(humaAPI, dmUserHandler)
+	handler.RegisterDmPostEndpoints(humaAPI, dmPostHandler)
 	handler.RegisterTodayEndpoints(humaAPI, todayHandler)
 
 	return e

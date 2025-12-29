@@ -46,11 +46,11 @@ func MakeHandler(conn db.Connection, handler PageHandler) context.Handler {
 }
 
 // RegisterCustomPages はカスタムページのハンドラーを返す
-// 注意: UserRegisterPageはGroupManagerを使用するため、main.goで直接登録
+// 注意: DmUserRegisterPageはGroupManagerを使用するため、main.goで直接登録
 func RegisterCustomPages(conn db.Connection) map[string]context.Handler {
 	return map[string]context.Handler{
-		"/":                  MakeHandler(conn, HomePage),
-		"/dm-user/register/new": MakeHandler(conn, UserRegisterCompletePage),
-		"/api-key":           MakeHandler(conn, APIKeyPage),
+		"/":                     MakeHandler(conn, HomePage),
+		"/dm-user/register/new": MakeHandler(conn, DmUserRegisterCompletePage),
+		"/api-key":              MakeHandler(conn, APIKeyPage),
 	}
 }

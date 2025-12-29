@@ -146,7 +146,7 @@ func (r *DmPostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset i
 		postsTable := fmt.Sprintf("dm_posts_%03d", tableNum)
 		usersTable := fmt.Sprintf("dm_users_%03d", tableNum)
 
-		var tableUserPosts []*model.DmUserPost
+		var tableDmUserPosts []*model.DmUserPost
 		err = conn.DB.WithContext(ctx).
 			Table(postsTable+" p").
 			Select(`
@@ -162,12 +162,12 @@ func (r *DmPostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset i
 			Order("p.created_at DESC").
 			Limit(limit).
 			Offset(offset).
-			Find(&tableUserPosts).Error
+			Find(&tableDmUserPosts).Error
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
 		}
-		userPosts = append(userPosts, tableUserPosts...)
+		userPosts = append(userPosts, tableDmUserPosts...)
 	}
 
 	return userPosts, nil
