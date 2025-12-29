@@ -106,8 +106,8 @@ export default function PostsPage() {
                 required
               >
                 <option value="">選択してください</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
+                {users.map((user, index) => (
+                  <option key={index} value={user.id}>
                     {user.name} ({user.email})
                   </option>
                 ))}
@@ -157,8 +157,8 @@ export default function PostsPage() {
             <p className="text-gray-500">投稿がありません。上のフォームから作成してください。</p>
           ) : (
             <div className="space-y-4">
-              {posts.map((post) => (
-                <div key={post.id} className="p-4 border rounded-lg">
+              {posts.map((post, index) => (
+                <div key={index} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-lg">{post.title}</h3>
                     <button

@@ -35,6 +35,9 @@ Cursor、Claude Code上で動作する。
 /kiro:spec-requirements "https://github.com/taku-o/go-webdb-template/issues/3 に対応するための要件を作成してください。GitHub CLIは入っています。"
 think.
 
+## 要件定義書作成計画が表示された場合は
+要件定義書を作成してください。
+
 ## 要件定義書の内容を確認したら
 要件定義書を承認します。
 
