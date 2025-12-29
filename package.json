@@ -1,11 +1,15 @@
 {
   "name": "go-webdb-template",
   "version": "1.0.0",
-  "description": "Go Web DB Template - CloudBeaver management scripts",
+  "description": "Go Web DB Template - CloudBeaver and Metabase management scripts",
   "scripts": {
     "cloudbeaver:start": "./scripts/cloudbeaver-start.sh",
-    "cloudbeaver:stop": "docker-compose down",
-    "cloudbeaver:logs": "docker-compose logs -f cloudbeaver",
-    "cloudbeaver:restart": "npm run cloudbeaver:stop && npm run cloudbeaver:start"
+    "cloudbeaver:stop": "docker-compose -f docker-compose.cloudbeaver.yml down",
+    "cloudbeaver:logs": "docker-compose -f docker-compose.cloudbeaver.yml logs -f cloudbeaver",
+    "cloudbeaver:restart": "npm run cloudbeaver:stop && npm run cloudbeaver:start",
+    "metabase:start": "./scripts/metabase-start.sh",
+    "metabase:stop": "docker-compose -f docker-compose.metabase.yml down",
+    "metabase:logs": "docker-compose -f docker-compose.metabase.yml logs -f metabase",
+    "metabase:restart": "npm run metabase:stop && npm run metabase:start"
   }
 }
