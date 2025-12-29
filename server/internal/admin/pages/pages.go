@@ -50,7 +50,7 @@ func MakeHandler(conn db.Connection, handler PageHandler) context.Handler {
 func RegisterCustomPages(conn db.Connection) map[string]context.Handler {
 	return map[string]context.Handler{
 		"/":                  MakeHandler(conn, HomePage),
-		"/user/register/new": MakeHandler(conn, UserRegisterCompletePage),
+		"/dm_user/register/new": MakeHandler(conn, UserRegisterCompletePage),
 		"/api-key":           MakeHandler(conn, APIKeyPage),
 	}
 }

@@ -48,7 +48,7 @@ func handleUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupManag
 	}
 
 	// 登録完了ページへリダイレクト（クエリパラメータで情報を渡す）
-	redirectURL := fmt.Sprintf("/admin/user/register/new?id=%d&name=%s&email=%s",
+	redirectURL := fmt.Sprintf("/admin/dm_user/register/new?id=%d&name=%s&email=%s",
 		userID,
 		url.QueryEscape(name),
 		url.QueryEscape(email),
@@ -86,31 +86,29 @@ func validateUserInput(name, email string) []string {
 
 // checkEmailExistsSharded はメールアドレスが既に存在するかチェックする（全シャード検索）
 func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bool, error) {
-	connections := groupManager.GetAllShardingConnections()
-
-	for _, conn := range connections {
-		sqlDB, err := conn.DB.DB()
+	// 全32テーブルを検索
+	for tableNum := 0; tableNum < 32; tableNum++ {
+		conn, err := groupManager.GetShardingConnection(tableNum)
 		if err != nil {
-			return false, fmt.Errorf("failed to get sql.DB for shard %d: %w", conn.ShardID, err)
+			return false, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
 		}
 
-		// このデータベースに含まれるテーブル（8つずつ）
-		startTable := (conn.ShardID - 1) * 8
-		endTable := startTable + 7
+		sqlDB, err := conn.DB.DB()
+		if err != nil {
+			return false, fmt.Errorf("failed to get sql.DB for table %d: %w", tableNum, err)
+		}
 
-		for tableNum := startTable; tableNum <= endTable; tableNum++ {
-			tableName := fmt.Sprintf("users_%03d", tableNum)
-			query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = ?", tableName)
+		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
+		query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = ?", tableName)
 
-			var count int
-			err := sqlDB.QueryRow(query, email).Scan(&count)
-			if err != nil {
-				return false, fmt.Errorf("failed to check email in %s: %w", tableName, err)
-			}
+		var count int
+		err = sqlDB.QueryRow(query, email).Scan(&count)
+		if err != nil {
+			return false, fmt.Errorf("failed to check email in %s: %w", tableName, err)
+		}
 
-			if count > 0 {
-				return true, nil
-			}
+		if count > 0 {
+			return true, nil
 		}
 	}
 
@@ -126,7 +124,7 @@ func insertUserSharded(groupManager *appdb.GroupManager, name, email string) (in
 
 	// テーブル番号を計算（ID % 32）
 	tableNumber := int(userID % 32)
-	tableName := fmt.Sprintf("users_%03d", tableNumber)
+	tableName := fmt.Sprintf("dm_users_%03d", tableNumber)
 
 	// 接続の取得
 	conn, err := groupManager.GetShardingConnection(tableNumber)
@@ -171,7 +169,7 @@ func renderUserRegisterForm(ctx *context.Context, name, email string, errors []s
     <div class="box-header with-border">
         <h3 class="box-title">ユーザー情報入力</h3>
     </div>
-    <form action="/admin/user/register" method="POST">
+    <form action="/admin/dm_user/register" method="POST">
         <div class="box-body">
             <div class="form-group">
                 <label for="name">名前 <span class="text-red">*</span></label>

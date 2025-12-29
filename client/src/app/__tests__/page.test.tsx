@@ -71,13 +71,13 @@ describe('HomePage', () => {
     render(<HomePage />)
 
     const links = screen.getAllByRole('link')
-    const usersLink = links.find(link => link.getAttribute('href') === '/users')
+    const usersLink = links.find(link => link.getAttribute('href') === '/dm-users')
     expect(usersLink).toBeDefined()
 
-    const postsLink = links.find(link => link.getAttribute('href') === '/posts')
+    const postsLink = links.find(link => link.getAttribute('href') === '/dm-posts')
     expect(postsLink).toBeDefined()
 
-    const userPostsLink = links.find(link => link.getAttribute('href') === '/user-posts')
+    const userPostsLink = links.find(link => link.getAttribute('href') === '/dm-user-posts')
     expect(userPostsLink).toBeDefined()
   })
 

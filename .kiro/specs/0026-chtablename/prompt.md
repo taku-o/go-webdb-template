@@ -96,8 +96,90 @@ think.
 お疲れ様でした。
 大きな修正を行ったので、ここでいったん作業をcommitしましょう。
 
+_serena_indexing
+
+/serena-initialize
+
+/kiro:spec-impl 0026-chtablename
+
+一通りチェックして、対応漏れがなければ、tasks.mdにチェックをつけてください。
+
+クライアントサーバーとAPIサーバーを再起動してください。
+
+クライアントの
+ユーザー管理画面アクセス時にエラー
+http://localhost:3000/users
+Failed to load resource: the server responded with a status of 404 (Not Found)
+
+投稿管理画面アクセス時にもエラー
+http://localhost:3000/posts
+Failed to load resource: the server responded with a status of 404 (Not Found)
+
+クライアントアプリのURLあたりから
+ひととおり直してくれるかな？
+http://localhost:3000/users -> http://localhost:3000/dm_users
+http://localhost:3000/posts -> http://localhost:3000/dm_posts
+think.
+
+クライアント側のURLは"-"区切りの方が統一性があるか。
+こちらのURLに変更してください。
+http://localhost:3000/dm-users
+http://localhost:3000/dm-posts
+http://localhost:3000/dm-user-posts
+
+これは想定通りではありません。client/.evn.localにキーが設定してあるからです。
+前回同じことが起きた時は、たしか、APIリクエストのフォーマットが間違っていました。
+> APIエンドポイント /api/dm-users は正常に動作しています（認証が必要なため401が返りますが、これは想定通り）。
+
+GoAdminサーバーを起動してください。
+
+ああ、そういうことか。前のバージョンはSQLの下の方に初期化データを入れるSQLが入ってた。
+
+ちょっとまって。git logで古いデータを見た方がいい
 
 
+アホか。やめろ。
+git log -p db/migrationsしたら、
+消した初期化SQLが見えるから、それをdb/migrations/master/20251229111855_initial_schema.sql の下の方にコピーしろ。
+
+
+ログイン直後にエラーになった。
+あと勝手にパスワード変えようとしないで。ドキュメントに記載があるから
+
+http://localhost:8081/admin/info/news
+で、table model not found
+
+管理画面のユーザー登録がエラーになった。
+http://localhost:8081/admin/user/register
+
+これは削除してもいいよね。list-dm-usersになったから。
+server/bin/list-users
+
+データベースエラーが発生している
+http://localhost:8081/admin/user/register
+
+登録成功！
+
+これらのファイルも書き換えたいな。
+server/internal/admin/pages/user_register.go
+server/internal/admin/pages/user_register_complete.go
+->
+server/internal/admin/pages/dm_user_register.go
+server/internal/admin/pages/dm_user_register_complete.go
+
+URLも変えたい。
+http://localhost:8081/admin/user/register
+->
+http://localhost:8081/admin/dm_user/register
+
+このディレクトリは不要でいいよね？
+server/cmd/hashpw/
+
+
+これで大丈夫そうです。
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/54 に対して
+pull requestを作成してください。
 
 
 
