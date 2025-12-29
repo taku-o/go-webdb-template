@@ -22,4 +22,13 @@ spec.jsonを更新したら、そこでいったんユーザーに応答を返�
 この要件の作業用のgitブランチを切ってください。
 ここまでの作業をcommitしてください。
 
+_serena_indexing
+
+/serena-initialize
+
+/kiro:spec-impl 0024-sharding8
+
+
+
+
 
