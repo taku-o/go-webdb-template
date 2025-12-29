@@ -58,7 +58,7 @@ func TestAccessLogMiddleware_Middleware(t *testing.T) {
 		wrappedHandler := middleware.Middleware(handler)
 
 		// リクエストを作成
-		req := httptest.NewRequest(http.MethodGet, "/api/users", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/dm-users", nil)
 		req.RemoteAddr = "192.168.1.100:12345"
 		req.Header.Set("User-Agent", "TestClient/1.0")
 
@@ -82,7 +82,7 @@ func TestAccessLogMiddleware_Middleware(t *testing.T) {
 
 		logContent := string(content)
 		assert.Contains(t, logContent, "GET")
-		assert.Contains(t, logContent, "/api/users")
+		assert.Contains(t, logContent, "/api/dm-users")
 		assert.Contains(t, logContent, "200")
 	})
 
@@ -138,7 +138,7 @@ func TestAccessLogMiddleware_Middleware(t *testing.T) {
 
 		wrappedHandler := middleware.Middleware(handler)
 
-		req := httptest.NewRequest(http.MethodGet, "/api/users", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/dm-users", nil)
 		req.RemoteAddr = "10.0.0.1:12345"
 		req.Header.Set("X-Forwarded-For", "192.168.1.200")
 
@@ -174,7 +174,7 @@ func TestAccessLogMiddleware_Middleware(t *testing.T) {
 
 		wrappedHandler := middleware.Middleware(handler)
 
-		req := httptest.NewRequest(http.MethodGet, "/api/users", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/dm-users", nil)
 		// User-Agentヘッダーを設定しない
 
 		rec := httptest.NewRecorder()

@@ -123,7 +123,7 @@ func TestGORMManagerSharding(t *testing.T) {
 	for i := 1; i <= 3; i++ {
 		database, err := manager.GetGORM(i)
 		require.NoError(t, err)
-		err = database.AutoMigrate(&model.User{})
+		err = database.AutoMigrate(&model.DmUser{})
 		require.NoError(t, err)
 	}
 
@@ -135,7 +135,7 @@ func TestGORMManagerSharding(t *testing.T) {
 		database, err := manager.GetGORMByKey(key)
 		require.NoError(t, err)
 
-		user := &model.User{
+		user := &model.DmUser{
 			ID:    key,
 			Name:  fmt.Sprintf("User %d", key),
 			Email: fmt.Sprintf("user%d@example.com", key),
@@ -150,7 +150,7 @@ func TestGORMManagerSharding(t *testing.T) {
 		database, err := manager.GetGORMByKey(key)
 		require.NoError(t, err)
 
-		var user model.User
+		var user model.DmUser
 		err = database.WithContext(ctx).First(&user, key).Error
 		require.NoError(t, err)
 
@@ -238,7 +238,7 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	for i := 1; i <= 2; i++ {
 		database, err := manager.GetGORM(i)
 		require.NoError(t, err)
-		err = database.AutoMigrate(&model.User{})
+		err = database.AutoMigrate(&model.DmUser{})
 		require.NoError(t, err)
 	}
 
@@ -248,7 +248,7 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	db1, err := manager.GetGORM(1)
 	require.NoError(t, err)
 
-	user1 := &model.User{
+	user1 := &model.DmUser{
 		ID:    1,
 		Name:  "User on Shard 1",
 		Email: "user1@example.com",
@@ -259,7 +259,7 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	db2, err := manager.GetGORM(2)
 	require.NoError(t, err)
 
-	user2 := &model.User{
+	user2 := &model.DmUser{
 		ID:    2,
 		Name:  "User on Shard 2",
 		Email: "user2@example.com",
@@ -268,11 +268,11 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query all shards
-	allUsers := make([]*model.User, 0)
+	allUsers := make([]*model.DmUser, 0)
 	connections := manager.GetAllGORMConnections()
 
 	for _, conn := range connections {
-		var users []*model.User
+		var users []*model.DmUser
 		err := conn.DB.WithContext(ctx).Find(&users).Error
 		require.NoError(t, err)
 		allUsers = append(allUsers, users...)
@@ -482,13 +482,13 @@ func TestTableSelector_GetTableName(t *testing.T) {
 		id            int64
 		wantTableName string
 	}{
-		{baseName: "users", id: 0, wantTableName: "users_000"},
-		{baseName: "users", id: 1, wantTableName: "users_001"},
-		{baseName: "users", id: 7, wantTableName: "users_007"},
-		{baseName: "users", id: 31, wantTableName: "users_031"},
-		{baseName: "users", id: 32, wantTableName: "users_000"},
-		{baseName: "posts", id: 15, wantTableName: "posts_015"},
-		{baseName: "posts", id: 100, wantTableName: "posts_004"}, // 100 % 32 = 4
+		{baseName: "dm_users", id: 0, wantTableName: "dm_users_000"},
+		{baseName: "dm_users", id: 1, wantTableName: "dm_users_001"},
+		{baseName: "dm_users", id: 7, wantTableName: "dm_users_007"},
+		{baseName: "dm_users", id: 31, wantTableName: "dm_users_031"},
+		{baseName: "dm_users", id: 32, wantTableName: "dm_users_000"},
+		{baseName: "dm_posts", id: 15, wantTableName: "dm_posts_015"},
+		{baseName: "dm_posts", id: 100, wantTableName: "dm_posts_004"}, // 100 % 32 = 4
 	}
 
 	for _, tt := range tests {
@@ -545,10 +545,10 @@ func TestGetShardingTableName(t *testing.T) {
 		id            int64
 		wantTableName string
 	}{
-		{baseName: "users", id: 0, wantTableName: "users_000"},
-		{baseName: "users", id: 31, wantTableName: "users_031"},
-		{baseName: "users", id: 32, wantTableName: "users_000"},
-		{baseName: "posts", id: 100, wantTableName: "posts_004"}, // 100 % 32 = 4
+		{baseName: "dm_users", id: 0, wantTableName: "dm_users_000"},
+		{baseName: "dm_users", id: 31, wantTableName: "dm_users_031"},
+		{baseName: "dm_users", id: 32, wantTableName: "dm_users_000"},
+		{baseName: "dm_posts", id: 100, wantTableName: "dm_posts_004"}, // 100 % 32 = 4
 	}
 
 	for _, tt := range tests {
@@ -606,27 +606,27 @@ func TestGetShardingDBID(t *testing.T) {
 
 // TestValidateTableName tests the table name validation function
 func TestValidateTableName(t *testing.T) {
-	allowedBaseNames := []string{"users", "posts"}
+	allowedBaseNames := []string{"dm_users", "dm_posts"}
 
 	tests := []struct {
 		tableName string
 		want      bool
 	}{
 		// Valid names
-		{tableName: "users_000", want: true},
-		{tableName: "users_031", want: true},
-		{tableName: "posts_000", want: true},
-		{tableName: "posts_031", want: true},
-		{tableName: "users_015", want: true},
+		{tableName: "dm_users_000", want: true},
+		{tableName: "dm_users_031", want: true},
+		{tableName: "dm_posts_000", want: true},
+		{tableName: "dm_posts_031", want: true},
+		{tableName: "dm_users_015", want: true},
 		// Invalid names
-		{tableName: "users_032", want: false},  // Out of range
-		{tableName: "users_100", want: false},  // Out of range
-		{tableName: "news", want: false},       // Not in allowed list
-		{tableName: "users", want: false},      // No suffix
-		{tableName: "users_00", want: false},   // Wrong suffix format
-		{tableName: "users_0000", want: false}, // Wrong suffix format
+		{tableName: "dm_users_032", want: false},  // Out of range
+		{tableName: "dm_users_100", want: false},  // Out of range
+		{tableName: "dm_news", want: false},       // Not in allowed list
+		{tableName: "dm_users", want: false},      // No suffix
+		{tableName: "dm_users_00", want: false},   // Wrong suffix format
+		{tableName: "dm_users_0000", want: false}, // Wrong suffix format
 		{tableName: "other_000", want: false},  // Not in allowed list
-		{tableName: "'; DROP TABLE users; --", want: false}, // SQL injection attempt
+		{tableName: "'; DROP TABLE dm_users; --", want: false}, // SQL injection attempt
 	}
 
 	for _, tt := range tests {

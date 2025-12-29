@@ -6,22 +6,22 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/model"
 )
 
-// UserRepositoryInterface はUserRepositoryの共通インターフェース
-type UserRepositoryInterface interface {
-	Create(ctx context.Context, req *model.CreateUserRequest) (*model.User, error)
-	GetByID(ctx context.Context, id int64) (*model.User, error)
-	List(ctx context.Context, limit, offset int) ([]*model.User, error)
-	Update(ctx context.Context, id int64, req *model.UpdateUserRequest) (*model.User, error)
+// DmUserRepositoryInterface はDmUserRepositoryの共通インターフェース
+type DmUserRepositoryInterface interface {
+	Create(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error)
+	GetByID(ctx context.Context, id int64) (*model.DmUser, error)
+	List(ctx context.Context, limit, offset int) ([]*model.DmUser, error)
+	Update(ctx context.Context, id int64, req *model.UpdateDmUserRequest) (*model.DmUser, error)
 	Delete(ctx context.Context, id int64) error
 }
 
-// PostRepositoryInterface はPostRepositoryの共通インターフェース
-type PostRepositoryInterface interface {
-	Create(ctx context.Context, req *model.CreatePostRequest) (*model.Post, error)
-	GetByID(ctx context.Context, id int64, userID int64) (*model.Post, error)
-	ListByUserID(ctx context.Context, userID int64, limit, offset int) ([]*model.Post, error)
-	List(ctx context.Context, limit, offset int) ([]*model.Post, error)
-	GetUserPosts(ctx context.Context, limit, offset int) ([]*model.UserPost, error)
-	Update(ctx context.Context, id int64, userID int64, req *model.UpdatePostRequest) (*model.Post, error)
+// DmPostRepositoryInterface はDmPostRepositoryの共通インターフェース
+type DmPostRepositoryInterface interface {
+	Create(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error)
+	GetByID(ctx context.Context, id int64, userID int64) (*model.DmPost, error)
+	ListByUserID(ctx context.Context, userID int64, limit, offset int) ([]*model.DmPost, error)
+	List(ctx context.Context, limit, offset int) ([]*model.DmPost, error)
+	GetUserPosts(ctx context.Context, limit, offset int) ([]*model.DmUserPost, error)
+	Update(ctx context.Context, id int64, userID int64, req *model.UpdateDmPostRequest) (*model.DmPost, error)
 	Delete(ctx context.Context, id int64, userID int64) error
 }

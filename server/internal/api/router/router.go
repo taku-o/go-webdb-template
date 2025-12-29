@@ -17,7 +17,7 @@ import (
 )
 
 // NewRouter は新しいEchoルーターを作成
-func NewRouter(userHandler *handler.UserHandler, postHandler *handler.PostHandler, todayHandler *handler.TodayHandler, cfg *config.Config) *echo.Echo {
+func NewRouter(userHandler *handler.DmUserHandler, postHandler *handler.DmPostHandler, todayHandler *handler.TodayHandler, cfg *config.Config) *echo.Echo {
 	e := echo.New()
 
 	// デバッグモードの設定（開発環境のみ）

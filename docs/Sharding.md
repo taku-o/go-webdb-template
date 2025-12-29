@@ -4,8 +4,8 @@
 
 This project implements database sharding to distribute data across multiple database instances. The sharding architecture consists of two database groups:
 
-- **Master Group**: Contains shared tables (e.g., `news`) that don't require sharding
-- **Sharding Group**: Contains partitioned tables (e.g., `users_000` to `users_031`, `posts_000` to `posts_031`)
+- **Master Group**: Contains shared tables (e.g., `dm_news`) that don't require sharding
+- **Sharding Group**: Contains partitioned tables (e.g., `dm_users_000` to `dm_users_031`, `dm_posts_000` to `dm_posts_031`)
 
 ## Architecture
 
@@ -21,7 +21,7 @@ This project implements database sharding to distribute data across multiple dat
 │  │                 │    │                                             │ │
 │  │  ┌───────────┐  │    │  8 Sharding Entries → 4 Databases           │ │
 │  │  │ master.db │  │    │  (Connection Sharing for same DSN)         │ │
-│  │  │ (news)    │  │    │                                             │ │
+│  │  │(dm_news) │  │    │                                             │ │
 │  │  └───────────┘  │    │  ┌──────────────────┐ ┌──────────────────┐ │ │
 │  └─────────────────┘    │  │ DB 1             │ │ DB 2             │ │ │
 │                         │  │ Entry 1: _000-003│ │ Entry 3: _008-011│ │ │
@@ -62,10 +62,10 @@ The system uses **8 sharding entries** distributed across **4 physical databases
 
 | Database | Entries | Table Range | Tables |
 |----------|---------|-------------|--------|
-| sharding_db_1 | 1, 2 | _000 〜 _007 | users_000, users_001, ..., users_007 |
-| sharding_db_2 | 3, 4 | _008 〜 _015 | users_008, users_009, ..., users_015 |
-| sharding_db_3 | 5, 6 | _016 〜 _023 | users_016, users_017, ..., users_023 |
-| sharding_db_4 | 7, 8 | _024 〜 _031 | users_024, users_025, ..., users_031 |
+| sharding_db_1 | 1, 2 | _000 〜 _007 | dm_users_000, dm_users_001, ..., dm_users_007 |
+| sharding_db_2 | 3, 4 | _008 〜 _015 | dm_users_008, dm_users_009, ..., dm_users_015 |
+| sharding_db_3 | 5, 6 | _016 〜 _023 | dm_users_016, dm_users_017, ..., dm_users_023 |
+| sharding_db_4 | 7, 8 | _024 〜 _031 | dm_users_024, dm_users_025, ..., dm_users_031 |
 
 ## Sharding Strategy
 
@@ -79,7 +79,7 @@ The application uses **table-based sharding** with 32 table partitions and 8 sha
 tableNumber := id % 32  // Range: 0-31
 
 // Table name generation
-tableName := fmt.Sprintf("users_%03d", tableNumber)  // e.g., "users_005"
+tableName := fmt.Sprintf("dm_users_%03d", tableNumber)  // e.g., "dm_users_005"
 
 // Connection selection (O(1) lookup via tableNumberToDBID map)
 conn := shardingManager.GetConnectionByTableNumber(tableNumber)
@@ -169,9 +169,9 @@ database:
           table_range: [28, 31]
 
       tables:
-        - name: users
+        - name: dm_users
           suffix_count: 32
-        - name: posts
+        - name: dm_posts
           suffix_count: 32
 ```
 
@@ -253,9 +253,9 @@ database:
           table_range: [28, 31]
 
       tables:
-        - name: users
+        - name: dm_users
           suffix_count: 32
-        - name: posts
+        - name: dm_posts
           suffix_count: 32
 ```
 
@@ -265,9 +265,9 @@ database:
 
 The master group contains shared tables that don't require sharding:
 
-**news table**:
+**dm_news table**:
 ```sql
-CREATE TABLE IF NOT EXISTS news (
+CREATE TABLE IF NOT EXISTS dm_news (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
@@ -283,12 +283,12 @@ CREATE TABLE IF NOT EXISTS news (
 Users and posts are distributed across 32 tables:
 
 ```
-User ID 1  → 1 % 32 = 1  → users_001, DB 1
-User ID 8  → 8 % 32 = 8  → users_008, DB 2
-User ID 16 → 16 % 32 = 16 → users_016, DB 3
-User ID 24 → 24 % 32 = 24 → users_024, DB 4
-User ID 32 → 32 % 32 = 0  → users_000, DB 1
-User ID 100 → 100 % 32 = 4 → users_004, DB 1
+User ID 1  → 1 % 32 = 1  → dm_users_001, DB 1
+User ID 8  → 8 % 32 = 8  → dm_users_008, DB 2
+User ID 16 → 16 % 32 = 16 → dm_users_016, DB 3
+User ID 24 → 24 % 32 = 24 → dm_users_024, DB 4
+User ID 32 → 32 % 32 = 0  → dm_users_000, DB 1
+User ID 100 → 100 % 32 = 4 → dm_users_004, DB 1
 ```
 
 **Benefit**: Even distribution across tables and databases.
@@ -302,10 +302,10 @@ Operations that access data for a single entity use dynamic table names:
 **Example**: Get User by ID
 ```go
 // Calculate table name
-tableName := db.GetShardingTableName("users", userID)  // e.g., "users_005"
+tableName := db.GetShardingTableName("dm_users", userID)  // e.g., "dm_users_005"
 
 // Get connection for this table
-conn, err := groupManager.GetShardingConnectionByID(userID, "users")
+conn, err := groupManager.GetShardingConnectionByID(userID, "dm_users")
 if err != nil {
     return nil, err
 }
@@ -336,7 +336,7 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*model.
     for _, conn := range connections {
         // Query all tables in this database
         for i := conn.TableRange[0]; i <= conn.TableRange[1]; i++ {
-            tableName := fmt.Sprintf("users_%03d", i)
+            tableName := fmt.Sprintf("dm_users_%03d", i)
 
             var users []*model.User
             err := conn.DB.Table(tableName).
@@ -374,10 +374,10 @@ func (r *PostRepository) GetUserPosts(ctx context.Context, limit, offset int) ([
 
     for _, conn := range connections {
         for i := conn.TableRange[0]; i <= conn.TableRange[1]; i++ {
-            usersTable := fmt.Sprintf("users_%03d", i)
-            postsTable := fmt.Sprintf("posts_%03d", i)
+            usersTable := fmt.Sprintf("dm_users_%03d", i)
+            postsTable := fmt.Sprintf("dm_posts_%03d", i)
 
-            // JOIN within same suffix (users_005 with posts_005)
+            // JOIN within same suffix (dm_users_005 with dm_posts_005)
             var userPosts []model.UserPost
             err := conn.DB.Table(postsTable).
                 Select("users.id as user_id, users.name as user_name, ...").
@@ -408,14 +408,14 @@ db/
     │   └── 001_init.sql          # news table
     └── sharding/
         ├── templates/
-        │   ├── users.sql.template    # users table template
-        │   └── posts.sql.template    # posts table template
+        │   ├── dm_users.sql.template    # dm_users table template
+        │   └── dm_posts.sql.template    # dm_posts table template
         └── generated/              # generated migrations (optional)
 ```
 
 ### Migration Templates
 
-**users.sql.template**:
+**dm_users.sql.template**:
 ```sql
 CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
     id INTEGER PRIMARY KEY,
@@ -428,7 +428,7 @@ CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
 CREATE INDEX IF NOT EXISTS idx_{TABLE_NAME}_email ON {TABLE_NAME}(email);
 ```
 
-**posts.sql.template**:
+**dm_posts.sql.template**:
 ```sql
 CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
     id INTEGER PRIMARY KEY,
@@ -436,8 +436,7 @@ CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users_{TABLE_SUFFIX}(id) ON DELETE CASCADE
+    updated_at DATETIME NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_{TABLE_NAME}_user_id ON {TABLE_NAME}(user_id);
@@ -451,7 +450,7 @@ Generate migration files from templates:
 ```bash
 cd server
 go run cmd/migrate-gen/main.go \
-    -template db/migrations/sharding/templates/users.sql.template \
+    -template db/migrations/sharding/templates/dm_users.sql.template \
     -output db/migrations/sharding/generated/
 ```
 
@@ -470,8 +469,8 @@ sqlite3 server/data/master.db < db/migrations/master/001_init.sql
 
 # Sharding databases (example for DB 1, tables _000-007)
 for i in {0..7}; do
-    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/users_$(printf "%03d" $i).sql
-    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/posts_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/dm_users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/dm_posts_$(printf "%03d" $i).sql
 done
 ```
 
@@ -489,11 +488,11 @@ if err != nil {
 }
 defer groupManager.CloseAll()
 
-// Get master connection (for news table)
+// Get master connection (for dm_news table)
 masterConn, err := groupManager.GetMasterConnection()
 
 // Get sharding connection by ID
-shardingConn, err := groupManager.GetShardingConnectionByID(userID, "users")
+shardingConn, err := groupManager.GetShardingConnectionByID(userID, "dm_users")
 
 // Get sharding connection by table number
 shardingConn, err := groupManager.GetShardingConnection(tableNumber)
@@ -513,7 +512,7 @@ tableSelector := db.NewTableSelector(32, 8)  // 32 tables, 8 sharding entries
 tableNumber := tableSelector.GetTableNumber(userID)  // e.g., 5
 
 // Get table name
-tableName := tableSelector.GetTableName("users", userID)  // e.g., "users_005"
+tableName := tableSelector.GetTableName("dm_users", userID)  // e.g., "dm_users_005"
 
 // Get entry ID from table number (uses 4 tables per entry with 8 entries)
 entryID := tableSelector.GetDBID(tableNumber)  // e.g., 2 for table 5
@@ -568,7 +567,7 @@ database:
 
 ```go
 // Use Table() method for dynamic table names
-tableName := db.GetShardingTableName("users", userID)
+tableName := db.GetShardingTableName("dm_users", userID)
 
 var user model.User
 err := conn.DB.Table(tableName).Where("id = ?", userID).First(&user).Error
@@ -611,9 +610,9 @@ Always use the template system for schema changes:
 Check data distribution across tables:
 ```sql
 -- Check user count per table (run in each database)
-SELECT 'users_000' as table_name, COUNT(*) as count FROM users_000
+SELECT 'dm_users_000' as table_name, COUNT(*) as count FROM dm_users_000
 UNION ALL
-SELECT 'users_001', COUNT(*) FROM users_001
+SELECT 'dm_users_001', COUNT(*) FROM dm_users_001
 -- ... for all tables
 ```
 

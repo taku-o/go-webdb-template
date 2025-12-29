@@ -4,8 +4,8 @@
 schema "main" {
 }
 
-// News テーブル
-table "news" {
+// dm_news テーブル（ダミーテーブル）
+table "dm_news" {
   schema = schema.main
   column "id" {
     null           = false
@@ -39,10 +39,10 @@ table "news" {
   primary_key {
     columns = [column.id]
   }
-  index "idx_news_published_at" {
+  index "idx_dm_news_published_at" {
     columns = [column.published_at]
   }
-  index "idx_news_author_id" {
+  index "idx_dm_news_author_id" {
     columns = [column.author_id]
   }
 }

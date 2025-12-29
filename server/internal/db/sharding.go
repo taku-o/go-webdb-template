@@ -109,9 +109,10 @@ func GetShardingDBID(tableNumber int) int {
 }
 
 // ValidateTableName はテーブル名が有効か検証（SQLインジェクション対策）
+// allowedBaseNamesには "dm_users", "dm_posts" などのベース名を指定する
 func ValidateTableName(tableName string, allowedBaseNames []string) bool {
 	for _, baseName := range allowedBaseNames {
-		// users_000, users_001, ..., users_031 の形式をチェック
+		// dm_users_000, dm_users_001, ..., dm_users_031 の形式をチェック
 		for i := 0; i < 32; i++ {
 			expectedName := fmt.Sprintf("%s_%03d", baseName, i)
 			if tableName == expectedName {

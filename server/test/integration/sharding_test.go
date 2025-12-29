@@ -103,8 +103,8 @@ func TestTableSelectionLogic(t *testing.T) {
 			dbID := tableSelector.GetDBID(tableNumber)
 			assert.Equal(t, tc.expectedDBID, dbID)
 
-			tableName := tableSelector.GetTableName("users", tc.id)
-			expectedName := "users_" + tc.expectedSuffix
+			tableName := tableSelector.GetTableName("dm_users", tc.id)
+			expectedName := "dm_users_" + tc.expectedSuffix
 			assert.Equal(t, expectedName, tableName)
 		})
 	}
@@ -137,8 +137,8 @@ func TestCrossTableQueryUsers(t *testing.T) {
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("users", u.id)
-		err = conn.DB.Table(tableName).Create(&model.User{
+		tableName := tableSelector.GetTableName("dm_users", u.id)
+		err = conn.DB.Table(tableName).Create(&model.DmUser{
 			ID:    u.id,
 			Name:  u.name,
 			Email: u.email,
@@ -152,8 +152,8 @@ func TestCrossTableQueryUsers(t *testing.T) {
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("users", u.id)
-		var retrieved model.User
+		tableName := tableSelector.GetTableName("dm_users", u.id)
+		var retrieved model.DmUser
 		err = conn.DB.Table(tableName).Where("id = ?", u.id).First(&retrieved).Error
 		require.NoError(t, err, "Failed to retrieve user %d from %s", u.id, tableName)
 		assert.Equal(t, u.name, retrieved.Name)
@@ -173,7 +173,7 @@ func TestMasterGroupNewsTable(t *testing.T) {
 
 	// Test Create
 	t.Run("Create News", func(t *testing.T) {
-		news := &model.News{
+		news := &model.DmNews{
 			Title:   "Test News Title",
 			Content: "Test news content",
 		}
@@ -184,7 +184,7 @@ func TestMasterGroupNewsTable(t *testing.T) {
 
 		// Test Read
 		t.Run("Read News by ID", func(t *testing.T) {
-			var retrieved model.News
+			var retrieved model.DmNews
 			err := conn.DB.First(&retrieved, news.ID).Error
 			require.NoError(t, err)
 			assert.Equal(t, news.Title, retrieved.Title)
@@ -197,7 +197,7 @@ func TestMasterGroupNewsTable(t *testing.T) {
 			err := conn.DB.Save(news).Error
 			require.NoError(t, err)
 
-			var retrieved model.News
+			var retrieved model.DmNews
 			err = conn.DB.First(&retrieved, news.ID).Error
 			require.NoError(t, err)
 			assert.Equal(t, "Updated Title", retrieved.Title)
@@ -208,7 +208,7 @@ func TestMasterGroupNewsTable(t *testing.T) {
 			err := conn.DB.Delete(news).Error
 			require.NoError(t, err)
 
-			var retrieved model.News
+			var retrieved model.DmNews
 			err = conn.DB.First(&retrieved, news.ID).Error
 			assert.Error(t, err) // Should not find deleted news
 		})
@@ -234,7 +234,7 @@ func TestShardingConnectionByID(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run("UserID_"+fmt.Sprintf("%d", tc.userID), func(t *testing.T) {
-			conn, err := groupManager.GetShardingConnectionByID(tc.userID, "users")
+			conn, err := groupManager.GetShardingConnectionByID(tc.userID, "dm_users")
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedDB, conn.ShardID)
 		})
@@ -372,8 +372,8 @@ func TestCrossTableQuery8Sharding(t *testing.T) {
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("users", u.id)
-		err = conn.DB.Table(tableName).Create(&model.User{
+		tableName := tableSelector.GetTableName("dm_users", u.id)
+		err = conn.DB.Table(tableName).Create(&model.DmUser{
 			ID:    u.id,
 			Name:  u.name,
 			Email: u.email,
@@ -387,8 +387,8 @@ func TestCrossTableQuery8Sharding(t *testing.T) {
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("users", u.id)
-		var retrieved model.User
+		tableName := tableSelector.GetTableName("dm_users", u.id)
+		var retrieved model.DmUser
 		err = conn.DB.Table(tableName).Where("id = ?", u.id).First(&retrieved).Error
 		require.NoError(t, err, "Failed to retrieve user %d from %s", u.id, tableName)
 		assert.Equal(t, u.name, retrieved.Name)

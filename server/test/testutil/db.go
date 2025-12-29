@@ -87,8 +87,8 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 
 	// Create table configs
 	tables := []config.ShardingTableConfig{
-		{Name: "users", SuffixCount: totalTables},
-		{Name: "posts", SuffixCount: totalTables},
+		{Name: "dm_users", SuffixCount: totalTables},
+		{Name: "dm_posts", SuffixCount: totalTables},
 	}
 
 	cfg := &config.Config{
@@ -126,10 +126,10 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 	return manager
 }
 
-// InitMasterSchema initializes the master database schema (news table)
+// InitMasterSchema initializes the master database schema (dm_news table)
 func InitMasterSchema(t *testing.T, database *gorm.DB) {
 	schema := `
-		CREATE TABLE IF NOT EXISTS news (
+		CREATE TABLE IF NOT EXISTS dm_news (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			title TEXT NOT NULL,
 			content TEXT NOT NULL,
@@ -144,13 +144,13 @@ func InitMasterSchema(t *testing.T, database *gorm.DB) {
 }
 
 // InitShardingSchema initializes the sharding database schema
-// Creates users_XXX and posts_XXX tables for the given table range
+// Creates dm_users_XXX and dm_posts_XXX tables for the given table range
 func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable int) {
 	for i := startTable; i <= endTable; i++ {
 		suffix := fmt.Sprintf("%03d", i)
 
 		usersSchema := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS users_%s (
+			CREATE TABLE IF NOT EXISTS dm_users_%s (
 				id INTEGER PRIMARY KEY,
 				name TEXT NOT NULL,
 				email TEXT NOT NULL UNIQUE,
@@ -162,16 +162,15 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 		require.NoError(t, err)
 
 		postsSchema := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS posts_%s (
+			CREATE TABLE IF NOT EXISTS dm_posts_%s (
 				id INTEGER PRIMARY KEY,
 				user_id INTEGER NOT NULL,
 				title TEXT NOT NULL,
 				content TEXT NOT NULL,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				FOREIGN KEY (user_id) REFERENCES users_%s(id)
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			);
-		`, suffix, suffix)
+		`, suffix)
 		err = database.Exec(postsSchema).Error
 		require.NoError(t, err)
 	}
@@ -223,8 +222,8 @@ func SetupTestGroupManager8Sharding(t *testing.T) *db.GroupManager {
 
 	// Create table configs
 	tables := []config.ShardingTableConfig{
-		{Name: "users", SuffixCount: 32},
-		{Name: "posts", SuffixCount: 32},
+		{Name: "dm_users", SuffixCount: 32},
+		{Name: "dm_posts", SuffixCount: 32},
 	}
 
 	cfg := &config.Config{

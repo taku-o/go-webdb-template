@@ -69,7 +69,7 @@ func TestAccessLogger_LogAccess(t *testing.T) {
 		require.NotNil(t, logger)
 
 		// アクセスログを出力
-		logger.LogAccess("GET", "/api/users", "HTTP/1.1", 200, 15.2, "192.168.1.100", "Mozilla/5.0", "", "")
+		logger.LogAccess("GET", "/api/dm-users", "HTTP/1.1", 200, 15.2, "192.168.1.100", "Mozilla/5.0", "", "")
 
 		// loggerをクローズしてファイルをフラッシュ
 		err = logger.Close()
@@ -89,7 +89,7 @@ func TestAccessLogger_LogAccess(t *testing.T) {
 
 		logContent := string(content)
 		assert.Contains(t, logContent, "GET")
-		assert.Contains(t, logContent, "/api/users")
+		assert.Contains(t, logContent, "/api/dm-users")
 		assert.Contains(t, logContent, "HTTP/1.1")
 		assert.Contains(t, logContent, "200")
 		assert.Contains(t, logContent, "192.168.1.100")
@@ -103,7 +103,7 @@ func TestAccessLogger_LogAccess(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, logger)
 
-		logger.LogAccess("POST", "/api/users", "HTTP/1.1", 201, 23.5, "192.168.1.100", "curl/7.64.1", "", "")
+		logger.LogAccess("POST", "/api/dm-users", "HTTP/1.1", 201, 23.5, "192.168.1.100", "curl/7.64.1", "", "")
 
 		err = logger.Close()
 		require.NoError(t, err)
@@ -119,7 +119,7 @@ func TestAccessLogger_LogAccess(t *testing.T) {
 		// ログエントリがJSON形式であることを確認
 		assert.True(t, strings.HasPrefix(logContent, "{"))
 		assert.Contains(t, logContent, `"method":"POST"`)
-		assert.Contains(t, logContent, `"path":"/api/users"`)
+		assert.Contains(t, logContent, `"path":"/api/dm-users"`)
 		assert.Contains(t, logContent, `"status_code":201`)
 		assert.Contains(t, logContent, `"response_time_ms":23.5`)
 		assert.Contains(t, logContent, `"remote_ip":"192.168.1.100"`)
@@ -153,7 +153,7 @@ func TestCustomTextFormatter_Format(t *testing.T) {
 		// ログエントリを作成
 		fields := map[string]interface{}{
 			"method":           "GET",
-			"path":             "/api/users",
+			"path":             "/api/dm-users",
 			"protocol":         "HTTP/1.1",
 			"status_code":      200,
 			"response_time_ms": 15.2,
@@ -172,7 +172,7 @@ func TestCustomTextFormatter_Format(t *testing.T) {
 		assert.True(t, strings.HasPrefix(result, "{"))
 		assert.Contains(t, result, now.Format("2006-01-02"))
 		assert.Contains(t, result, `"method":"GET"`)
-		assert.Contains(t, result, `"path":"/api/users"`)
+		assert.Contains(t, result, `"path":"/api/dm-users"`)
 		assert.Contains(t, result, `"protocol":"HTTP/1.1"`)
 		assert.Contains(t, result, `"status_code":200`)
 		assert.Contains(t, result, `"response_time_ms":15.2`)

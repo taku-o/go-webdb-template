@@ -8,9 +8,9 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 )
 
-// GetNewsTable はNewsテーブルのGoAdmin設定を返す
+// GetNewsTable はdm_newsテーブルのGoAdmin設定を返す
 // 注意: GoAdminはmasterグループのデータベースのみを使用するため、
-// users/postsテーブル（shardingグループ）はGoAdminで管理できません
+// dm_users/dm_postsテーブル（shardingグループ）はGoAdminで管理できません
 func GetNewsTable(ctx *context.Context) table.Table {
 	newsTable := table.NewDefaultTable(ctx, table.Config{
 		Driver:     db.DriverSqlite,
@@ -35,7 +35,7 @@ func GetNewsTable(ctx *context.Context) table.Table {
 	info.AddField("作成日時", "created_at", db.Datetime).FieldSortable()
 	info.AddField("更新日時", "updated_at", db.Datetime).FieldSortable()
 
-	info.SetTable("news").SetTitle("ニュース").SetDescription("ニュース一覧")
+	info.SetTable("dm_news").SetTitle("ニュース").SetDescription("ニュース一覧")
 
 	// フォーム設定（新規作成・編集）
 	formList := newsTable.GetForm()
@@ -59,14 +59,14 @@ func GetNewsTable(ctx *context.Context) table.Table {
 		FieldNowWhenInsert().
 		FieldNowWhenUpdate()
 
-	formList.SetTable("news").SetTitle("ニュース").SetDescription("ニュース情報")
+	formList.SetTable("dm_news").SetTitle("ニュース").SetDescription("ニュース情報")
 
 	return newsTable
 }
 
 // Generators はGoAdminに登録するテーブルジェネレータのマップ
-// 注意: usersとpostsはシャーディンググループにあるため、
+// 注意: dm_usersとdm_postsはシャーディンググループにあるため、
 // GoAdmin（masterグループのみ使用）では管理できません
 var Generators = map[string]table.Generator{
-	"news": GetNewsTable,
+	"dm_news": GetNewsTable,
 }
