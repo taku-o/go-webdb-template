@@ -211,11 +211,11 @@ func TestDatabaseGroupsConfig_Structure(t *testing.T) {
 			},
 			Tables: []ShardingTableConfig{
 				{
-					Name:        "users",
+					Name:        "dm_users",
 					SuffixCount: 32,
 				},
 				{
-					Name:        "posts",
+					Name:        "dm_posts",
 					SuffixCount: 32,
 				},
 			},
@@ -254,8 +254,8 @@ func TestDatabaseGroupsConfig_Structure(t *testing.T) {
 	if len(cfg.Sharding.Tables) != 2 {
 		t.Errorf("expected 2 tables, got %d", len(cfg.Sharding.Tables))
 	}
-	if cfg.Sharding.Tables[0].Name != "users" {
-		t.Errorf("expected table name 'users', got %s", cfg.Sharding.Tables[0].Name)
+	if cfg.Sharding.Tables[0].Name != "dm_users" {
+		t.Errorf("expected table name 'dm_users', got %s", cfg.Sharding.Tables[0].Name)
 	}
 	if cfg.Sharding.Tables[0].SuffixCount != 32 {
 		t.Errorf("expected suffix count 32, got %d", cfg.Sharding.Tables[0].SuffixCount)
@@ -346,8 +346,8 @@ func TestLoad_GroupsConfig(t *testing.T) {
 		t.Errorf("expected 2 tables, got %d", len(cfg.Database.Groups.Sharding.Tables))
 	}
 	if len(cfg.Database.Groups.Sharding.Tables) > 0 {
-		if cfg.Database.Groups.Sharding.Tables[0].Name != "users" {
-			t.Errorf("expected first table 'users', got %s", cfg.Database.Groups.Sharding.Tables[0].Name)
+		if cfg.Database.Groups.Sharding.Tables[0].Name != "dm_users" {
+			t.Errorf("expected first table 'dm_users', got %s", cfg.Database.Groups.Sharding.Tables[0].Name)
 		}
 		if cfg.Database.Groups.Sharding.Tables[0].SuffixCount != 32 {
 			t.Errorf("expected suffix_count 32, got %d", cfg.Database.Groups.Sharding.Tables[0].SuffixCount)

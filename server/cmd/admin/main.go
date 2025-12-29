@@ -87,10 +87,10 @@ func main() {
 	app.HandleFunc("/admin/", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
 		return pages.HomePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
-	app.HandleFunc("/admin/user/register", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
+	app.HandleFunc("/admin/dm-user/register", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
 		return pages.UserRegisterPage(goadminContext.NewContext(ctx.Request), groupManager)
 	})).Methods("GET", "POST")
-	app.HandleFunc("/admin/user/register/new", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
+	app.HandleFunc("/admin/dm-user/register/new", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
 		return pages.UserRegisterCompletePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
 	app.HandleFunc("/admin/api-key", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {

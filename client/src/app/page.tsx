@@ -26,7 +26,7 @@ export default function Home() {
         {/* データ操作機能 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Link
-            href="/users"
+            href="/dm-users"
             className="p-6 border rounded-lg hover:border-blue-500 hover:shadow-lg transition-all"
           >
             <h2 className="text-2xl font-semibold mb-2">ユーザー管理</h2>
@@ -34,7 +34,7 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/posts"
+            href="/dm-posts"
             className="p-6 border rounded-lg hover:border-blue-500 hover:shadow-lg transition-all"
           >
             <h2 className="text-2xl font-semibold mb-2">投稿管理</h2>
@@ -42,7 +42,7 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/user-posts"
+            href="/dm-user-posts"
             className="p-6 border rounded-lg hover:border-blue-500 hover:shadow-lg transition-all"
           >
             <h2 className="text-2xl font-semibold mb-2">ユーザーと投稿</h2>

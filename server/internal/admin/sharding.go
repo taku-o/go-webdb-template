@@ -52,13 +52,13 @@ func QueryAllShards[T any](manager *db.GORMManager, queryFn func(*gorm.DB) *gorm
 }
 
 // FindUserAcrossShards は全シャードからユーザーを検索する
-func FindUserAcrossShards(manager *db.GORMManager, queryFn func(*gorm.DB) *gorm.DB) ([]model.User, error) {
-	return QueryAllShards[model.User](manager, queryFn)
+func FindUserAcrossShards(manager *db.GORMManager, queryFn func(*gorm.DB) *gorm.DB) ([]model.DmUser, error) {
+	return QueryAllShards[model.DmUser](manager, queryFn)
 }
 
 // FindPostAcrossShards は全シャードから投稿を検索する
-func FindPostAcrossShards(manager *db.GORMManager, queryFn func(*gorm.DB) *gorm.DB) ([]model.Post, error) {
-	return QueryAllShards[model.Post](manager, queryFn)
+func FindPostAcrossShards(manager *db.GORMManager, queryFn func(*gorm.DB) *gorm.DB) ([]model.DmPost, error) {
+	return QueryAllShards[model.DmPost](manager, queryFn)
 }
 
 // CountAcrossShards は全シャードの件数を取得する
@@ -100,12 +100,12 @@ func CountAcrossShards[T any](manager *db.GORMManager) (int64, error) {
 
 // CountUsersAcrossShards は全シャードのユーザー数を取得する
 func CountUsersAcrossShards(manager *db.GORMManager) (int64, error) {
-	return CountAcrossShards[model.User](manager)
+	return CountAcrossShards[model.DmUser](manager)
 }
 
 // CountPostsAcrossShards は全シャードの投稿数を取得する
 func CountPostsAcrossShards(manager *db.GORMManager) (int64, error) {
-	return CountAcrossShards[model.Post](manager)
+	return CountAcrossShards[model.DmPost](manager)
 }
 
 // ShardStats はシャードの統計情報を表す
@@ -129,11 +129,11 @@ func GetShardStats(manager *db.GORMManager) ([]ShardStats, error) {
 			defer wg.Done()
 
 			var userCount, postCount int64
-			if err := conn.DB.Model(&model.User{}).Count(&userCount).Error; err != nil {
+			if err := conn.DB.Model(&model.DmUser{}).Count(&userCount).Error; err != nil {
 				errChan <- err
 				return
 			}
-			if err := conn.DB.Model(&model.Post{}).Count(&postCount).Error; err != nil {
+			if err := conn.DB.Model(&model.DmPost{}).Count(&postCount).Error; err != nil {
 				errChan <- err
 				return
 			}

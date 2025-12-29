@@ -51,13 +51,13 @@ func TestOpenAPIEndpoint(t *testing.T) {
 	require.True(t, ok)
 
 	// ユーザーエンドポイントが含まれていることを確認
-	assert.Contains(t, paths, "/api/users")
-	assert.Contains(t, paths, "/api/users/{id}")
+	assert.Contains(t, paths, "/api/dm-users")
+	assert.Contains(t, paths, "/api/dm-users/{id}")
 
 	// 投稿エンドポイントが含まれていることを確認
-	assert.Contains(t, paths, "/api/posts")
-	assert.Contains(t, paths, "/api/posts/{id}")
-	assert.Contains(t, paths, "/api/user-posts")
+	assert.Contains(t, paths, "/api/dm-posts")
+	assert.Contains(t, paths, "/api/dm-posts/{id}")
+	assert.Contains(t, paths, "/api/dm-user-posts")
 }
 
 // TestHealthEndpoint はヘルスチェックエンドポイントが正しく動作することを確認
@@ -77,7 +77,7 @@ func TestHealthEndpoint(t *testing.T) {
 // TestRegisterUserEndpointsIntegration はユーザーエンドポイントが登録されることを確認
 func TestRegisterUserEndpointsIntegration(t *testing.T) {
 	// RegisterUserEndpoints関数のシグネチャを確認
-	var _ func(*handler.UserHandler) = func(h *handler.UserHandler) {
+	var _ func(*handler.DmUserHandler) = func(h *handler.DmUserHandler) {
 		// handler.RegisterUserEndpoints(api, h) の形式で呼び出し可能
 	}
 }
@@ -85,7 +85,7 @@ func TestRegisterUserEndpointsIntegration(t *testing.T) {
 // TestRegisterPostEndpointsIntegration は投稿エンドポイントが登録されることを確認
 func TestRegisterPostEndpointsIntegration(t *testing.T) {
 	// RegisterPostEndpoints関数のシグネチャを確認
-	var _ func(*handler.PostHandler) = func(h *handler.PostHandler) {
+	var _ func(*handler.DmPostHandler) = func(h *handler.DmPostHandler) {
 		// handler.RegisterPostEndpoints(api, h) の形式で呼び出し可能
 	}
 }
@@ -168,18 +168,18 @@ func TestEndpointSecurityInOpenAPI(t *testing.T) {
 		method string
 	}{
 		// Users endpoints
-		{"/api/users", "post"},
-		{"/api/users", "get"},
-		{"/api/users/{id}", "get"},
-		{"/api/users/{id}", "put"},
-		{"/api/users/{id}", "delete"},
+		{"/api/dm-users", "post"},
+		{"/api/dm-users", "get"},
+		{"/api/dm-users/{id}", "get"},
+		{"/api/dm-users/{id}", "put"},
+		{"/api/dm-users/{id}", "delete"},
 		// Posts endpoints
-		{"/api/posts", "post"},
-		{"/api/posts", "get"},
-		{"/api/posts/{id}", "get"},
-		{"/api/posts/{id}", "put"},
-		{"/api/posts/{id}", "delete"},
-		{"/api/user-posts", "get"},
+		{"/api/dm-posts", "post"},
+		{"/api/dm-posts", "get"},
+		{"/api/dm-posts/{id}", "get"},
+		{"/api/dm-posts/{id}", "put"},
+		{"/api/dm-posts/{id}", "delete"},
+		{"/api/dm-user-posts", "get"},
 		// Today endpoint
 		{"/api/today", "get"},
 	}
@@ -243,18 +243,18 @@ func TestEndpointAccessLevelInOpenAPI(t *testing.T) {
 		expectedDescription string // Descriptionに含まれるべき文字列
 	}{
 		// Users endpoints - Public API（Summaryに[public]は含まない）
-		{"/api/users", "post", "users", "", "**Access Level:** `public`"},
-		{"/api/users", "get", "users", "", "**Access Level:** `public`"},
-		{"/api/users/{id}", "get", "users", "", "**Access Level:** `public`"},
-		{"/api/users/{id}", "put", "users", "", "**Access Level:** `public`"},
-		{"/api/users/{id}", "delete", "users", "", "**Access Level:** `public`"},
+		{"/api/dm-users", "post", "users", "", "**Access Level:** `public`"},
+		{"/api/dm-users", "get", "users", "", "**Access Level:** `public`"},
+		{"/api/dm-users/{id}", "get", "users", "", "**Access Level:** `public`"},
+		{"/api/dm-users/{id}", "put", "users", "", "**Access Level:** `public`"},
+		{"/api/dm-users/{id}", "delete", "users", "", "**Access Level:** `public`"},
 		// Posts endpoints - Public API（Summaryに[public]は含まない）
-		{"/api/posts", "post", "posts", "", "**Access Level:** `public`"},
-		{"/api/posts", "get", "posts", "", "**Access Level:** `public`"},
-		{"/api/posts/{id}", "get", "posts", "", "**Access Level:** `public`"},
-		{"/api/posts/{id}", "put", "posts", "", "**Access Level:** `public`"},
-		{"/api/posts/{id}", "delete", "posts", "", "**Access Level:** `public`"},
-		{"/api/user-posts", "get", "posts", "", "**Access Level:** `public`"},
+		{"/api/dm-posts", "post", "posts", "", "**Access Level:** `public`"},
+		{"/api/dm-posts", "get", "posts", "", "**Access Level:** `public`"},
+		{"/api/dm-posts/{id}", "get", "posts", "", "**Access Level:** `public`"},
+		{"/api/dm-posts/{id}", "put", "posts", "", "**Access Level:** `public`"},
+		{"/api/dm-posts/{id}", "delete", "posts", "", "**Access Level:** `public`"},
+		{"/api/dm-user-posts", "get", "posts", "", "**Access Level:** `public`"},
 		// Today endpoint - Private API（Summaryに[private]を含む）
 		{"/api/today", "get", "today", "[private]", "**Access Level:** `private`"},
 	}

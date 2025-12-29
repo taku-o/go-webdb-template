@@ -94,7 +94,7 @@ describe('apiClient', () => {
 
       expect(result).toEqual(mockUser)
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/users',
+        'http://localhost:8080/api/dm-users',
         expect.objectContaining({
           method: 'POST',
           headers: {
@@ -134,7 +134,7 @@ describe('apiClient', () => {
       expect(result).toEqual(mockUsers)
       // getUsers has default parameters limit=20 and offset=0
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/users?limit=20&offset=0',
+        'http://localhost:8080/api/dm-users?limit=20&offset=0',
         expect.objectContaining({
           headers: {
             'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ describe('apiClient', () => {
       await apiClient.deleteUser('1')
 
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/users/1',
+        'http://localhost:8080/api/dm-users/1',
         expect.objectContaining({
           method: 'DELETE',
           headers: {
@@ -202,7 +202,7 @@ describe('apiClient', () => {
 
       expect(result).toEqual(mockPost)
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/posts',
+        'http://localhost:8080/api/dm-posts',
         expect.objectContaining({
           method: 'POST',
           headers: {
@@ -245,7 +245,7 @@ describe('apiClient', () => {
       await apiClient.deletePost('1', '1')
 
       expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/posts/1?user_id=1',
+        'http://localhost:8080/api/dm-posts/1?user_id=1',
         expect.objectContaining({
           method: 'DELETE',
           headers: {

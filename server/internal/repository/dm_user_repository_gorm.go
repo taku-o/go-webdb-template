@@ -1,0 +1,158 @@
+package repository
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/model"
+	"gorm.io/gorm"
+)
+
+// DmUserRepositoryGORM はユーザーのデータアクセスを担当（GORM版）
+type DmUserRepositoryGORM struct {
+	groupManager  *db.GroupManager
+	tableSelector *db.TableSelector
+}
+
+// NewDmUserRepositoryGORM は新しいDmUserRepositoryGORMを作成
+func NewDmUserRepositoryGORM(groupManager *db.GroupManager) *DmUserRepositoryGORM {
+	return &DmUserRepositoryGORM{
+		groupManager:  groupManager,
+		tableSelector: db.NewTableSelector(db.DBShardingTableCount, db.DBShardingTablesPerDB),
+	}
+}
+
+// Create はユーザーを作成
+func (r *DmUserRepositoryGORM) Create(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error) {
+	user := &model.DmUser{
+		Name:  req.Name,
+		Email: req.Email,
+	}
+
+	// ID生成（タイムスタンプベース、既存ロジック維持）
+	user.ID = time.Now().UnixNano()
+
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("dm_users", user.ID)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(user.ID, "dm_users")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
+	}
+
+	// GORM APIで作成（動的テーブル名を使用）
+	if err := conn.DB.WithContext(ctx).Table(tableName).Create(user).Error; err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return user, nil
+}
+
+// GetByID はIDでユーザーを取得
+func (r *DmUserRepositoryGORM) GetByID(ctx context.Context, id int64) (*model.DmUser, error) {
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("dm_users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "dm_users")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
+	}
+
+	var user model.DmUser
+	if err := conn.DB.WithContext(ctx).Table(tableName).First(&user, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("user not found: %d", id)
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// List はすべてのユーザーを取得（クロステーブルクエリ）
+func (r *DmUserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.DmUser, error) {
+	users := make([]*model.DmUser, 0)
+
+	// テーブル数分ループして各テーブルからデータを取得
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		// テーブル番号から接続を取得
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
+		}
+
+		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
+
+		var tableUsers []*model.DmUser
+		if err := conn.DB.WithContext(ctx).
+			Table(tableName).
+			Order("id").
+			Limit(limit).
+			Offset(offset).
+			Find(&tableUsers).Error; err != nil {
+			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+		}
+		users = append(users, tableUsers...)
+	}
+
+	return users, nil
+}
+
+// Update はユーザーを更新
+func (r *DmUserRepositoryGORM) Update(ctx context.Context, id int64, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("dm_users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "dm_users")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
+	}
+
+	updates := make(map[string]interface{})
+	if req.Name != "" {
+		updates["name"] = req.Name
+	}
+	if req.Email != "" {
+		updates["email"] = req.Email
+	}
+	updates["updated_at"] = time.Now()
+
+	result := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(updates)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to update user: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("user not found: %d", id)
+	}
+
+	return r.GetByID(ctx, id)
+}
+
+// Delete はユーザーを削除
+func (r *DmUserRepositoryGORM) Delete(ctx context.Context, id int64) error {
+	// テーブル名の生成
+	tableName := r.tableSelector.GetTableName("dm_users", id)
+
+	// 接続の取得
+	conn, err := r.groupManager.GetShardingConnectionByID(id, "dm_users")
+	if err != nil {
+		return fmt.Errorf("failed to get sharding connection: %w", err)
+	}
+
+	result := conn.DB.WithContext(ctx).Table(tableName).Delete(&model.DmUser{}, id)
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete user: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("user not found: %d", id)
+	}
+
+	return nil
+}

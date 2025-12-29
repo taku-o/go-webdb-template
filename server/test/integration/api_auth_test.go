@@ -25,20 +25,20 @@ func setupAuthTestServer(t *testing.T) *httptest.Server {
 	})
 
 	// Initialize layers (using GORM repositories)
-	userRepo := repository.NewUserRepositoryGORM(groupManager)
-	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService)
+	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserService := service.NewDmUserService(dmUserRepo)
+	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	postRepo := repository.NewPostRepositoryGORM(groupManager)
-	postService := service.NewPostService(postRepo, userRepo)
-	postHandler := handler.NewPostHandler(postService)
+	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
+	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 
 	// TodayHandler
 	todayHandler := handler.NewTodayHandler()
 
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()
-	r := router.NewRouter(userHandler, postHandler, todayHandler, cfg)
+	r := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, cfg)
 
 	return httptest.NewServer(r)
 }
@@ -52,7 +52,7 @@ func TestAPIAuth_ValidToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Access API with valid token
-	req, err := http.NewRequest("GET", server.URL+"/api/users", nil)
+	req, err := http.NewRequest("GET", server.URL+"/api/dm-users", nil)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+token)
 
@@ -68,7 +68,7 @@ func TestAPIAuth_NoToken(t *testing.T) {
 	defer server.Close()
 
 	// Access API without token
-	resp, err := http.Get(server.URL + "/api/users")
+	resp, err := http.Get(server.URL + "/api/dm-users")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -80,7 +80,7 @@ func TestAPIAuth_InvalidToken(t *testing.T) {
 	defer server.Close()
 
 	// Access API with invalid token
-	req, err := http.NewRequest("GET", server.URL+"/api/users", nil)
+	req, err := http.NewRequest("GET", server.URL+"/api/dm-users", nil)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer invalid-token")
 
@@ -100,7 +100,7 @@ func TestAPIAuth_InvalidVersion(t *testing.T) {
 	require.NoError(t, err)
 
 	// Access API with invalid version token
-	req, err := http.NewRequest("GET", server.URL+"/api/users", nil)
+	req, err := http.NewRequest("GET", server.URL+"/api/dm-users", nil)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+token)
 

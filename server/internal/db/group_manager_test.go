@@ -113,8 +113,8 @@ func TestNewShardingManager(t *testing.T) {
 						},
 					},
 					Tables: []config.ShardingTableConfig{
-						{Name: "users", SuffixCount: 32},
-						{Name: "posts", SuffixCount: 32},
+						{Name: "dm_users", SuffixCount: 32},
+						{Name: "dm_posts", SuffixCount: 32},
 					},
 				},
 			},
@@ -363,8 +363,8 @@ func TestNewShardingManager_8Sharding(t *testing.T) {
 						},
 					},
 					Tables: []config.ShardingTableConfig{
-						{Name: "users", SuffixCount: 32},
-						{Name: "posts", SuffixCount: 32},
+						{Name: "dm_users", SuffixCount: 32},
+						{Name: "dm_posts", SuffixCount: 32},
 					},
 				},
 			},
@@ -723,8 +723,8 @@ func TestNewGroupManager(t *testing.T) {
 						},
 					},
 					Tables: []config.ShardingTableConfig{
-						{Name: "users", SuffixCount: 32},
-						{Name: "posts", SuffixCount: 32},
+						{Name: "dm_users", SuffixCount: 32},
+						{Name: "dm_posts", SuffixCount: 32},
 					},
 				},
 			},
@@ -838,7 +838,7 @@ func TestGroupManager_GetShardingConnectionByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("id="+string(rune(tt.id)), func(t *testing.T) {
-			conn, err := manager.GetShardingConnectionByID(tt.id, "users")
+			conn, err := manager.GetShardingConnectionByID(tt.id, "dm_users")
 			require.NoError(t, err)
 			require.NotNil(t, conn)
 			assert.Equal(t, tt.wantDBID, conn.ShardID)
@@ -887,7 +887,7 @@ func TestShardingManager_8Databases(t *testing.T) {
 				Sharding: config.ShardingGroupConfig{
 					Databases: shardingDBs,
 					Tables: []config.ShardingTableConfig{
-						{Name: "users", SuffixCount: 32},
+						{Name: "dm_users", SuffixCount: 32},
 					},
 				},
 			},
@@ -966,7 +966,7 @@ func TestShardingManager_1Database(t *testing.T) {
 				Sharding: config.ShardingGroupConfig{
 					Databases: shardingDBs,
 					Tables: []config.ShardingTableConfig{
-						{Name: "users", SuffixCount: 32},
+						{Name: "dm_users", SuffixCount: 32},
 					},
 				},
 			},

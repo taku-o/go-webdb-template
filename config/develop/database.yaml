@@ -112,7 +112,7 @@ database:
           table_range: [28, 31]
 
       tables:
-        - name: users
+        - name: dm_users
           suffix_count: 32
-        - name: posts
+        - name: dm_posts
           suffix_count: 32

@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import UsersPage from '@/app/users/page'
+import UsersPage from '@/app/dm-users/page'
 
 // Mock user data that can be modified during tests
 let mockUsers = [
@@ -23,11 +23,11 @@ let mockUsers = [
 ]
 
 const server = setupServer(
-  http.get('http://localhost:8080/api/users', () => {
+  http.get('http://localhost:8080/api/dm-users', () => {
     return HttpResponse.json(mockUsers)
   }),
 
-  http.post('http://localhost:8080/api/users', async ({ request }) => {
+  http.post('http://localhost:8080/api/dm-users', async ({ request }) => {
     const body = (await request.json()) as { name: string; email: string }
     const newUser = {
       id: '3',
@@ -41,7 +41,7 @@ const server = setupServer(
     return HttpResponse.json(newUser, { status: 201 })
   }),
 
-  http.delete('http://localhost:8080/api/users/:id', () => {
+  http.delete('http://localhost:8080/api/dm-users/:id', () => {
     return new HttpResponse(null, { status: 204 })
   })
 )
@@ -115,7 +115,7 @@ describe('UsersPage Integration', () => {
 
   it('handles API errors gracefully', async () => {
     server.use(
-      http.get('http://localhost:8080/api/users', () => {
+      http.get('http://localhost:8080/api/dm-users', () => {
         return new HttpResponse(null, { status: 500, statusText: 'Internal Server Error' })
       })
     )

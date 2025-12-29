@@ -58,29 +58,29 @@ class ApiClient {
 
   // User API
   async getUsers(limit = 20, offset = 0): Promise<User[]> {
-    return this.request<User[]>(`/api/users?limit=${limit}&offset=${offset}`)
+    return this.request<User[]>(`/api/dm-users?limit=${limit}&offset=${offset}`)
   }
 
   async getUser(id: string): Promise<User> {
-    return this.request<User>(`/api/users/${id}`)
+    return this.request<User>(`/api/dm-users/${id}`)
   }
 
   async createUser(data: CreateUserRequest): Promise<User> {
-    return this.request<User>('/api/users', {
+    return this.request<User>('/api/dm-users', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async updateUser(id: string, data: UpdateUserRequest): Promise<User> {
-    return this.request<User>(`/api/users/${id}`, {
+    return this.request<User>(`/api/dm-users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
   async deleteUser(id: string): Promise<void> {
-    return this.request<void>(`/api/users/${id}`, {
+    return this.request<void>(`/api/dm-users/${id}`, {
       method: 'DELETE',
     })
   }
@@ -94,36 +94,36 @@ class ApiClient {
     if (userId) {
       params.append('user_id', userId)
     }
-    return this.request<Post[]>(`/api/posts?${params.toString()}`)
+    return this.request<Post[]>(`/api/dm-posts?${params.toString()}`)
   }
 
   async getPost(id: string, userId: string): Promise<Post> {
-    return this.request<Post>(`/api/posts/${id}?user_id=${userId}`)
+    return this.request<Post>(`/api/dm-posts/${id}?user_id=${userId}`)
   }
 
   async createPost(data: CreatePostRequest): Promise<Post> {
-    return this.request<Post>('/api/posts', {
+    return this.request<Post>('/api/dm-posts', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async updatePost(id: string, userId: string, data: UpdatePostRequest): Promise<Post> {
-    return this.request<Post>(`/api/posts/${id}?user_id=${userId}`, {
+    return this.request<Post>(`/api/dm-posts/${id}?user_id=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
   async deletePost(id: string, userId: string): Promise<void> {
-    return this.request<void>(`/api/posts/${id}?user_id=${userId}`, {
+    return this.request<void>(`/api/dm-posts/${id}?user_id=${userId}`, {
       method: 'DELETE',
     })
   }
 
   // User-Post JOIN API
   async getUserPosts(limit = 20, offset = 0): Promise<UserPost[]> {
-    return this.request<UserPost[]>(`/api/user-posts?limit=${limit}&offset=${offset}`)
+    return this.request<UserPost[]>(`/api/dm-user-posts?limit=${limit}&offset=${offset}`)
   }
 
   // Today API (private - requires Auth0 JWT)

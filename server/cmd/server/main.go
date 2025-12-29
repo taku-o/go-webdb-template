@@ -39,16 +39,16 @@ func main() {
 	log.Println("Successfully connected to all database groups")
 
 	// Repository層の初期化（GORM版を使用）
-	userRepo := repository.NewUserRepositoryGORM(groupManager)
-	postRepo := repository.NewPostRepositoryGORM(groupManager)
+	userRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	postRepo := repository.NewDmPostRepositoryGORM(groupManager)
 
 	// Service層の初期化
-	userService := service.NewUserService(userRepo)
-	postService := service.NewPostService(postRepo, userRepo)
+	userService := service.NewDmUserService(userRepo)
+	postService := service.NewDmPostService(postRepo, userRepo)
 
 	// Handler層の初期化
-	userHandler := handler.NewUserHandler(userService)
-	postHandler := handler.NewPostHandler(postService)
+	userHandler := handler.NewDmUserHandler(userService)
+	postHandler := handler.NewDmPostHandler(postService)
 	todayHandler := handler.NewTodayHandler()
 
 	// Echoルーターの初期化

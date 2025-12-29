@@ -54,20 +54,20 @@ func setupTestServer(t *testing.T) *httptest.Server {
 	})
 
 	// Initialize layers (using GORM repositories)
-	userRepo := repository.NewUserRepositoryGORM(groupManager)
-	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService)
+	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserService := service.NewDmUserService(dmUserRepo)
+	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	postRepo := repository.NewPostRepositoryGORM(groupManager)
-	postService := service.NewPostService(postRepo, userRepo)
-	postHandler := handler.NewPostHandler(postService)
+	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
+	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 
 	// TodayHandler
 	todayHandler := handler.NewTodayHandler()
 
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()
-	r := router.NewRouter(userHandler, postHandler, todayHandler, cfg)
+	r := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, cfg)
 
 	return httptest.NewServer(r)
 }
@@ -83,7 +83,7 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	}
 	body, _ := json.Marshal(createReq)
 
-	resp, err := doRequestWithAuth("POST", server.URL+"/api/users", body)
+	resp, err := doRequestWithAuth("POST", server.URL+"/api/dm-users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -99,7 +99,7 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 	require.NoError(t, err)
 
 	// Retrieve user
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -130,7 +130,7 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 		"email": "original@example.com",
 	}
 	body, _ := json.Marshal(createReq)
-	resp, err := doRequestWithAuth("POST", server.URL+"/api/users", body)
+	resp, err := doRequestWithAuth("POST", server.URL+"/api/dm-users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -146,7 +146,7 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 		"email": "updated@example.com",
 	}
 	body, _ = json.Marshal(updateReq)
-	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/users/%d", userID), body)
+	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -156,13 +156,13 @@ func TestUserAPI_UpdateAndDelete(t *testing.T) {
 	assert.Equal(t, "Updated Name", updated["name"])
 
 	// Delete user
-	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
+	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// Verify deletion
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/users/%d", userID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -178,7 +178,7 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 		"email": "posttest@example.com",
 	}
 	body, _ := json.Marshal(userReq)
-	resp, err := doRequestWithAuth("POST", server.URL+"/api/users", body)
+	resp, err := doRequestWithAuth("POST", server.URL+"/api/dm-users", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -195,7 +195,7 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 		"content": "Test content",
 	}
 	body, _ = json.Marshal(postReq)
-	resp, err = doRequestWithAuth("POST", server.URL+"/api/posts", body)
+	resp, err = doRequestWithAuth("POST", server.URL+"/api/dm-posts", body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
@@ -208,13 +208,13 @@ func TestPostAPI_CompleteFlow(t *testing.T) {
 	assert.Equal(t, "Test Post", post["title"])
 
 	// Get post
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/posts/%d?user_id=%d", postID, userID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-posts/%d?user_id=%d", postID, userID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Get user posts (JOIN)
-	resp, err = doRequestWithAuth("GET", server.URL+"/api/user-posts", nil)
+	resp, err = doRequestWithAuth("GET", server.URL+"/api/dm-user-posts", nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
