@@ -20,7 +20,7 @@ type DmPostRepository struct {
 func NewDmPostRepository(groupManager *db.GroupManager) *DmPostRepository {
 	return &DmPostRepository{
 		groupManager:  groupManager,
-		tableSelector: db.NewTableSelector(32, 8),
+		tableSelector: db.NewTableSelector(db.DBShardingTableCount, db.DBShardingTablesPerDB),
 	}
 }
 

@@ -5,6 +5,14 @@ import (
 	"hash/fnv"
 )
 
+// シャーディング関連の定数
+const (
+	// DBShardingTableCount はshardingグループのテーブル総数
+	DBShardingTableCount = 32
+	// DBShardingTablesPerDB はデータベースあたりのテーブル数
+	DBShardingTablesPerDB = 8
+)
+
 // ShardingStrategy はSharding戦略のインターフェース
 type ShardingStrategy interface {
 	GetShardID(key int64) int
@@ -48,17 +56,17 @@ func (h *HashBasedSharding) GetShardCount() int {
 
 // TableSelector はテーブル選択ロジックを提供
 type TableSelector struct {
-	tableCount  int // 全テーブル数（デフォルト: 32）
-	tablesPerDB int // データベースあたりのテーブル数（デフォルト: 8）
+	tableCount  int // 全テーブル数（デフォルト: DBShardingTableCount）
+	tablesPerDB int // データベースあたりのテーブル数（デフォルト: DBShardingTablesPerDB）
 }
 
 // NewTableSelector は新しいTableSelectorを作成
 func NewTableSelector(tableCount, tablesPerDB int) *TableSelector {
 	if tableCount <= 0 {
-		tableCount = 32
+		tableCount = DBShardingTableCount
 	}
 	if tablesPerDB <= 0 {
-		tablesPerDB = 8
+		tablesPerDB = DBShardingTablesPerDB
 	}
 
 	return &TableSelector{
@@ -94,18 +102,18 @@ func (ts *TableSelector) GetTableCount() int {
 
 // GetShardingTableName はshardingグループのテーブル名を生成
 func GetShardingTableName(baseName string, id int64) string {
-	tableNumber := int(id % 32)
+	tableNumber := int(id % DBShardingTableCount)
 	return fmt.Sprintf("%s_%03d", baseName, tableNumber)
 }
 
 // GetShardingTableNumber はIDからテーブル番号を取得
 func GetShardingTableNumber(id int64) int {
-	return int(id % 32)
+	return int(id % DBShardingTableCount)
 }
 
 // GetShardingDBID はテーブル番号からデータベースIDを取得
 func GetShardingDBID(tableNumber int) int {
-	return (tableNumber / 8) + 1
+	return (tableNumber / DBShardingTablesPerDB) + 1
 }
 
 // ValidateTableName はテーブル名が有効か検証（SQLインジェクション対策）
@@ -113,7 +121,7 @@ func GetShardingDBID(tableNumber int) int {
 func ValidateTableName(tableName string, allowedBaseNames []string) bool {
 	for _, baseName := range allowedBaseNames {
 		// dm_users_000, dm_users_001, ..., dm_users_031 の形式をチェック
-		for i := 0; i < 32; i++ {
+		for i := 0; i < DBShardingTableCount; i++ {
 			expectedName := fmt.Sprintf("%s_%03d", baseName, i)
 			if tableName == expectedName {
 				return true

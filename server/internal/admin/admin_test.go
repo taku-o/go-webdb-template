@@ -94,8 +94,8 @@ func TestGeneratorsMap(t *testing.T) {
 		t.Error("Generators map is nil")
 	}
 
-	// dm_newsジェネレータのみ確認（dm_users/dm_postsはシャーディンググループにあるため管理対象外）
-	if _, ok := Generators["dm_news"]; !ok {
-		t.Error("dm_news generator not found in Generators map")
+	// dm-newsジェネレータのみ確認（dm_users/dm_postsはシャーディンググループにあるため管理対象外）
+	if _, ok := Generators["dm-news"]; !ok {
+		t.Error("dm-news generator not found in Generators map")
 	}
 }

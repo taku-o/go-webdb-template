@@ -23,7 +23,7 @@ func UserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.P
 		return types.Panel{
 			Title:       "エラー",
 			Description: "登録情報が見つかりません",
-			Content:     template.HTML(`<div class="alert alert-warning">登録情報が見つかりません。<a href="/admin/dm_user/register">ユーザー登録ページ</a>からやり直してください。</div>`),
+			Content:     template.HTML(`<div class="alert alert-warning">登録情報が見つかりません。<a href="/admin/dm-user/register">ユーザー登録ページ</a>からやり直してください。</div>`),
 		}, nil
 	}
 
@@ -60,7 +60,7 @@ func UserRegisterCompletePage(ctx *context.Context, conn db.Connection) (types.P
         </table>
     </div>
     <div class="box-footer">
-        <a href="/admin/dm_user/register" class="btn btn-success">
+        <a href="/admin/dm-user/register" class="btn btn-success">
             <i class="fa fa-plus"></i> 新規登録を続ける
         </a>
     </div>

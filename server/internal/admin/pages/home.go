@@ -26,7 +26,7 @@ func HomePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
             <div class="icon">
                 <i class="fa fa-newspaper-o"></i>
             </div>
-            <a href="/admin/info/dm_news" class="small-box-footer">
+            <a href="/admin/info/dm-news" class="small-box-footer">
                 詳細を見る <i class="fa fa-arrow-circle-right"></i>
             </a>
         </div>
@@ -40,7 +40,7 @@ func HomePage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
                 <h3 class="box-title">クイックアクション</h3>
             </div>
             <div class="box-body">
-                <a href="/admin/info/dm_news/new" class="btn btn-warning">
+                <a href="/admin/info/dm-news/new" class="btn btn-warning">
                     <i class="fa fa-newspaper-o"></i> ニュース作成
                 </a>
             </div>

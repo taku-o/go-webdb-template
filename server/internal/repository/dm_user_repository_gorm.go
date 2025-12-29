@@ -21,7 +21,7 @@ type DmUserRepositoryGORM struct {
 func NewDmUserRepositoryGORM(groupManager *db.GroupManager) *DmUserRepositoryGORM {
 	return &DmUserRepositoryGORM{
 		groupManager:  groupManager,
-		tableSelector: db.NewTableSelector(32, 8),
+		tableSelector: db.NewTableSelector(db.DBShardingTableCount, db.DBShardingTablesPerDB),
 	}
 }
 

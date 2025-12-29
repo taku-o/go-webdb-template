@@ -68,5 +68,5 @@ func GetNewsTable(ctx *context.Context) table.Table {
 // 注意: dm_usersとdm_postsはシャーディンググループにあるため、
 // GoAdmin（masterグループのみ使用）では管理できません
 var Generators = map[string]table.Generator{
-	"dm_news": GetNewsTable,
+	"dm-news": GetNewsTable,
 }

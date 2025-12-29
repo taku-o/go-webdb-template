@@ -52,7 +52,7 @@ func (gm *GroupManager) GetShardingConnection(tableNumber int) (*GORMConnection,
 
 // GetShardingConnectionByID はIDからshardingグループの接続を取得
 func (gm *GroupManager) GetShardingConnectionByID(id int64, tableName string) (*GORMConnection, error) {
-	tableNumber := int(id % 32)
+	tableNumber := int(id % DBShardingTableCount)
 	return gm.GetShardingConnection(tableNumber)
 }
 
@@ -276,8 +276,8 @@ func (sm *ShardingManager) GetConnectionByTableNumber(tableNumber int) (*GORMCon
 	defer sm.mu.RUnlock()
 
 	// テーブル番号が範囲内か確認
-	if tableNumber < 0 || tableNumber >= 32 {
-		return nil, fmt.Errorf("invalid table number: %d (must be 0-31)", tableNumber)
+	if tableNumber < 0 || tableNumber >= DBShardingTableCount {
+		return nil, fmt.Errorf("invalid table number: %d (must be 0-%d)", tableNumber, DBShardingTableCount-1)
 	}
 
 	// O(1)ルックアップ: テーブル番号からエントリIDを取得

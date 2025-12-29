@@ -181,5 +181,57 @@ server/cmd/hashpw/
 その後、https://github.com/taku-o/go-webdb-template/issues/54 に対して
 pull requestを作成してください。
 
+/review 55
+
+
+この2つについて該当箇所を教えてください。
+>  2. 中優先度: マジックナンバー 32 を定数化
+>  3. 低優先度: ルートの命名規則の統一（ハイフン vs アンダースコア）
+
+
+
+どこかに定数を持つことにしましょう。
+DB_SHARDHING_TABLE_COUNT あたりで。
+> ⏺ 1. マジックナンバー 32 の該当箇所
+> 
+>   定数化されていない箇所：
+> 
+>   | ファイル                                              | 行  | コード                                       |
+>   |-------------------------------------------------------|-----|----------------------------------------------|
+>   | server/internal/admin/pages/dm_user_register.go       | 90  | for tableNum := 0; tableNum < 32; tableNum++ |
+>   | server/internal/admin/pages/dm_user_register.go       | 126 | tableNumber := int(userID % 32)              |
+>   | server/internal/db/sharding.go                        | 97  | tableNumber := int(id % 32)                  |
+>   | server/internal/db/sharding.go                        | 103 | return int(id % 32)                          |
+>   | server/internal/db/sharding.go                        | 116 | for i := 0; i < 32; i++                      |
+>   | server/internal/db/group_manager.go                   | 55  | tableNumber := int(id % 32)                  |
+>   | server/internal/db/group_manager.go                   | 279 | `if tableNumber < 0                          |
+>   | server/internal/repository/dm_user_repository.go      | 23  | db.NewTableSelector(32, 8)                   |
+>   | server/internal/repository/dm_user_repository_gorm.go | 24  | db.NewTableSelector(32, 8)                   |
+>   | server/internal/repository/dm_post_repository.go      | 23  | db.NewTableSelector(32, 8)                   |
+>   | server/internal/repository/dm_post_repository_gorm.go | 24  | db.NewTableSelector(32, 8)                   |
+think.
+
+ああ、ごめん。
+DBShardingTableCount は データベースあたりのテーブル数でなく、
+sharding グループのデータベースのテーブル数の意味です。
+コメントは修正しておいて。
+
+
+次にURLだが、調査すると、"-" 区切りの方が一般的だそうだ。
+>  3. 低優先度: ルートの命名規則の統一（ハイフン vs アンダースコア）
+
+GoAdminのURLに_区切りのものを追加してしまったので、修正して欲しい。
+http://localhost:8081/admin/info/dm_news
+->
+http://localhost:8081/admin/info/dm-news
+
+http://localhost:8081/admin/dm_user/register
+->
+http://localhost:8081/admin/dm-user/register
+
+
+list-dm-users をビルドしてください。
+
+
 
 
