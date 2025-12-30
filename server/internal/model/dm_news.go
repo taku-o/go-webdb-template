@@ -5,7 +5,7 @@ import "time"
 // DmNews はニュースのデータモデル（ダミーテーブル）
 // masterグループに配置されるテーブル（シャーディング不要）
 type DmNews struct {
-	ID          int64      `json:"id,string" db:"id" gorm:"primaryKey;autoIncrement"`
+	ID          int64      `json:"id,string" db:"id" gorm:"primaryKey"`
 	Title       string     `json:"title" db:"title" gorm:"type:varchar(255);not null"`
 	Content     string     `json:"content" db:"content" gorm:"type:text;not null"`
 	AuthorID    *int64     `json:"author_id,omitempty,string" db:"author_id" gorm:"index:idx_dm_news_author_id"`

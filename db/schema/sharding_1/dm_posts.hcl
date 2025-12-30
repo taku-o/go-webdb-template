@@ -3,12 +3,15 @@
 table "dm_posts_000" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -40,12 +43,15 @@ table "dm_posts_000" {
 table "dm_posts_001" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -77,12 +83,15 @@ table "dm_posts_001" {
 table "dm_posts_002" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -114,12 +123,15 @@ table "dm_posts_002" {
 table "dm_posts_003" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -151,12 +163,15 @@ table "dm_posts_003" {
 table "dm_posts_004" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -188,12 +203,15 @@ table "dm_posts_004" {
 table "dm_posts_005" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -225,12 +243,15 @@ table "dm_posts_005" {
 table "dm_posts_006" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false
@@ -262,12 +283,15 @@ table "dm_posts_006" {
 table "dm_posts_007" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "user_id" {
-    null = false
-    type = integer
+    null     = false
+    type     = bigint
+    unsigned = true
   }
   column "title" {
     null = false

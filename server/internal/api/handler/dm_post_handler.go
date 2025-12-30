@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
@@ -43,8 +44,14 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
+		// string → int64 変換
+		userID, err := strconv.ParseInt(input.Body.UserID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid user_id format")
+		}
+
 		req := &model.CreateDmPostRequest{
-			UserID:  input.Body.UserID,
+			UserID:  userID,
 			Title:   input.Body.Title,
 			Content: input.Body.Content,
 		}
@@ -76,7 +83,17 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		dmPost, err := h.dmPostService.GetDmPost(ctx, input.ID, input.UserID)
+		// string → int64 変換
+		id, err := strconv.ParseInt(input.ID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid id format")
+		}
+		userID, err := strconv.ParseInt(input.UserID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid user_id format")
+		}
+
+		dmPost, err := h.dmPostService.GetDmPost(ctx, id, userID)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
 		}
@@ -106,8 +123,13 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 		var dmPosts []*model.DmPost
 		var err error
 
-		if input.UserID > 0 {
-			dmPosts, err = h.dmPostService.ListDmPostsByUser(ctx, input.UserID, input.Limit, input.Offset)
+		if input.UserID != "" {
+			// string → int64 変換
+			userID, parseErr := strconv.ParseInt(input.UserID, 10, 64)
+			if parseErr != nil {
+				return nil, huma.Error400BadRequest("invalid user_id format")
+			}
+			dmPosts, err = h.dmPostService.ListDmPostsByUser(ctx, userID, input.Limit, input.Offset)
 		} else {
 			dmPosts, err = h.dmPostService.ListDmPosts(ctx, input.Limit, input.Offset)
 		}
@@ -138,12 +160,22 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
+		// string → int64 変換
+		id, err := strconv.ParseInt(input.ID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid id format")
+		}
+		userID, err := strconv.ParseInt(input.UserID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid user_id format")
+		}
+
 		req := &model.UpdateDmPostRequest{
 			Title:   input.Body.Title,
 			Content: input.Body.Content,
 		}
 
-		dmPost, err := h.dmPostService.UpdateDmPost(ctx, input.ID, input.UserID, req)
+		dmPost, err := h.dmPostService.UpdateDmPost(ctx, id, userID, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -171,7 +203,17 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		err := h.dmPostService.DeleteDmPost(ctx, input.ID, input.UserID)
+		// string → int64 変換
+		id, err := strconv.ParseInt(input.ID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid id format")
+		}
+		userID, err := strconv.ParseInt(input.UserID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid user_id format")
+		}
+
+		err = h.dmPostService.DeleteDmPost(ctx, id, userID)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}

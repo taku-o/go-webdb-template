@@ -27,6 +27,8 @@ Cursor、Claude Code上で動作する。
 ```
 
 ## 利用手順
+
+### Cursor上で作業 (ドキュメントの品質が良いため)
 ```
 ## プロジェクトを作ったら最初に1回実行
 /kiro:steering
@@ -55,7 +57,11 @@ think.
 
 この要件の作業用のgitブランチを切ってください。
 ここまでの作業をcommitしてください。
+```
 
+### Claude Code上で作業 (作業速度が速いため)
+
+```
 ## 実装開始
 /kiro:spec-impl 0003-gorm-introduction
 ```

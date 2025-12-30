@@ -395,7 +395,7 @@ func (r *PostRepository) GetUserPosts(ctx context.Context, limit, offset int) ([
 }
 ```
 
-**Note**: Users and their posts share the same table suffix (same sharding key), enabling efficient single-database JOINs.
+**Note**: Users and their posts share the same table suffix (same sharding key).
 
 ## Migration Management
 
@@ -595,8 +595,7 @@ GetPost(postID)  // Which table contains this post?
 
 Keep related entities using the same sharding key:
 - Posts use `user_id` as the sharding key
-- Same `user_id` → same table suffix → same database
-- Enables efficient JOINs within a single database
+- Same `user_id` → same table suffix (e.g., dm_users_025 and dm_posts_025)
 
 ### 3. Use Template-Based Migrations
 

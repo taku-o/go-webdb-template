@@ -1,7 +1,7 @@
 -- Create "dm_posts_000" table
 CREATE TABLE `dm_posts_000` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -14,8 +14,8 @@ CREATE INDEX `idx_dm_posts_000_user_id` ON `dm_posts_000` (`user_id`);
 CREATE INDEX `idx_dm_posts_000_created_at` ON `dm_posts_000` (`created_at`);
 -- Create "dm_posts_001" table
 CREATE TABLE `dm_posts_001` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -28,8 +28,8 @@ CREATE INDEX `idx_dm_posts_001_user_id` ON `dm_posts_001` (`user_id`);
 CREATE INDEX `idx_dm_posts_001_created_at` ON `dm_posts_001` (`created_at`);
 -- Create "dm_posts_002" table
 CREATE TABLE `dm_posts_002` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -42,8 +42,8 @@ CREATE INDEX `idx_dm_posts_002_user_id` ON `dm_posts_002` (`user_id`);
 CREATE INDEX `idx_dm_posts_002_created_at` ON `dm_posts_002` (`created_at`);
 -- Create "dm_posts_003" table
 CREATE TABLE `dm_posts_003` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -56,8 +56,8 @@ CREATE INDEX `idx_dm_posts_003_user_id` ON `dm_posts_003` (`user_id`);
 CREATE INDEX `idx_dm_posts_003_created_at` ON `dm_posts_003` (`created_at`);
 -- Create "dm_posts_004" table
 CREATE TABLE `dm_posts_004` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -70,8 +70,8 @@ CREATE INDEX `idx_dm_posts_004_user_id` ON `dm_posts_004` (`user_id`);
 CREATE INDEX `idx_dm_posts_004_created_at` ON `dm_posts_004` (`created_at`);
 -- Create "dm_posts_005" table
 CREATE TABLE `dm_posts_005` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -84,8 +84,8 @@ CREATE INDEX `idx_dm_posts_005_user_id` ON `dm_posts_005` (`user_id`);
 CREATE INDEX `idx_dm_posts_005_created_at` ON `dm_posts_005` (`created_at`);
 -- Create "dm_posts_006" table
 CREATE TABLE `dm_posts_006` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -98,8 +98,8 @@ CREATE INDEX `idx_dm_posts_006_user_id` ON `dm_posts_006` (`user_id`);
 CREATE INDEX `idx_dm_posts_006_created_at` ON `dm_posts_006` (`created_at`);
 -- Create "dm_posts_007" table
 CREATE TABLE `dm_posts_007` (
-  `id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -112,7 +112,7 @@ CREATE INDEX `idx_dm_posts_007_user_id` ON `dm_posts_007` (`user_id`);
 CREATE INDEX `idx_dm_posts_007_created_at` ON `dm_posts_007` (`created_at`);
 -- Create "dm_users_000" table
 CREATE TABLE `dm_users_000` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE `dm_users_000` (
 CREATE UNIQUE INDEX `idx_dm_users_000_email` ON `dm_users_000` (`email`);
 -- Create "dm_users_001" table
 CREATE TABLE `dm_users_001` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE `dm_users_001` (
 CREATE UNIQUE INDEX `idx_dm_users_001_email` ON `dm_users_001` (`email`);
 -- Create "dm_users_002" table
 CREATE TABLE `dm_users_002` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE `dm_users_002` (
 CREATE UNIQUE INDEX `idx_dm_users_002_email` ON `dm_users_002` (`email`);
 -- Create "dm_users_003" table
 CREATE TABLE `dm_users_003` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -156,7 +156,7 @@ CREATE TABLE `dm_users_003` (
 CREATE UNIQUE INDEX `idx_dm_users_003_email` ON `dm_users_003` (`email`);
 -- Create "dm_users_004" table
 CREATE TABLE `dm_users_004` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -167,7 +167,7 @@ CREATE TABLE `dm_users_004` (
 CREATE UNIQUE INDEX `idx_dm_users_004_email` ON `dm_users_004` (`email`);
 -- Create "dm_users_005" table
 CREATE TABLE `dm_users_005` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE `dm_users_005` (
 CREATE UNIQUE INDEX `idx_dm_users_005_email` ON `dm_users_005` (`email`);
 -- Create "dm_users_006" table
 CREATE TABLE `dm_users_006` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,
@@ -189,7 +189,7 @@ CREATE TABLE `dm_users_006` (
 CREATE UNIQUE INDEX `idx_dm_users_006_email` ON `dm_users_006` (`email`);
 -- Create "dm_users_007" table
 CREATE TABLE `dm_users_007` (
-  `id` integer NOT NULL,
+  `id` bigint NOT NULL,
   `name` text NOT NULL,
   `email` text NOT NULL,
   `created_at` datetime NOT NULL,

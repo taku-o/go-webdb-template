@@ -3,8 +3,10 @@
 table "dm_users_024" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -34,8 +36,10 @@ table "dm_users_024" {
 table "dm_users_025" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -65,8 +69,10 @@ table "dm_users_025" {
 table "dm_users_026" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -96,8 +102,10 @@ table "dm_users_026" {
 table "dm_users_027" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -127,8 +135,10 @@ table "dm_users_027" {
 table "dm_users_028" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -158,8 +168,10 @@ table "dm_users_028" {
 table "dm_users_029" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -189,8 +201,10 @@ table "dm_users_029" {
 table "dm_users_030" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false
@@ -220,8 +234,10 @@ table "dm_users_030" {
 table "dm_users_031" {
   schema = schema.main
   column "id" {
-    null = false
-    type = integer
+    null           = false
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "name" {
     null = false

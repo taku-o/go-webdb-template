@@ -1,11 +1,14 @@
 package admin
 
 import (
+	"fmt"
+
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 )
 
 // GetDmNewsTable はdm_newsテーブルのGoAdmin設定を返す
@@ -39,7 +42,20 @@ func GetDmNewsTable(ctx *context.Context) table.Table {
 
 	// フォーム設定（新規作成・編集）
 	formList := newsTable.GetForm()
-	formList.AddField("ID", "id", db.Int, form.Default).FieldNotAllowEdit().FieldNotAllowAdd()
+	formList.AddField("ID", "id", db.Int, form.Default).
+		FieldNotAllowEdit().
+		FieldHide().
+		FieldPostFilterFn(func(value types.PostFieldModel) interface{} {
+			// 新規作成時（値が空）の場合、sonyflakeでIDを生成
+			if value.Value.Value() == "" {
+				id, err := idgen.GenerateSonyflakeID()
+				if err != nil {
+					return 0
+				}
+				return fmt.Sprintf("%d", id)
+			}
+			return value.Value.Value()
+		})
 	formList.AddField("タイトル", "title", db.Varchar, form.Text).FieldMust()
 	formList.AddField("内容", "content", db.Text, form.TextArea).FieldMust()
 	formList.AddField("作成者ID", "author_id", db.Int, form.Number).

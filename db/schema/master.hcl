@@ -9,8 +9,9 @@ table "dm_news" {
   schema = schema.main
   column "id" {
     null           = false
-    type           = integer
-    auto_increment = true
+    type           = bigint
+    unsigned       = true
+    auto_increment = false
   }
   column "title" {
     null = false
