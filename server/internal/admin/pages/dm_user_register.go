@@ -11,6 +11,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/template/types"
 	appdb "github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 )
 
 // DmUserRegisterPage はユーザー登録ページを返す
@@ -48,8 +49,8 @@ func handleDmUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupMan
 	}
 
 	// 登録完了ページへリダイレクト（クエリパラメータで情報を渡す）
-	redirectURL := fmt.Sprintf("/admin/dm-user/register/new?id=%d&name=%s&email=%s",
-		dmUserID,
+	redirectURL := fmt.Sprintf("/admin/dm-user/register/new?id=%s&name=%s&email=%s",
+		url.QueryEscape(dmUserID),
 		url.QueryEscape(name),
 		url.QueryEscape(email),
 	)
@@ -116,26 +117,33 @@ func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bo
 }
 
 // insertDmUserSharded はdm_userを登録する（シャーディング対応）
-func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (int64, error) {
+func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (string, error) {
 	now := time.Now()
 
-	// IDを生成（タイムスタンプベース）
-	dmUserID := now.UnixNano()
+	// UUIDv7でIDを生成
+	dmUserID, err := idgen.GenerateUUIDv7()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate UUIDv7: %w", err)
+	}
 
-	// テーブル番号を計算
-	tableNumber := int(dmUserID % appdb.DBShardingTableCount)
+	// UUIDからテーブル番号を計算
+	selector := appdb.NewTableSelector(appdb.DBShardingTableCount, appdb.DBShardingTablesPerDB)
+	tableNumber, err := selector.GetTableNumberFromUUID(dmUserID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get table number: %w", err)
+	}
 	tableName := fmt.Sprintf("dm_users_%03d", tableNumber)
 
 	// 接続の取得
 	conn, err := groupManager.GetShardingConnection(tableNumber)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get sharding connection: %w", err)
+		return "", fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	// sql.DBを取得
 	sqlDB, err := conn.DB.DB()
 	if err != nil {
-		return 0, fmt.Errorf("failed to get sql.DB: %w", err)
+		return "", fmt.Errorf("failed to get sql.DB: %w", err)
 	}
 
 	// dm_userを挿入
@@ -146,7 +154,7 @@ func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (
 
 	_, err = sqlDB.Exec(query, dmUserID, name, email, now, now)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert dm_user: %w", err)
+		return "", fmt.Errorf("failed to insert dm_user: %w", err)
 	}
 
 	return dmUserID, nil

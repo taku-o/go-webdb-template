@@ -56,6 +56,16 @@ func (gm *GroupManager) GetShardingConnectionByID(id int64, tableName string) (*
 	return gm.GetShardingConnection(tableNumber)
 }
 
+// GetShardingConnectionByUUID はUUIDからshardingグループの接続を取得
+func (gm *GroupManager) GetShardingConnectionByUUID(uuid string, tableName string) (*GORMConnection, error) {
+	selector := NewTableSelector(DBShardingTableCount, DBShardingTablesPerDB)
+	tableNumber, err := selector.GetTableNumberFromUUID(uuid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table number from UUID: %w", err)
+	}
+	return gm.GetShardingConnection(tableNumber)
+}
+
 // GetAllShardingConnections はすべてのsharding接続を取得（クロステーブルクエリ用）
 func (gm *GroupManager) GetAllShardingConnections() []*GORMConnection {
 	return gm.shardingManager.GetAllConnections()

@@ -27,8 +27,8 @@ func NewDmUserRepository(groupManager *db.GroupManager) *DmUserRepository {
 
 // Create はユーザーを作成
 func (r *DmUserRepository) Create(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error) {
-	// ID生成（sonyflake）
-	id, err := idgen.GenerateSonyflakeID()
+	// ID生成（UUIDv7）
+	id, err := idgen.GenerateUUIDv7()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ID: %w", err)
 	}
@@ -43,10 +43,13 @@ func (r *DmUserRepository) Create(ctx context.Context, req *model.CreateDmUserRe
 	}
 
 	// テーブル名の生成
-	tableName := r.tableSelector.GetTableName("dm_users", user.ID)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(user.ID, "dm_users")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(user.ID, "dm_users")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -71,12 +74,15 @@ func (r *DmUserRepository) Create(ctx context.Context, req *model.CreateDmUserRe
 }
 
 // GetByID はIDでユーザーを取得
-func (r *DmUserRepository) GetByID(ctx context.Context, id int64) (*model.DmUser, error) {
+func (r *DmUserRepository) GetByID(ctx context.Context, id string) (*model.DmUser, error) {
 	// テーブル名の生成
-	tableName := r.tableSelector.GetTableName("dm_users", id)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(id, "dm_users")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(id, "dm_users")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -102,7 +108,7 @@ func (r *DmUserRepository) GetByID(ctx context.Context, id int64) (*model.DmUser
 		&user.UpdatedAt,
 	)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("user not found: %d", id)
+		return nil, fmt.Errorf("user not found: %s", id)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -163,12 +169,15 @@ func (r *DmUserRepository) List(ctx context.Context, limit, offset int) ([]*mode
 }
 
 // Update はユーザーを更新
-func (r *DmUserRepository) Update(ctx context.Context, id int64, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
+func (r *DmUserRepository) Update(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
 	// テーブル名の生成
-	tableName := r.tableSelector.GetTableName("dm_users", id)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(id, "dm_users")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(id, "dm_users")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -205,7 +214,7 @@ func (r *DmUserRepository) Update(ctx context.Context, id int64, req *model.Upda
 		return nil, fmt.Errorf("failed to get rows affected: %w", err)
 	}
 	if rowsAffected == 0 {
-		return nil, fmt.Errorf("user not found: %d", id)
+		return nil, fmt.Errorf("user not found: %s", id)
 	}
 
 	// 更新後のユーザーを取得
@@ -213,12 +222,15 @@ func (r *DmUserRepository) Update(ctx context.Context, id int64, req *model.Upda
 }
 
 // Delete はユーザーを削除
-func (r *DmUserRepository) Delete(ctx context.Context, id int64) error {
+func (r *DmUserRepository) Delete(ctx context.Context, id string) error {
 	// テーブル名の生成
-	tableName := r.tableSelector.GetTableName("dm_users", id)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", id)
+	if err != nil {
+		return fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(id, "dm_users")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(id, "dm_users")
 	if err != nil {
 		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -240,7 +252,7 @@ func (r *DmUserRepository) Delete(ctx context.Context, id int64) error {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
 	if rowsAffected == 0 {
-		return fmt.Errorf("user not found: %d", id)
+		return fmt.Errorf("user not found: %s", id)
 	}
 
 	return nil

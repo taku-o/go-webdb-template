@@ -64,4 +64,12 @@ think.
 ```
 ## 実装開始
 /kiro:spec-impl 0003-gorm-introduction
+
+## 実装が完了したらPull Request作成
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/57 に対して
+pull requestを作成してください。
+
+## 作成して貰ったPull Requestに対してレビューを通す
+/review 61
 ```

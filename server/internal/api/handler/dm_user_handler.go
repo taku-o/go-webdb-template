@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
@@ -76,13 +75,12 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		id, err := strconv.ParseInt(input.ID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.ID) != 32 {
+			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
 
-		dmUser, err := h.dmUserService.GetDmUser(ctx, id)
+		dmUser, err := h.dmUserService.GetDmUser(ctx, input.ID)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
 		}
@@ -136,10 +134,9 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		id, err := strconv.ParseInt(input.ID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.ID) != 32 {
+			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
 
 		req := &model.UpdateDmUserRequest{
@@ -147,7 +144,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			Email: input.Body.Email,
 		}
 
-		dmUser, err := h.dmUserService.UpdateDmUser(ctx, id, req)
+		dmUser, err := h.dmUserService.UpdateDmUser(ctx, input.ID, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -175,13 +172,12 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		id, err := strconv.ParseInt(input.ID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.ID) != 32 {
+			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
 
-		err = h.dmUserService.DeleteDmUser(ctx, id)
+		err := h.dmUserService.DeleteDmUser(ctx, input.ID)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}

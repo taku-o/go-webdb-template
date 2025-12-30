@@ -114,8 +114,8 @@ func TestDmPostCrossShardJoinGORM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	t.Logf("Created DmUser1 (ID=%d)", dmUser1.ID)
-	t.Logf("Created DmUser2 (ID=%d)", dmUser2.ID)
+	t.Logf("Created DmUser1 (ID=%s)", dmUser1.ID)
+	t.Logf("Created DmUser2 (ID=%s)", dmUser2.ID)
 
 	// Test cross-shard JOIN
 	t.Run("GetDmUserPosts returns data from all shards", func(t *testing.T) {
@@ -152,7 +152,7 @@ func TestDmPostCrossShardJoinGORM(t *testing.T) {
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(allDmPosts), 2)
 
-		dmPostIDs := make(map[int64]bool)
+		dmPostIDs := make(map[string]bool)
 		for _, dmPost := range allDmPosts {
 			dmPostIDs[dmPost.ID] = true
 		}

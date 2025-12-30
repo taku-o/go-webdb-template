@@ -151,7 +151,7 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 
 		usersSchema := fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS dm_users_%s (
-				id INTEGER PRIMARY KEY,
+				id TEXT PRIMARY KEY,
 				name TEXT NOT NULL,
 				email TEXT NOT NULL UNIQUE,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -163,8 +163,8 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 
 		postsSchema := fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS dm_posts_%s (
-				id INTEGER PRIMARY KEY,
-				user_id INTEGER NOT NULL,
+				id TEXT PRIMARY KEY,
+				user_id TEXT NOT NULL,
 				title TEXT NOT NULL,
 				content TEXT NOT NULL,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

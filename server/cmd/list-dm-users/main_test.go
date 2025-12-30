@@ -2,14 +2,14 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/taku-o/go-webdb-template/internal/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/taku-o/go-webdb-template/internal/model"
 )
 
 func TestPrintDmUsersTSV(t *testing.T) {
@@ -29,7 +29,7 @@ func TestPrintDmUsersTSV(t *testing.T) {
 			name: "single dm_user",
 			dmUsers: []*model.DmUser{
 				{
-					ID:        1234567890123456789,
+					ID:        "019b6f83add07d6586044649c19fa5c4",
 					Name:      "John Doe",
 					Email:     "john@example.com",
 					CreatedAt: time.Date(2025, 1, 27, 10, 30, 0, 0, time.UTC),
@@ -43,14 +43,14 @@ func TestPrintDmUsersTSV(t *testing.T) {
 			name: "multiple dm_users",
 			dmUsers: []*model.DmUser{
 				{
-					ID:        1234567890123456789,
+					ID:        "019b6f83add07d6586044649c19fa5c4",
 					Name:      "John Doe",
 					Email:     "john@example.com",
 					CreatedAt: time.Date(2025, 1, 27, 10, 30, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2025, 1, 27, 10, 30, 0, 0, time.UTC),
 				},
 				{
-					ID:        1234567890123456790,
+					ID:        "019b6f83add07d6586044649c19fa5c5",
 					Name:      "Jane Smith",
 					Email:     "jane@example.com",
 					CreatedAt: time.Date(2025, 1, 27, 11, 0, 0, 0, time.UTC),
@@ -94,8 +94,7 @@ func TestPrintDmUsersTSV(t *testing.T) {
 				assert.Equal(t, 5, len(dataCols), "unexpected number of columns in data row")
 
 				// Check ID
-				expectedID := fmt.Sprintf("%d", dmUser.ID)
-				assert.Equal(t, expectedID, dataCols[0], "ID should match")
+				assert.Equal(t, dmUser.ID, dataCols[0], "ID should match")
 
 				// Check Name
 				assert.Equal(t, dmUser.Name, dataCols[1], "Name should match")
@@ -114,7 +113,7 @@ func TestPrintDmUsersTSV(t *testing.T) {
 func TestPrintDmUsersTSV_RFC3339Format(t *testing.T) {
 	dmUsers := []*model.DmUser{
 		{
-			ID:        1234567890123456789,
+			ID:        "019b6f83add07d6586044649c19fa5c4",
 			Name:      "Test DmUser",
 			Email:     "test@example.com",
 			CreatedAt: time.Date(2025, 1, 27, 10, 30, 0, 0, time.UTC),

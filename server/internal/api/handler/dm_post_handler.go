@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
@@ -44,14 +43,13 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		userID, err := strconv.ParseInt(input.Body.UserID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid user_id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.Body.UserID) != 32 {
+			return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 		}
 
 		req := &model.CreateDmPostRequest{
-			UserID:  userID,
+			UserID:  input.Body.UserID,
 			Title:   input.Body.Title,
 			Content: input.Body.Content,
 		}
@@ -83,17 +81,15 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		id, err := strconv.ParseInt(input.ID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.ID) != 32 {
+			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
-		userID, err := strconv.ParseInt(input.UserID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid user_id format")
+		if len(input.UserID) != 32 {
+			return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 		}
 
-		dmPost, err := h.dmPostService.GetDmPost(ctx, id, userID)
+		dmPost, err := h.dmPostService.GetDmPost(ctx, input.ID, input.UserID)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
 		}
@@ -124,12 +120,11 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 		var err error
 
 		if input.UserID != "" {
-			// string → int64 変換
-			userID, parseErr := strconv.ParseInt(input.UserID, 10, 64)
-			if parseErr != nil {
-				return nil, huma.Error400BadRequest("invalid user_id format")
+			// UUID文字列のバリデーション（32文字であること）
+			if len(input.UserID) != 32 {
+				return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 			}
-			dmPosts, err = h.dmPostService.ListDmPostsByUser(ctx, userID, input.Limit, input.Offset)
+			dmPosts, err = h.dmPostService.ListDmPostsByUser(ctx, input.UserID, input.Limit, input.Offset)
 		} else {
 			dmPosts, err = h.dmPostService.ListDmPosts(ctx, input.Limit, input.Offset)
 		}
@@ -160,14 +155,12 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		id, err := strconv.ParseInt(input.ID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.ID) != 32 {
+			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
-		userID, err := strconv.ParseInt(input.UserID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid user_id format")
+		if len(input.UserID) != 32 {
+			return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 		}
 
 		req := &model.UpdateDmPostRequest{
@@ -175,7 +168,7 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			Content: input.Body.Content,
 		}
 
-		dmPost, err := h.dmPostService.UpdateDmPost(ctx, id, userID, req)
+		dmPost, err := h.dmPostService.UpdateDmPost(ctx, input.ID, input.UserID, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -203,17 +196,15 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		// string → int64 変換
-		id, err := strconv.ParseInt(input.ID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid id format")
+		// UUID文字列のバリデーション（32文字であること）
+		if len(input.ID) != 32 {
+			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
-		userID, err := strconv.ParseInt(input.UserID, 10, 64)
-		if err != nil {
-			return nil, huma.Error400BadRequest("invalid user_id format")
+		if len(input.UserID) != 32 {
+			return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 		}
 
-		err = h.dmPostService.DeleteDmPost(ctx, id, userID)
+		err := h.dmPostService.DeleteDmPost(ctx, input.ID, input.UserID)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}

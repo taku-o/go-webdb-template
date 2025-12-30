@@ -40,9 +40,9 @@ func (s *DmUserService) CreateDmUser(ctx context.Context, req *model.CreateDmUse
 }
 
 // GetDmUser はIDでユーザーを取得
-func (s *DmUserService) GetDmUser(ctx context.Context, id int64) (*model.DmUser, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("invalid user id: %d", id)
+func (s *DmUserService) GetDmUser(ctx context.Context, id string) (*model.DmUser, error) {
+	if id == "" {
+		return nil, fmt.Errorf("user id is required")
 	}
 
 	dmUser, err := s.dmUserRepo.GetByID(ctx, id)
@@ -74,9 +74,9 @@ func (s *DmUserService) ListDmUsers(ctx context.Context, limit, offset int) ([]*
 }
 
 // UpdateDmUser はユーザーを更新
-func (s *DmUserService) UpdateDmUser(ctx context.Context, id int64, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("invalid user id: %d", id)
+func (s *DmUserService) UpdateDmUser(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
+	if id == "" {
+		return nil, fmt.Errorf("user id is required")
 	}
 
 	// 更新するフィールドが空の場合はエラー
@@ -93,9 +93,9 @@ func (s *DmUserService) UpdateDmUser(ctx context.Context, id int64, req *model.U
 }
 
 // DeleteDmUser はユーザーを削除
-func (s *DmUserService) DeleteDmUser(ctx context.Context, id int64) error {
-	if id <= 0 {
-		return fmt.Errorf("invalid user id: %d", id)
+func (s *DmUserService) DeleteDmUser(ctx context.Context, id string) error {
+	if id == "" {
+		return fmt.Errorf("user id is required")
 	}
 
 	if err := s.dmUserRepo.Delete(ctx, id); err != nil {

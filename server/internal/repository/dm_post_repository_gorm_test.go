@@ -9,6 +9,7 @@ import (
 
 	"github.com/taku-o/go-webdb-template/internal/model"
 	"github.com/taku-o/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
@@ -19,8 +20,12 @@ func TestDmPostRepositoryGORM_Create(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	req := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID,
 		Title:   "Test Post",
 		Content: "This is a test post content",
 	}
@@ -28,8 +33,8 @@ func TestDmPostRepositoryGORM_Create(t *testing.T) {
 	dmPost, err := dmPostRepo.Create(ctx, req)
 	assert.NoError(t, err)
 	assert.NotNil(t, dmPost)
-	assert.NotZero(t, dmPost.ID)
-	assert.Equal(t, int64(1), dmPost.UserID)
+	assert.NotEmpty(t, dmPost.ID)
+	assert.Equal(t, userID, dmPost.UserID)
 	assert.Equal(t, "Test Post", dmPost.Title)
 	assert.Equal(t, "This is a test post content", dmPost.Content)
 	assert.NotZero(t, dmPost.CreatedAt)
@@ -43,9 +48,13 @@ func TestDmPostRepositoryGORM_GetByID(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Create test post first
 	req := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID,
 		Title:   "Test Post",
 		Content: "Test content",
 	}
@@ -57,7 +66,7 @@ func TestDmPostRepositoryGORM_GetByID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, dmPost)
 	assert.Equal(t, created.ID, dmPost.ID)
-	assert.Equal(t, int64(1), dmPost.UserID)
+	assert.Equal(t, userID, dmPost.UserID)
 	assert.Equal(t, "Test Post", dmPost.Title)
 	assert.Equal(t, "Test content", dmPost.Content)
 }
@@ -69,8 +78,12 @@ func TestDmPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Test retrieval of non-existent post
-	dmPost, err := dmPostRepo.GetByID(ctx, 999, 1)
+	dmPost, err := dmPostRepo.GetByID(ctx, "00000000000000000000000000000000", userID)
 	assert.Error(t, err)
 	assert.Nil(t, dmPost)
 }
@@ -82,9 +95,13 @@ func TestDmPostRepositoryGORM_Update(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Create test post first
 	createReq := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID,
 		Title:   "Original Title",
 		Content: "Original content",
 	}
@@ -116,9 +133,13 @@ func TestDmPostRepositoryGORM_Delete(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Create test post first
 	req := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID,
 		Title:   "Test Post",
 		Content: "Test content",
 	}
@@ -142,17 +163,21 @@ func TestDmPostRepositoryGORM_ListByUserID(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Create test posts
 	req1 := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID,
 		Title:   "Post 1",
 		Content: "Content 1",
 	}
-	_, err := dmPostRepo.Create(ctx, req1)
+	_, err = dmPostRepo.Create(ctx, req1)
 	require.NoError(t, err)
 
 	req2 := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID,
 		Title:   "Post 2",
 		Content: "Content 2",
 	}
@@ -160,7 +185,7 @@ func TestDmPostRepositoryGORM_ListByUserID(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get posts by user ID
-	dmPosts, err := dmPostRepo.ListByUserID(ctx, 1, 10, 0)
+	dmPosts, err := dmPostRepo.ListByUserID(ctx, userID, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, dmPosts, 2)
 }
@@ -172,17 +197,23 @@ func TestDmPostRepositoryGORM_List(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// テスト用のユーザーIDを生成
+	userID1, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	userID2, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Create test posts with different UserIDs (different tables)
 	req1 := &model.CreateDmPostRequest{
-		UserID:  1,
+		UserID:  userID1,
 		Title:   "Post 1",
 		Content: "Content 1",
 	}
-	_, err := dmPostRepo.Create(ctx, req1)
+	_, err = dmPostRepo.Create(ctx, req1)
 	require.NoError(t, err)
 
 	req2 := &model.CreateDmPostRequest{
-		UserID:  2,
+		UserID:  userID2,
 		Title:   "Post 2",
 		Content: "Content 2",
 	}

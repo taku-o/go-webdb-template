@@ -94,8 +94,8 @@ func TestDmPostCrossShardJoin(t *testing.T) {
 	dmPost1 := fixtures.CreateTestDmPost(t, dmPostService, dmUser1.ID, "User1 Post")
 	dmPost2 := fixtures.CreateTestDmPost(t, dmPostService, dmUser2.ID, "User2 Post")
 
-	t.Logf("Created DmUser1 (ID=%d)", dmUser1.ID)
-	t.Logf("Created DmUser2 (ID=%d)", dmUser2.ID)
+	t.Logf("Created DmUser1 (ID=%s)", dmUser1.ID)
+	t.Logf("Created DmUser2 (ID=%s)", dmUser2.ID)
 
 	// Test cross-shard JOIN
 	ctx := context.Background()

@@ -12,7 +12,7 @@ import (
 )
 
 // CreateTestDmPost creates a test dm_post using the service layer
-func CreateTestDmPost(t *testing.T, svc *service.DmPostService, userID int64, title string) *model.DmPost {
+func CreateTestDmPost(t *testing.T, svc *service.DmPostService, userID string, title string) *model.DmPost {
 	req := &model.CreateDmPostRequest{
 		UserID:  userID,
 		Title:   title,
@@ -24,7 +24,7 @@ func CreateTestDmPost(t *testing.T, svc *service.DmPostService, userID int64, ti
 }
 
 // CreateTestDmPostWithContent creates a test dm_post with specific content
-func CreateTestDmPostWithContent(t *testing.T, svc *service.DmPostService, userID int64, title, content string) *model.DmPost {
+func CreateTestDmPostWithContent(t *testing.T, svc *service.DmPostService, userID string, title, content string) *model.DmPost {
 	req := &model.CreateDmPostRequest{
 		UserID:  userID,
 		Title:   title,
@@ -36,7 +36,7 @@ func CreateTestDmPostWithContent(t *testing.T, svc *service.DmPostService, userI
 }
 
 // CreateMultipleTestDmPosts creates multiple test dm_posts for a dm_user
-func CreateMultipleTestDmPosts(t *testing.T, svc *service.DmPostService, userID int64, count int) []*model.DmPost {
+func CreateMultipleTestDmPosts(t *testing.T, svc *service.DmPostService, userID string, count int) []*model.DmPost {
 	dmPosts := make([]*model.DmPost, count)
 	for i := 0; i < count; i++ {
 		title := fmt.Sprintf("Post %d", i+1)
