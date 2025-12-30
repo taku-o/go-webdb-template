@@ -1,13 +1,12 @@
 -- Create "dm_news" table
 CREATE TABLE `dm_news` (
-  `id` bigint NOT NULL,
+  `id` integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   `title` text NOT NULL,
   `content` text NOT NULL,
   `author_id` integer NULL,
   `published_at` datetime NULL,
   `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL,
-  PRIMARY KEY (`id`)
+  `updated_at` datetime NOT NULL
 );
 -- Create index "idx_dm_news_published_at" to table: "dm_news"
 CREATE INDEX `idx_dm_news_published_at` ON `dm_news` (`published_at`);

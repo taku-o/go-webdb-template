@@ -184,19 +184,13 @@ func generateDmNews(groupManager *db.GroupManager, totalCount int) error {
 		return fmt.Errorf("failed to get master connection: %w", err)
 	}
 
-	// バッチでデータ生成（sonyflakeでIDを事前生成）
+	// バッチでデータ生成
 	var dmNews []*model.DmNews
 	for i := 0; i < totalCount; i++ {
-		id, err := idgen.GenerateSonyflakeID()
-		if err != nil {
-			return fmt.Errorf("failed to generate sonyflake ID: %w", err)
-		}
-
 		authorID := gofakeit.Int64()
 		publishedAt := gofakeit.Date()
 
 		n := &model.DmNews{
-			ID:          id,
 			Title:       gofakeit.Sentence(5),
 			Content:     gofakeit.Paragraph(3, 5, 10, "\n"),
 			AuthorID:    &authorID,
