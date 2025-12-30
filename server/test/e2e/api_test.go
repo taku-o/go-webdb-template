@@ -190,7 +190,7 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 
 	// Create dm_post
 	dmPostReq := map[string]interface{}{
-		"user_id": dmUserID,
+		"user_id": dmUserIDStr,
 		"title":   "Test Post",
 		"content": "Test content",
 	}

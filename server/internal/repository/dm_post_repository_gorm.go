@@ -8,6 +8,7 @@ import (
 
 	"github.com/taku-o/go-webdb-template/internal/db"
 	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 	"gorm.io/gorm"
 )
 
@@ -27,14 +28,18 @@ func NewDmPostRepositoryGORM(groupManager *db.GroupManager) *DmPostRepositoryGOR
 
 // Create は投稿を作成
 func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error) {
+	// ID生成（sonyflake）
+	id, err := idgen.GenerateSonyflakeID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate ID: %w", err)
+	}
+
 	post := &model.DmPost{
+		ID:      id,
 		UserID:  req.UserID,
 		Title:   req.Title,
 		Content: req.Content,
 	}
-
-	// ID生成（タイムスタンプベース、既存ロジック維持）
-	post.ID = time.Now().UnixNano()
 
 	// UserIDをキーとしてテーブル/DBを決定（同じユーザーのデータは同じテーブルに配置）
 	tableName := r.tableSelector.GetTableName("dm_posts", req.UserID)

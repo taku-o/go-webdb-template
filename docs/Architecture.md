@@ -197,6 +197,89 @@ See [Sharding.md](./Sharding.md) for detailed information about the sharding str
 - Cross-shard queries supported for read operations
 - Each shard contains a complete schema
 
+### Table Sharding Rules
+
+分散テーブル（dm_で始まるテーブル）のシャーディング規則:
+
+| テーブル群 | シャーディングキー | 計算式 |
+|---|---|---|
+| dm_users_NNN | id | id % 32 |
+| dm_posts_NNN | user_id | user_id % 32 |
+| dm_news | なし（masterテーブル） | - |
+
+**テーブル番号の決定規則**: dm_postsのシャーディングキーとしてuser_id（dm_usersのid）を使用することで、同じユーザーに属するdm_usersレコードとdm_postsレコードは同じテーブル番号のテーブルに配置されます。
+
+例:
+- dm_users.id = 12345 → dm_users_025（12345 % 32 = 25）
+- dm_posts.user_id = 12345 → dm_posts_025（12345 % 32 = 25）
+
+## Identifier Generation
+
+分散環境で一意なIDを生成するための規則を定義しています。
+
+### 数値ID（Numeric Identifier）
+
+数値のidentifierが必要な場合は **sonyflake** (`github.com/sony/sonyflake`) を使用します。
+
+**用途**:
+- dm_users, dm_posts, dm_newsなどのプライマリキー
+- 分散環境で一意性が保証されるID
+- int64型（符号付き64ビット整数）で表現
+
+**理由**:
+- 分散環境でもID重複なく一意なIDを生成可能
+- 時間順序性があり、生成順に並べ替え可能
+- パフォーマンスが高い（UUID比較でより高速）
+
+**使用方法**:
+```go
+import "github.com/taku-o/go-webdb-template/internal/util/idgen"
+
+id, err := idgen.GenerateSonyflakeID()
+if err != nil {
+    return fmt.Errorf("failed to generate ID: %w", err)
+}
+```
+
+### 文字列ID（String Identifier）
+
+文字列のidentifierが必要な場合は **UUIDv7** (`github.com/google/uuid`) を使用します。
+
+**用途**:
+- 外部システムとの連携で文字列IDが必要な場合
+- URLに含める識別子
+- セッションIDやトークン
+
+**理由**:
+- 標準的なフォーマットで互換性が高い
+- UUIDv7は時間順序性があり、データベースインデックスに優しい
+- 人間が読みやすい形式
+
+### JavaScript/フロントエンドでのID扱い
+
+**重要**: JavaScriptはNumber型で53ビットまでしか正確に表現できないため、sonyflakeで生成されたIDをそのまま数値として扱うと精度が失われます。
+
+**対策**: Go側でIDを文字列としてJSONシリアライズします。
+
+```go
+type DmUser struct {
+    ID    int64  `json:"id,string"` // JSONでは文字列として出力
+    Name  string `json:"name"`
+    Email string `json:"email"`
+}
+```
+
+APIレスポンス例:
+```json
+{
+  "id": "1234567890123456789",
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+フロントエンド側では、IDを文字列として扱い、比較やハッシュマップのキーとして使用してください。
+
 ## Error Handling
 
 ### HTTP Error Responses

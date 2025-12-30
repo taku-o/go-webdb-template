@@ -50,7 +50,7 @@ export default function PostsPage() {
     try {
       setCreating(true)
       await apiClient.createPost({
-        user_id: parseInt(userId, 10),
+        user_id: userId,
         title,
         content,
       })

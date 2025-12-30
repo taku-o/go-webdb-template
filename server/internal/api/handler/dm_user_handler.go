@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
@@ -75,7 +76,13 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		dmUser, err := h.dmUserService.GetDmUser(ctx, input.ID)
+		// string → int64 変換
+		id, err := strconv.ParseInt(input.ID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid id format")
+		}
+
+		dmUser, err := h.dmUserService.GetDmUser(ctx, id)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
 		}
@@ -129,12 +136,18 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
+		// string → int64 変換
+		id, err := strconv.ParseInt(input.ID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid id format")
+		}
+
 		req := &model.UpdateDmUserRequest{
 			Name:  input.Body.Name,
 			Email: input.Body.Email,
 		}
 
-		dmUser, err := h.dmUserService.UpdateDmUser(ctx, input.ID, req)
+		dmUser, err := h.dmUserService.UpdateDmUser(ctx, id, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -162,7 +175,13 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		err := h.dmUserService.DeleteDmUser(ctx, input.ID)
+		// string → int64 変換
+		id, err := strconv.ParseInt(input.ID, 10, 64)
+		if err != nil {
+			return nil, huma.Error400BadRequest("invalid id format")
+		}
+
+		err = h.dmUserService.DeleteDmUser(ctx, id)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}

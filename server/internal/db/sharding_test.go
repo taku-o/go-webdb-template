@@ -636,3 +636,85 @@ func TestValidateTableName(t *testing.T) {
 		})
 	}
 }
+
+
+// =============================================================================
+// シャーディング規則のテスト（dm_users.id と dm_posts.user_id の関係）
+// =============================================================================
+
+// TestShardingRuleConsistency tests that dm_users.id and dm_posts.user_id
+// result in the same table number when they have the same value.
+// This is a critical sharding rule: a user and their posts must be in the
+// same numbered tables (e.g., dm_users_009 and dm_posts_009).
+func TestShardingRuleConsistency(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	tests := []struct {
+		name   string
+		userID int64
+	}{
+		{name: "small_id", userID: 5},
+		{name: "boundary_id_31", userID: 31},
+		{name: "boundary_id_32", userID: 32},
+		{name: "large_id", userID: 12345},
+		{name: "very_large_id", userID: 1234567890123456789},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// dm_users uses id as sharding key
+			dmUsersTableNumber := selector.GetTableNumber(tt.userID)
+			dmUsersTableName := selector.GetTableName("dm_users", tt.userID)
+
+			// dm_posts uses user_id as sharding key
+			// When dm_posts.user_id == dm_users.id, they should be in the same table number
+			dmPostsTableNumber := selector.GetTableNumber(tt.userID)
+			dmPostsTableName := selector.GetTableName("dm_posts", tt.userID)
+
+			// Verify both have the same table number
+			assert.Equal(t, dmUsersTableNumber, dmPostsTableNumber,
+				"dm_users with id=%d and dm_posts with user_id=%d should have same table number",
+				tt.userID, tt.userID)
+
+			// Verify table names have the same suffix number
+			expectedSuffix := fmt.Sprintf("_%03d", dmUsersTableNumber)
+			assert.Contains(t, dmUsersTableName, expectedSuffix)
+			assert.Contains(t, dmPostsTableName, expectedSuffix)
+
+			// Log for clarity
+			t.Logf("userID=%d -> dm_users=%s, dm_posts=%s (table number: %d)",
+				tt.userID, dmUsersTableName, dmPostsTableName, dmUsersTableNumber)
+		})
+	}
+}
+
+// TestShardingRuleWithMultiplePosts tests that all posts from the same user
+// go to the same table as the user.
+func TestShardingRuleWithMultiplePosts(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	// Simulate a user with ID 12345
+	userID := int64(12345)
+	userTableNumber := selector.GetTableNumber(userID)
+	userTableName := selector.GetTableName("dm_users", userID)
+
+	// Simulate multiple posts from this user (each post has a different ID
+	// but all share the same user_id)
+	postIDs := []int64{100001, 100002, 100003, 100004, 100005}
+
+	for _, postID := range postIDs {
+		// Posts are sharded by user_id, not by post ID
+		postTableNumber := selector.GetTableNumber(userID)
+		postTableName := selector.GetTableName("dm_posts", userID)
+
+		assert.Equal(t, userTableNumber, postTableNumber,
+			"Post with id=%d should be in same table as user with id=%d",
+			postID, userID)
+		
+		assert.Equal(t, fmt.Sprintf("dm_posts_%03d", userTableNumber), postTableName)
+	}
+
+	t.Logf("User id=%d is in %s, all posts are in dm_posts_%03d",
+		userID, userTableName, userTableNumber)
+}
+

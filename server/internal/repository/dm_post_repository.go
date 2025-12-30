@@ -8,6 +8,7 @@ import (
 
 	"github.com/taku-o/go-webdb-template/internal/db"
 	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 )
 
 // DmPostRepository は投稿のデータアクセスを担当
@@ -26,9 +27,15 @@ func NewDmPostRepository(groupManager *db.GroupManager) *DmPostRepository {
 
 // Create は投稿を作成
 func (r *DmPostRepository) Create(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error) {
+	// ID生成（sonyflake）
+	id, err := idgen.GenerateSonyflakeID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate ID: %w", err)
+	}
+
 	now := time.Now()
 	post := &model.DmPost{
-		ID:        now.UnixNano(),
+		ID:        id,
 		UserID:    req.UserID,
 		Title:     req.Title,
 		Content:   req.Content,

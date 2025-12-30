@@ -10,7 +10,7 @@ type CreateDmUserInput struct {
 
 // GetDmUserInput はユーザー取得リクエストの入力構造体
 type GetDmUserInput struct {
-	ID int64 `path:"id" doc:"ユーザーID"`
+	ID string `path:"id" doc:"ユーザーID（文字列形式）"`
 }
 
 // ListDmUsersInput はユーザー一覧取得リクエストの入力構造体
@@ -21,7 +21,7 @@ type ListDmUsersInput struct {
 
 // UpdateDmUserInput はユーザー更新リクエストの入力構造体
 type UpdateDmUserInput struct {
-	ID   int64 `path:"id" doc:"ユーザーID"`
+	ID   string `path:"id" doc:"ユーザーID（文字列形式）"`
 	Body struct {
 		Name  string `json:"name,omitempty" maxLength:"100" doc:"ユーザー名"`
 		Email string `json:"email,omitempty" format:"email" maxLength:"255" doc:"メールアドレス"`
@@ -30,13 +30,13 @@ type UpdateDmUserInput struct {
 
 // DeleteDmUserInput はユーザー削除リクエストの入力構造体
 type DeleteDmUserInput struct {
-	ID int64 `path:"id" doc:"ユーザーID"`
+	ID string `path:"id" doc:"ユーザーID（文字列形式）"`
 }
 
 // CreateDmPostInput は投稿作成リクエストの入力構造体
 type CreateDmPostInput struct {
 	Body struct {
-		UserID  int64  `json:"user_id" required:"true" minimum:"1" doc:"ユーザーID"`
+		UserID  string `json:"user_id" required:"true" doc:"ユーザーID（文字列形式）"`
 		Title   string `json:"title" required:"true" maxLength:"200" doc:"タイトル"`
 		Content string `json:"content" required:"true" doc:"内容"`
 	}
@@ -44,21 +44,21 @@ type CreateDmPostInput struct {
 
 // GetDmPostInput は投稿取得リクエストの入力構造体
 type GetDmPostInput struct {
-	ID     int64 `path:"id" doc:"投稿ID"`
-	UserID int64 `query:"user_id" required:"true" minimum:"1" doc:"ユーザーID"`
+	ID     string `path:"id" doc:"投稿ID（文字列形式）"`
+	UserID string `query:"user_id" required:"true" doc:"ユーザーID（文字列形式）"`
 }
 
 // ListDmPostsInput は投稿一覧取得リクエストの入力構造体
 type ListDmPostsInput struct {
-	Limit  int   `query:"limit" default:"20" minimum:"1" maximum:"100" doc:"取得件数"`
-	Offset int   `query:"offset" default:"0" minimum:"0" doc:"オフセット"`
-	UserID int64 `query:"user_id" default:"0" doc:"ユーザーID（0の場合は全件取得）"`
+	Limit  int    `query:"limit" default:"20" minimum:"1" maximum:"100" doc:"取得件数"`
+	Offset int    `query:"offset" default:"0" minimum:"0" doc:"オフセット"`
+	UserID string `query:"user_id" default:"" doc:"ユーザーID（文字列形式、空の場合は全件取得）"`
 }
 
 // UpdateDmPostInput は投稿更新リクエストの入力構造体
 type UpdateDmPostInput struct {
-	ID     int64 `path:"id" doc:"投稿ID"`
-	UserID int64 `query:"user_id" required:"true" minimum:"1" doc:"ユーザーID"`
+	ID     string `path:"id" doc:"投稿ID（文字列形式）"`
+	UserID string `query:"user_id" required:"true" doc:"ユーザーID（文字列形式）"`
 	Body   struct {
 		Title   string `json:"title,omitempty" maxLength:"200" doc:"タイトル"`
 		Content string `json:"content,omitempty" doc:"内容"`
@@ -67,8 +67,8 @@ type UpdateDmPostInput struct {
 
 // DeleteDmPostInput は投稿削除リクエストの入力構造体
 type DeleteDmPostInput struct {
-	ID     int64 `path:"id" doc:"投稿ID"`
-	UserID int64 `query:"user_id" required:"true" minimum:"1" doc:"ユーザーID"`
+	ID     string `path:"id" doc:"投稿ID（文字列形式）"`
+	UserID string `query:"user_id" required:"true" doc:"ユーザーID（文字列形式）"`
 }
 
 // GetDmUserPostsInput はユーザー投稿一覧取得リクエストの入力構造体
