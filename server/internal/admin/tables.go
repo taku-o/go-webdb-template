@@ -42,7 +42,6 @@ func GetDmNewsTable(ctx *context.Context) table.Table {
 	formList.AddField("ID", "id", db.Int, form.Default).
 		FieldNotAllowEdit().
 		FieldHide()
-		// FieldPostFilterFnを削除
 	formList.AddField("タイトル", "title", db.Varchar, form.Text).FieldMust()
 	formList.AddField("内容", "content", db.Text, form.TextArea).FieldMust()
 	formList.AddField("作成者ID", "author_id", db.Int, form.Number).

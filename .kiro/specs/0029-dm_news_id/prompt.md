@@ -26,6 +26,17 @@ _serena_indexing
 
 /serena-initialize
 
-/kiro:spec-impl 29-dm_news_id
+/kiro:spec-impl 0029-dm_news_id
+
+APIサーバーと、クライアントサーバー、GoAdminサーバーを再起動して。
+
+少し修正加えたが、OK。
+非常に良い作りです。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/59 に対して
+pull requestを作成してください。
+
+/review 60
 
 
