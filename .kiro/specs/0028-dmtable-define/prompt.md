@@ -404,6 +404,7 @@ server/generate-sample-data は消して、
 その後、https://github.com/taku-o/go-webdb-template/issues/52 に対して
 pull requestを作成してください。
 
+/review 58
 
 
 
