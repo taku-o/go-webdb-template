@@ -1,0 +1,11 @@
+{
+  "feature": "0030-uuidv7",
+  "description": "sonyflakeで生成したIDをシャーディングのキーに使うと同じテーブルにデータが振り分けられる問題の解決（UUIDv7導入）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
