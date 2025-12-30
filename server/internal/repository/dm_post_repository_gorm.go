@@ -28,8 +28,8 @@ func NewDmPostRepositoryGORM(groupManager *db.GroupManager) *DmPostRepositoryGOR
 
 // Create は投稿を作成
 func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error) {
-	// ID生成（sonyflake）
-	id, err := idgen.GenerateSonyflakeID()
+	// ID生成（UUIDv7）
+	id, err := idgen.GenerateUUIDv7()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ID: %w", err)
 	}
@@ -42,10 +42,13 @@ func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPo
 	}
 
 	// UserIDをキーとしてテーブル/DBを決定（同じユーザーのデータは同じテーブルに配置）
-	tableName := r.tableSelector.GetTableName("dm_posts", req.UserID)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(req.UserID, "dm_posts")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(req.UserID, "dm_posts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -59,20 +62,23 @@ func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPo
 }
 
 // GetByID はIDで投稿を取得
-func (r *DmPostRepositoryGORM) GetByID(ctx context.Context, id int64, userID int64) (*model.DmPost, error) {
+func (r *DmPostRepositoryGORM) GetByID(ctx context.Context, id string, userID string) (*model.DmPost, error) {
 	// UserIDをキーとしてテーブル/DBを決定
-	tableName := r.tableSelector.GetTableName("dm_posts", userID)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(userID, "dm_posts")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(userID, "dm_posts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
 	var post model.DmPost
-	if err := conn.DB.WithContext(ctx).Table(tableName).First(&post, id).Error; err != nil {
+	if err := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).First(&post).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("post not found: %d", id)
+			return nil, fmt.Errorf("post not found: %s", id)
 		}
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}
@@ -81,12 +87,15 @@ func (r *DmPostRepositoryGORM) GetByID(ctx context.Context, id int64, userID int
 }
 
 // ListByUserID はユーザーIDで投稿一覧を取得
-func (r *DmPostRepositoryGORM) ListByUserID(ctx context.Context, userID int64, limit, offset int) ([]*model.DmPost, error) {
+func (r *DmPostRepositoryGORM) ListByUserID(ctx context.Context, userID string, limit, offset int) ([]*model.DmPost, error) {
 	// UserIDをキーとしてテーブル/DBを決定
-	tableName := r.tableSelector.GetTableName("dm_posts", userID)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(userID, "dm_posts")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(userID, "dm_posts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -179,12 +188,15 @@ func (r *DmPostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset i
 }
 
 // Update は投稿を更新
-func (r *DmPostRepositoryGORM) Update(ctx context.Context, id int64, userID int64, req *model.UpdateDmPostRequest) (*model.DmPost, error) {
+func (r *DmPostRepositoryGORM) Update(ctx context.Context, id string, userID string, req *model.UpdateDmPostRequest) (*model.DmPost, error) {
 	// UserIDをキーとしてテーブル/DBを決定
-	tableName := r.tableSelector.GetTableName("dm_posts", userID)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(userID, "dm_posts")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(userID, "dm_posts")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -207,19 +219,22 @@ func (r *DmPostRepositoryGORM) Update(ctx context.Context, id int64, userID int6
 		return nil, fmt.Errorf("failed to update post: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
-		return nil, fmt.Errorf("post not found: %d", id)
+		return nil, fmt.Errorf("post not found: %s", id)
 	}
 
 	return r.GetByID(ctx, id, userID)
 }
 
 // Delete は投稿を削除
-func (r *DmPostRepositoryGORM) Delete(ctx context.Context, id int64, userID int64) error {
+func (r *DmPostRepositoryGORM) Delete(ctx context.Context, id string, userID string) error {
 	// UserIDをキーとしてテーブル/DBを決定
-	tableName := r.tableSelector.GetTableName("dm_posts", userID)
+	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
+	if err != nil {
+		return fmt.Errorf("failed to get table name: %w", err)
+	}
 
 	// 接続の取得
-	conn, err := r.groupManager.GetShardingConnectionByID(userID, "dm_posts")
+	conn, err := r.groupManager.GetShardingConnectionByUUID(userID, "dm_posts")
 	if err != nil {
 		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
@@ -233,7 +248,7 @@ func (r *DmPostRepositoryGORM) Delete(ctx context.Context, id int64, userID int6
 		return fmt.Errorf("failed to delete post: %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("post not found: %d", id)
+		return fmt.Errorf("post not found: %s", id)
 	}
 
 	return nil

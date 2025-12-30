@@ -66,7 +66,7 @@ func TestDmUserRepository_GetByID_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	// Test retrieval of non-existent dm_user
-	dmUser, err := repo.GetByID(ctx, 999)
+	dmUser, err := repo.GetByID(ctx, "00000000000000000000000000000000")
 	assert.Error(t, err)
 	assert.Nil(t, dmUser)
 }

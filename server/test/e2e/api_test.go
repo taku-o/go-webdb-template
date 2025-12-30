@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -94,19 +93,19 @@ func TestDmUserAPI_CreateAndRetrieve(t *testing.T) {
 	assert.Equal(t, "E2E Test User", dmUser["name"])
 	assert.Equal(t, "e2e@example.com", dmUser["email"])
 
-	dmUserIDStr := dmUser["id"].(string)
-	dmUserID, err := strconv.ParseInt(dmUserIDStr, 10, 64)
-	require.NoError(t, err)
+	// IDはUUIDv7形式のstring (32文字)
+	dmUserID := dmUser["id"].(string)
+	assert.Len(t, dmUserID, 32, "ID should be 32 characters (UUIDv7 format)")
 
 	// Retrieve dm_user
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	// Debug: print response if not OK
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		t.Logf("Expected 200 but got %d, body: %s, dmUserID: %d", resp.StatusCode, string(body), dmUserID)
+		t.Logf("Expected 200 but got %d, body: %s, dmUserID: %s", resp.StatusCode, string(body), dmUserID)
 		// Re-create reader for subsequent decode
 		resp.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
@@ -136,9 +135,7 @@ func TestDmUserAPI_UpdateAndDelete(t *testing.T) {
 
 	var dmUser map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&dmUser)
-	dmUserIDStr := dmUser["id"].(string)
-	dmUserID, err := strconv.ParseInt(dmUserIDStr, 10, 64)
-	require.NoError(t, err)
+	dmUserID := dmUser["id"].(string)
 
 	// Update dm_user
 	updateReq := map[string]string{
@@ -146,7 +143,7 @@ func TestDmUserAPI_UpdateAndDelete(t *testing.T) {
 		"email": "updated@example.com",
 	}
 	body, _ = json.Marshal(updateReq)
-	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), body)
+	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -156,13 +153,13 @@ func TestDmUserAPI_UpdateAndDelete(t *testing.T) {
 	assert.Equal(t, "Updated Name", updated["name"])
 
 	// Delete dm_user
-	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), nil)
+	resp, err = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 
 	// Verify deletion
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%d", dmUserID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -184,13 +181,11 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 
 	var dmUser map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&dmUser)
-	dmUserIDStr := dmUser["id"].(string)
-	dmUserID, err := strconv.ParseInt(dmUserIDStr, 10, 64)
-	require.NoError(t, err)
+	dmUserID := dmUser["id"].(string)
 
 	// Create dm_post
 	dmPostReq := map[string]interface{}{
-		"user_id": dmUserIDStr,
+		"user_id": dmUserID,
 		"title":   "Test Post",
 		"content": "Test content",
 	}
@@ -202,13 +197,11 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 
 	var dmPost map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&dmPost)
-	dmPostIDStr := dmPost["id"].(string)
-	dmPostID, err := strconv.ParseInt(dmPostIDStr, 10, 64)
-	require.NoError(t, err)
+	dmPostID := dmPost["id"].(string)
 	assert.Equal(t, "Test Post", dmPost["title"])
 
 	// Get dm_post
-	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-posts/%d?user_id=%d", dmPostID, dmUserID), nil)
+	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-posts/%s?user_id=%s", dmPostID, dmUserID), nil)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -226,11 +219,9 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 	// Find our dm_post in the results
 	found := false
 	for _, up := range dmUserPosts {
-		upPostIDStr := up["post_id"].(string)
-		upPostID, _ := strconv.ParseInt(upPostIDStr, 10, 64)
+		upPostID := up["post_id"].(string)
 		if upPostID == dmPostID {
-			upUserIDStr := up["user_id"].(string)
-			upUserID, _ := strconv.ParseInt(upUserIDStr, 10, 64)
+			upUserID := up["user_id"].(string)
 			assert.Equal(t, dmUserID, upUserID)
 			assert.Equal(t, "Post Test User", up["user_name"])
 			assert.Equal(t, "Test Post", up["post_title"])

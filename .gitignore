@@ -58,6 +58,7 @@ client/test-results/
 
 # Serena
 .serena/cache/
+.serena/logs/
 
 # Logs
 logs/*

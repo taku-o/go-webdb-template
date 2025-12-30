@@ -136,7 +136,7 @@ func TestGORMManagerSharding(t *testing.T) {
 		require.NoError(t, err)
 
 		user := &model.DmUser{
-			ID:    key,
+			ID:    fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256),
 			Name:  fmt.Sprintf("User %d", key),
 			Email: fmt.Sprintf("user%d@example.com", key),
 		}
@@ -151,7 +151,8 @@ func TestGORMManagerSharding(t *testing.T) {
 		require.NoError(t, err)
 
 		var user model.DmUser
-		err = database.WithContext(ctx).First(&user, key).Error
+		userID := fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256)
+		err = database.WithContext(ctx).First(&user, "id = ?", userID).Error
 		require.NoError(t, err)
 
 		// Determine which shard this key belongs to
@@ -249,7 +250,7 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	require.NoError(t, err)
 
 	user1 := &model.DmUser{
-		ID:    1,
+		ID:    "550e8400e29b41d4a716446655440001",
 		Name:  "User on Shard 1",
 		Email: "user1@example.com",
 	}
@@ -260,7 +261,7 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	require.NoError(t, err)
 
 	user2 := &model.DmUser{
-		ID:    2,
+		ID:    "550e8400e29b41d4a716446655440002",
 		Name:  "User on Shard 2",
 		Email: "user2@example.com",
 	}
@@ -710,11 +711,141 @@ func TestShardingRuleWithMultiplePosts(t *testing.T) {
 		assert.Equal(t, userTableNumber, postTableNumber,
 			"Post with id=%d should be in same table as user with id=%d",
 			postID, userID)
-		
+
 		assert.Equal(t, fmt.Sprintf("dm_posts_%03d", userTableNumber), postTableName)
 	}
 
 	t.Logf("User id=%d is in %s, all posts are in dm_posts_%03d",
 		userID, userTableName, userTableNumber)
+}
+
+// =============================================================================
+// UUIDv7ベースのシャーディングキー計算テスト
+// =============================================================================
+
+// TestTableSelector_GetTableNumberFromUUID tests GetTableNumberFromUUID method
+func TestTableSelector_GetTableNumberFromUUID(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	tests := []struct {
+		name            string
+		uuid            string
+		wantTableNumber int
+		wantError       bool
+	}{
+		// 正常系：後ろ2文字が00の場合（テーブル番号: 0）
+		{name: "suffix_00", uuid: "550e8400e29b41d4a716446655440000", wantTableNumber: 0, wantError: false},
+		// 正常系：後ろ2文字が0fの場合（テーブル番号: 15）
+		{name: "suffix_0f", uuid: "550e8400e29b41d4a71644665544000f", wantTableNumber: 15, wantError: false},
+		// 正常系：後ろ2文字が1fの場合（テーブル番号: 31）
+		{name: "suffix_1f", uuid: "550e8400e29b41d4a71644665544001f", wantTableNumber: 31, wantError: false},
+		// 正常系：後ろ2文字が20の場合（32 % 32 = 0）
+		{name: "suffix_20", uuid: "550e8400e29b41d4a716446655440020", wantTableNumber: 0, wantError: false},
+		// 正常系：後ろ2文字がffの場合（255 % 32 = 31）
+		{name: "suffix_ff", uuid: "550e8400e29b41d4a7164466554400ff", wantTableNumber: 31, wantError: false},
+		// 正常系：後ろ2文字が21の場合（33 % 32 = 1）
+		{name: "suffix_21", uuid: "550e8400e29b41d4a716446655440021", wantTableNumber: 1, wantError: false},
+		// 正常系：大文字のUUID
+		{name: "uppercase_suffix", uuid: "550E8400E29B41D4A716446655440000", wantTableNumber: 0, wantError: false},
+		// エラー系：短すぎるUUID（1文字）
+		{name: "too_short", uuid: "0", wantTableNumber: 0, wantError: true},
+		// エラー系：空文字列
+		{name: "empty", uuid: "", wantTableNumber: 0, wantError: true},
+		// エラー系：無効な16進数
+		{name: "invalid_hex", uuid: "550e8400e29b41d4a7164466554400gg", wantTableNumber: 0, wantError: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tableNumber, err := selector.GetTableNumberFromUUID(tt.uuid)
+
+			if tt.wantError {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantTableNumber, tableNumber)
+			}
+		})
+	}
+}
+
+// TestTableSelector_GetTableNameFromUUID tests GetTableNameFromUUID method
+func TestTableSelector_GetTableNameFromUUID(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	tests := []struct {
+		name          string
+		baseName      string
+		uuid          string
+		wantTableName string
+		wantError     bool
+	}{
+		// 正常系
+		{name: "dm_users_000", baseName: "dm_users", uuid: "550e8400e29b41d4a716446655440000", wantTableName: "dm_users_000", wantError: false},
+		{name: "dm_users_015", baseName: "dm_users", uuid: "550e8400e29b41d4a71644665544000f", wantTableName: "dm_users_015", wantError: false},
+		{name: "dm_users_031", baseName: "dm_users", uuid: "550e8400e29b41d4a71644665544001f", wantTableName: "dm_users_031", wantError: false},
+		{name: "dm_posts_000", baseName: "dm_posts", uuid: "550e8400e29b41d4a716446655440020", wantTableName: "dm_posts_000", wantError: false},
+		// エラー系
+		{name: "invalid_uuid", baseName: "dm_users", uuid: "invalid", wantTableName: "", wantError: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tableName, err := selector.GetTableNameFromUUID(tt.baseName, tt.uuid)
+
+			if tt.wantError {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantTableName, tableName)
+			}
+		})
+	}
+}
+
+// TestShardingRuleConsistencyWithUUID tests that UUID-based sharding produces
+// consistent results for the same UUID
+func TestShardingRuleConsistencyWithUUID(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	// 同じUUIDは常に同じテーブル番号を返す
+	uuid := "550e8400e29b41d4a716446655440012"
+
+	tableNumber1, err := selector.GetTableNumberFromUUID(uuid)
+	require.NoError(t, err)
+
+	tableNumber2, err := selector.GetTableNumberFromUUID(uuid)
+	require.NoError(t, err)
+
+	tableNumber3, err := selector.GetTableNumberFromUUID(uuid)
+	require.NoError(t, err)
+
+	assert.Equal(t, tableNumber1, tableNumber2)
+	assert.Equal(t, tableNumber2, tableNumber3)
+}
+
+// TestShardingRuleDistributionWithUUID tests that UUIDs are distributed across tables
+func TestShardingRuleDistributionWithUUID(t *testing.T) {
+	selector := db.NewTableSelector(32, 8)
+
+	// 異なるUUIDが異なるテーブルに分散されることを確認
+	uuids := []string{
+		"550e8400e29b41d4a716446655440000",
+		"550e8400e29b41d4a716446655440001",
+		"550e8400e29b41d4a716446655440010",
+		"550e8400e29b41d4a71644665544001f",
+		"550e8400e29b41d4a716446655440020",
+		"550e8400e29b41d4a7164466554400ff",
+	}
+
+	tableNumbers := make(map[int]int)
+	for _, uuid := range uuids {
+		tableNumber, err := selector.GetTableNumberFromUUID(uuid)
+		require.NoError(t, err)
+		tableNumbers[tableNumber]++
+	}
+
+	// 少なくとも2つの異なるテーブルに分散されることを確認
+	assert.GreaterOrEqual(t, len(tableNumbers), 2, "UUIDs should be distributed across multiple tables")
 }
 

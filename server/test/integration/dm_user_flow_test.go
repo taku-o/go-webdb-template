@@ -104,9 +104,9 @@ func TestDmUserCrossShardOperations(t *testing.T) {
 	require.NoError(t, err)
 
 	// Log dm_user IDs (shard distribution is internal)
-	t.Logf("Created DmUser 1 (ID=%d)", dmUser1.ID)
-	t.Logf("Created DmUser 2 (ID=%d)", dmUser2.ID)
-	t.Logf("Created DmUser 3 (ID=%d)", dmUser3.ID)
+	t.Logf("Created DmUser 1 (ID=%s)", dmUser1.ID)
+	t.Logf("Created DmUser 2 (ID=%s)", dmUser2.ID)
+	t.Logf("Created DmUser 3 (ID=%s)", dmUser3.ID)
 
 	// Test GetAll returns dm_users from all shards
 	t.Run("GetAll returns dm_users from all shards", func(t *testing.T) {
@@ -115,7 +115,7 @@ func TestDmUserCrossShardOperations(t *testing.T) {
 		assert.GreaterOrEqual(t, len(allDmUsers), 3)
 
 		// Verify all our dm_users are in the result
-		dmUserIDs := make(map[int64]bool)
+		dmUserIDs := make(map[string]bool)
 		for _, dmUser := range allDmUsers {
 			dmUserIDs[dmUser.ID] = true
 		}

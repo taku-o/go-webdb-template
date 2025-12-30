@@ -117,27 +117,30 @@ func TestCrossTableQueryUsers(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create users with specific IDs that will be distributed across different tables
+	// Create users with specific UUIDs that will be distributed across different tables
+	// UUID末尾2文字(hex)の値で分散される: 00-07→DB1, 08-0f→DB2, 10-17→DB3, 18-1f→DB4 (32テーブル)
 	testUsers := []struct {
-		id    int64
+		id    string // UUIDv7形式 (32文字)
 		name  string
 		email string
 	}{
-		{1, "User in Table 1", "user1@test.com"},
-		{8, "User in Table 8", "user8@test.com"},
-		{16, "User in Table 16", "user16@test.com"},
-		{24, "User in Table 24", "user24@test.com"},
+		{"019b6f83add07d6586044649c19f0001", "User in Table 1", "user1@test.com"},   // 末尾01 -> table 1
+		{"019b6f83add07d6586044649c19f0008", "User in Table 8", "user8@test.com"},   // 末尾08 -> table 8
+		{"019b6f83add07d6586044649c19f0010", "User in Table 16", "user16@test.com"}, // 末尾10 -> table 16
+		{"019b6f83add07d6586044649c19f0018", "User in Table 24", "user24@test.com"}, // 末尾18 -> table 24
 	}
 
 	tableSelector := db.NewTableSelector(32, 8)
 
 	// Insert users directly to specific tables
 	for _, u := range testUsers {
-		tableNumber := tableSelector.GetTableNumber(u.id)
+		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
+		require.NoError(t, err)
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("dm_users", u.id)
+		tableName, err := tableSelector.GetTableNameFromUUID("dm_users", u.id)
+		require.NoError(t, err)
 		err = conn.DB.Table(tableName).Create(&model.DmUser{
 			ID:    u.id,
 			Name:  u.name,
@@ -148,14 +151,16 @@ func TestCrossTableQueryUsers(t *testing.T) {
 
 	// Verify users can be retrieved from their respective tables
 	for _, u := range testUsers {
-		tableNumber := tableSelector.GetTableNumber(u.id)
+		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
+		require.NoError(t, err)
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("dm_users", u.id)
+		tableName, err := tableSelector.GetTableNameFromUUID("dm_users", u.id)
+		require.NoError(t, err)
 		var retrieved model.DmUser
 		err = conn.DB.Table(tableName).Where("id = ?", u.id).First(&retrieved).Error
-		require.NoError(t, err, "Failed to retrieve user %d from %s", u.id, tableName)
+		require.NoError(t, err, "Failed to retrieve user %s from %s", u.id, tableName)
 		assert.Equal(t, u.name, retrieved.Name)
 		assert.Equal(t, u.email, retrieved.Email)
 	}
@@ -350,47 +355,52 @@ func TestCrossTableQuery8Sharding(t *testing.T) {
 
 	tableSelector := db.NewTableSelector(32, 8)
 
-	// Create users in different shards
+	// Create users in different shards using UUIDv7 format
+	// UUID末尾2文字(hex)の値で分散される
 	testUsers := []struct {
-		id    int64
+		id    string // UUIDv7形式 (32文字)
 		name  string
 		email string
 	}{
-		{1, "User in Table 1", "user1@test.com"},    // Table 1, Entry 1, DB1
-		{5, "User in Table 5", "user5@test.com"},    // Table 5, Entry 2, DB1
-		{9, "User in Table 9", "user9@test.com"},    // Table 9, Entry 3, DB2
-		{13, "User in Table 13", "user13@test.com"}, // Table 13, Entry 4, DB2
-		{17, "User in Table 17", "user17@test.com"}, // Table 17, Entry 5, DB3
-		{21, "User in Table 21", "user21@test.com"}, // Table 21, Entry 6, DB3
-		{25, "User in Table 25", "user25@test.com"}, // Table 25, Entry 7, DB4
-		{29, "User in Table 29", "user29@test.com"}, // Table 29, Entry 8, DB4
+		{"019b6f83add07d6586044649c19f0001", "User in Table 1", "user1@test.com"},   // 末尾01 -> table 1, DB1
+		{"019b6f83add07d6586044649c19f0005", "User in Table 5", "user5@test.com"},   // 末尾05 -> table 5, DB1
+		{"019b6f83add07d6586044649c19f0009", "User in Table 9", "user9@test.com"},   // 末尾09 -> table 9, DB2
+		{"019b6f83add07d6586044649c19f000d", "User in Table 13", "user13@test.com"}, // 末尾0d -> table 13, DB2
+		{"019b6f83add07d6586044649c19f0011", "User in Table 17", "user17@test.com"}, // 末尾11 -> table 17, DB3
+		{"019b6f83add07d6586044649c19f0015", "User in Table 21", "user21@test.com"}, // 末尾15 -> table 21, DB3
+		{"019b6f83add07d6586044649c19f0019", "User in Table 25", "user25@test.com"}, // 末尾19 -> table 25, DB4
+		{"019b6f83add07d6586044649c19f001d", "User in Table 29", "user29@test.com"}, // 末尾1d -> table 29, DB4
 	}
 
 	// Insert users
 	for _, u := range testUsers {
-		tableNumber := tableSelector.GetTableNumber(u.id)
+		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
+		require.NoError(t, err)
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("dm_users", u.id)
+		tableName, err := tableSelector.GetTableNameFromUUID("dm_users", u.id)
+		require.NoError(t, err)
 		err = conn.DB.Table(tableName).Create(&model.DmUser{
 			ID:    u.id,
 			Name:  u.name,
 			Email: u.email,
 		}).Error
-		require.NoError(t, err, "Failed to create user %d in %s", u.id, tableName)
+		require.NoError(t, err, "Failed to create user %s in %s", u.id, tableName)
 	}
 
 	// Verify users can be retrieved
 	for _, u := range testUsers {
-		tableNumber := tableSelector.GetTableNumber(u.id)
+		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
+		require.NoError(t, err)
 		conn, err := groupManager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
 
-		tableName := tableSelector.GetTableName("dm_users", u.id)
+		tableName, err := tableSelector.GetTableNameFromUUID("dm_users", u.id)
+		require.NoError(t, err)
 		var retrieved model.DmUser
 		err = conn.DB.Table(tableName).Where("id = ?", u.id).First(&retrieved).Error
-		require.NoError(t, err, "Failed to retrieve user %d from %s", u.id, tableName)
+		require.NoError(t, err, "Failed to retrieve user %s from %s", u.id, tableName)
 		assert.Equal(t, u.name, retrieved.Name)
 		assert.Equal(t, u.email, retrieved.Email)
 	}

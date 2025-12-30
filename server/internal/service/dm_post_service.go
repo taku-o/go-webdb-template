@@ -25,8 +25,8 @@ func NewDmPostService(dmPostRepo repository.DmPostRepositoryInterface, dmUserRep
 // CreateDmPost は投稿を作成
 func (s *DmPostService) CreateDmPost(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error) {
 	// バリデーション
-	if req.UserID <= 0 {
-		return nil, fmt.Errorf("invalid user id: %d", req.UserID)
+	if req.UserID == "" {
+		return nil, fmt.Errorf("user id is required")
 	}
 	if req.Title == "" {
 		return nil, fmt.Errorf("title is required")
@@ -51,12 +51,12 @@ func (s *DmPostService) CreateDmPost(ctx context.Context, req *model.CreateDmPos
 }
 
 // GetDmPost はIDで投稿を取得
-func (s *DmPostService) GetDmPost(ctx context.Context, id int64, userID int64) (*model.DmPost, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("invalid post id: %d", id)
+func (s *DmPostService) GetDmPost(ctx context.Context, id string, userID string) (*model.DmPost, error) {
+	if id == "" {
+		return nil, fmt.Errorf("post id is required")
 	}
-	if userID <= 0 {
-		return nil, fmt.Errorf("invalid user id: %d", userID)
+	if userID == "" {
+		return nil, fmt.Errorf("user id is required")
 	}
 
 	dmPost, err := s.dmPostRepo.GetByID(ctx, id, userID)
@@ -88,9 +88,9 @@ func (s *DmPostService) ListDmPosts(ctx context.Context, limit, offset int) ([]*
 }
 
 // ListDmPostsByUser はユーザーIDで投稿一覧を取得
-func (s *DmPostService) ListDmPostsByUser(ctx context.Context, userID int64, limit, offset int) ([]*model.DmPost, error) {
-	if userID <= 0 {
-		return nil, fmt.Errorf("invalid user id: %d", userID)
+func (s *DmPostService) ListDmPostsByUser(ctx context.Context, userID string, limit, offset int) ([]*model.DmPost, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user id is required")
 	}
 	if limit <= 0 {
 		limit = 20
@@ -131,12 +131,12 @@ func (s *DmPostService) GetDmUserPosts(ctx context.Context, limit, offset int) (
 }
 
 // UpdateDmPost は投稿を更新
-func (s *DmPostService) UpdateDmPost(ctx context.Context, id int64, userID int64, req *model.UpdateDmPostRequest) (*model.DmPost, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("invalid post id: %d", id)
+func (s *DmPostService) UpdateDmPost(ctx context.Context, id string, userID string, req *model.UpdateDmPostRequest) (*model.DmPost, error) {
+	if id == "" {
+		return nil, fmt.Errorf("post id is required")
 	}
-	if userID <= 0 {
-		return nil, fmt.Errorf("invalid user id: %d", userID)
+	if userID == "" {
+		return nil, fmt.Errorf("user id is required")
 	}
 
 	// 更新するフィールドが空の場合はエラー
@@ -153,12 +153,12 @@ func (s *DmPostService) UpdateDmPost(ctx context.Context, id int64, userID int64
 }
 
 // DeleteDmPost は投稿を削除
-func (s *DmPostService) DeleteDmPost(ctx context.Context, id int64, userID int64) error {
-	if id <= 0 {
-		return fmt.Errorf("invalid post id: %d", id)
+func (s *DmPostService) DeleteDmPost(ctx context.Context, id string, userID string) error {
+	if id == "" {
+		return fmt.Errorf("post id is required")
 	}
-	if userID <= 0 {
-		return fmt.Errorf("invalid user id: %d", userID)
+	if userID == "" {
+		return fmt.Errorf("user id is required")
 	}
 
 	if err := s.dmPostRepo.Delete(ctx, id, userID); err != nil {

@@ -65,21 +65,27 @@ func main() {
 
 // generateDmUsers はdm_usersテーブルにデータを生成
 // 戻り値: 生成されたdm_user_idのリスト（dm_posts生成時に使用）
-func generateDmUsers(groupManager *db.GroupManager, totalCount int) ([]int64, error) {
-	var allDmUserIDs []int64
+func generateDmUsers(groupManager *db.GroupManager, totalCount int) ([]string, error) {
+	var allDmUserIDs []string
 
 	// テーブル番号ごとにユーザーをグループ化するマップ
 	usersByTable := make(map[int][]*model.DmUser)
 
+	// TableSelectorを作成
+	tableSelector := db.NewTableSelector(tableCount, db.DBShardingTablesPerDB)
+
 	// 全ユーザーを生成し、IDに基づいて正しいテーブルに振り分け
 	for i := 0; i < totalCount; i++ {
-		id, err := idgen.GenerateSonyflakeID()
+		id, err := idgen.GenerateUUIDv7()
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate sonyflake ID: %w", err)
+			return nil, fmt.Errorf("failed to generate UUIDv7: %w", err)
 		}
 
-		// IDからテーブル番号を計算
-		tableNumber := int(id % tableCount)
+		// UUIDからテーブル番号を計算
+		tableNumber, err := tableSelector.GetTableNumberFromUUID(id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get table number from UUID: %w", err)
+		}
 
 		dmUser := &model.DmUser{
 			ID:        id,
@@ -119,7 +125,7 @@ func generateDmUsers(groupManager *db.GroupManager, totalCount int) ([]int64, er
 
 // generateDmPosts はdm_postsテーブルにデータを生成
 // dmUserIDs: 既存のdm_usersテーブルから取得したdm_user_idのリスト
-func generateDmPosts(groupManager *db.GroupManager, dmUserIDs []int64, totalCount int) error {
+func generateDmPosts(groupManager *db.GroupManager, dmUserIDs []string, totalCount int) error {
 	if len(dmUserIDs) == 0 {
 		return fmt.Errorf("no dm_user IDs available for dm_posts generation")
 	}
@@ -127,18 +133,24 @@ func generateDmPosts(groupManager *db.GroupManager, dmUserIDs []int64, totalCoun
 	// テーブル番号ごとに投稿をグループ化するマップ
 	postsByTable := make(map[int][]*model.DmPost)
 
+	// TableSelectorを作成
+	tableSelector := db.NewTableSelector(tableCount, db.DBShardingTablesPerDB)
+
 	// 全投稿を生成し、user_idに基づいて正しいテーブルに振り分け
 	for i := 0; i < totalCount; i++ {
-		id, err := idgen.GenerateSonyflakeID()
+		id, err := idgen.GenerateUUIDv7()
 		if err != nil {
-			return fmt.Errorf("failed to generate sonyflake ID: %w", err)
+			return fmt.Errorf("failed to generate UUIDv7: %w", err)
 		}
 
 		// dm_user_idをランダムに選択
 		dmUserID := dmUserIDs[gofakeit.IntRange(0, len(dmUserIDs)-1)]
 
 		// user_idからテーブル番号を計算（dm_postsのシャーディングキーはuser_id）
-		tableNumber := int(dmUserID % tableCount)
+		tableNumber, err := tableSelector.GetTableNumberFromUUID(dmUserID)
+		if err != nil {
+			return fmt.Errorf("failed to get table number from UUID: %w", err)
+		}
 
 		dmPost := &model.DmPost{
 			ID:        id,

@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"hash/fnv"
+	"strconv"
 )
 
 // =============================================================================
@@ -13,15 +14,29 @@ import (
 //
 // ## テーブルシャーディングキー（Table Sharding Key）
 //
-// | テーブル群        | シャーディングキー | 計算式                           |
-// |-------------------|--------------------|---------------------------------|
-// | dm_users_NNN      | id                 | id % DBShardingTableCount        |
-// | dm_posts_NNN      | user_id            | user_id % DBShardingTableCount   |
+// | テーブル群        | シャーディングキー | 計算式                                    |
+// |-------------------|--------------------|-----------------------------------------|
+// | dm_users_NNN      | id                 | UUID後ろ2文字(16進数) % DBShardingTableCount |
+// | dm_posts_NNN      | user_id            | UUID後ろ2文字(16進数) % DBShardingTableCount |
 //
 // ## ID生成
 //
-// IDはsonyflake（github.com/sony/sonyflake）を使用して生成されます。
-// これにより、分散環境でも一意なIDが保証されます。
+// IDはUUIDv7（github.com/google/uuid）を使用して生成されます。
+// - フォーマット: 32文字の16進数文字列（ハイフンなし小文字）
+// - 例: "019b6f83add07d6586044649c19fa5c4"
+// - 時系列順序が保証され、分散環境でも一意なIDが生成されます。
+//
+// ## シャーディングキーの計算方法
+//
+// UUIDからテーブル番号を計算するには、UUIDの後ろ2文字を16進数として解釈し、
+// テーブル数（DBShardingTableCount = 32）で割った余りを使用します。
+//
+// 例: UUID = "019b6f83add07d6586044649c19fa5c4"
+//   - 後ろ2文字: "c4"
+//   - 16進数として解釈: 0xc4 = 196
+//   - テーブル番号: 196 % 32 = 4
+//   - テーブル名: dm_users_004
+//
 // =============================================================================
 
 // シャーディング関連の定数
@@ -148,4 +163,40 @@ func ValidateTableName(tableName string, allowedBaseNames []string) bool {
 		}
 	}
 	return false
+}
+
+// =============================================================================
+// UUIDv7ベースのシャーディングキー計算関数
+// =============================================================================
+
+// GetTableNumberFromUUID はUUID文字列からテーブル番号を取得
+// UUIDの後ろ2文字を16進数として解釈し、テーブル数で割った余りを返す
+func (ts *TableSelector) GetTableNumberFromUUID(uuid string) (int, error) {
+	// UUID文字列の長さをチェック
+	if len(uuid) < 2 {
+		return 0, fmt.Errorf("invalid UUID string: length must be at least 2, got %d", len(uuid))
+	}
+
+	// 後ろ2文字を取得
+	suffix := uuid[len(uuid)-2:]
+
+	// 16進数として解釈（大文字小文字両対応）
+	value, err := strconv.ParseInt(suffix, 16, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse UUID suffix as hex: %w", err)
+	}
+
+	// テーブル数で割った余りを計算
+	tableNumber := int(value % int64(ts.tableCount))
+
+	return tableNumber, nil
+}
+
+// GetTableNameFromUUID はベース名とUUIDからテーブル名を生成
+func (ts *TableSelector) GetTableNameFromUUID(baseName string, uuid string) (string, error) {
+	tableNumber, err := ts.GetTableNumberFromUUID(uuid)
+	if err != nil {
+		return "", fmt.Errorf("failed to get table number from UUID: %w", err)
+	}
+	return fmt.Sprintf("%s_%03d", baseName, tableNumber), nil
 }

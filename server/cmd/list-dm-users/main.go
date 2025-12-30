@@ -96,7 +96,7 @@ func printDmUsersTSV(dmUsers []*model.DmUser) {
 
 	// 各ユーザー情報の出力
 	for _, dmUser := range dmUsers {
-		fmt.Printf("%d\t%s\t%s\t%s\t%s\n",
+		fmt.Printf("%s\t%s\t%s\t%s\t%s\n",
 			dmUser.ID,
 			dmUser.Name,
 			dmUser.Email,

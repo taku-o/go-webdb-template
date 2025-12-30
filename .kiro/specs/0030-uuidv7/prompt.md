@@ -42,4 +42,53 @@ think.
 タスクリストを承認します。
 
 
+/sdd-fix-plan
+
+_serena_indexing
+
+/serena-initialize
+
+/kiro:spec-impl 0030-uuidv7
+
+/clear
+
+/serena-initialize
+
+/kiro:spec-impl 0030-uuidv7
+作業の継続お願いします。
+think.
+
+
+現在の作業進捗を
+.kiro/specs/0030-uuidv7/progress.md か
+.kiro/specs/0030-uuidv7/tasks.md に記録してください。
+
+/kiro:spec-impl 0030-uuidv7 9
+
+完了したタスクについてはtasks.mdのチェックを更新してください。
+
+/kiro:spec-impl 0030-uuidv7 10
+
+/kiro:spec-impl 0030-uuidv7 11
+
+/kiro:spec-impl 0030-uuidv7 12
+
+/kiro:spec-impl 0030-uuidv7 13
+
+/kiro:spec-impl 0030-uuidv7 14
+
+APIサーバ、クライアントサーバ、GoAdminサーバーを再起動してください。
+
+server/cmd/generate-sample-data/ でサンプルデータを作成してください。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/57 に対して
+pull requestを作成してください。
+
+
+
+
+
+
+
 

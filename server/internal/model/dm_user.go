@@ -3,8 +3,9 @@ package model
 import "time"
 
 // DmUser はユーザーのデータモデル（ダミーテーブル）
+// IDはUUIDv7形式の32文字の16進数文字列（ハイフンなし小文字）
 type DmUser struct {
-	ID        int64     `json:"id,string" db:"id" gorm:"primaryKey"`
+	ID        string    `json:"id" db:"id" gorm:"primaryKey;type:varchar(32)"`
 	Name      string    `json:"name" db:"name" gorm:"type:varchar(100);not null"`
 	Email     string    `json:"email" db:"email" gorm:"type:varchar(255);not null;uniqueIndex:idx_dm_users_email"`
 	CreatedAt time.Time `json:"created_at" db:"created_at" gorm:"autoCreateTime"`
