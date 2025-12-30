@@ -1,0 +1,15 @@
+{
+  "feature": "0029-dm_news_id",
+  "description": "dm_newsテーブルのidカラムの定義をinteger auto_increment = trueに変更",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  },
+  "tasks": {
+    "generated": true
+  }
+}
