@@ -1,0 +1,15 @@
+{
+  "feature": "0028-dmtable-define",
+  "description": "分散テーブル環境向けのテーブル設計修正",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  },
+  "tasks": {
+    "generated": true
+  }
+}
