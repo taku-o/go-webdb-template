@@ -86,6 +86,7 @@ server/cmd/generate-sample-data/ でサンプルデータを作成してくだ�
 pull requestを作成してください。
 
 
+/review 61
 
 
 
