@@ -1,0 +1,11 @@
+{
+  "feature": "0031-csvdownload",
+  "description": "CSVダウンロード機能を用意する（サンプル実装としてユーザー情報20件をCSVでダウンロード）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

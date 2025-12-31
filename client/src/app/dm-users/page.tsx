@@ -12,6 +12,8 @@ export default function UsersPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [creating, setCreating] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const loadUsers = async () => {
     try {
@@ -55,6 +57,18 @@ export default function UsersPage() {
       await loadUsers()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user')
+    }
+  }
+
+  const handleDownloadCSV = async () => {
+    try {
+      setDownloading(true)
+      setDownloadError(null)
+      await apiClient.downloadUsersCSV()
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Failed to download CSV')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -111,7 +125,21 @@ export default function UsersPage() {
 
         {/* ユーザー一覧 */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">ユーザー一覧</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">ユーザー一覧</h2>
+            <button
+              onClick={handleDownloadCSV}
+              disabled={downloading}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+            >
+              {downloading ? 'ダウンロード中...' : 'CSVダウンロード'}
+            </button>
+          </div>
+          {downloadError && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {downloadError}
+            </div>
+          )}
           {loading ? (
             <p>読み込み中...</p>
           ) : users.length === 0 ? (

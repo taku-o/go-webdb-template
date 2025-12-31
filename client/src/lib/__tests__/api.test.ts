@@ -256,4 +256,125 @@ describe('apiClient', () => {
       )
     })
   })
+
+  describe('CSV Download API', () => {
+    // DOMのモックを設定
+    let mockCreateObjectURL: jest.Mock
+    let mockRevokeObjectURL: jest.Mock
+    let mockAppendChild: jest.Mock
+    let mockRemoveChild: jest.Mock
+    let mockClick: jest.Mock
+    let mockLink: HTMLAnchorElement
+
+    beforeEach(() => {
+      // URL.createObjectURL/revokeObjectURLのモック
+      mockCreateObjectURL = jest.fn(() => 'blob:http://localhost/mock-blob-url')
+      mockRevokeObjectURL = jest.fn()
+      global.URL.createObjectURL = mockCreateObjectURL
+      global.URL.revokeObjectURL = mockRevokeObjectURL
+
+      // document.createElementのモック
+      mockClick = jest.fn()
+      mockLink = {
+        href: '',
+        download: '',
+        click: mockClick,
+      } as unknown as HTMLAnchorElement
+
+      jest.spyOn(document, 'createElement').mockReturnValue(mockLink)
+      mockAppendChild = jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink)
+      mockRemoveChild = jest.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink)
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it('downloads CSV file successfully', async () => {
+      const mockBlob = new Blob(['ID,Name,Email\n1,Test,test@example.com'], { type: 'text/csv' })
+
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({
+          'Content-Disposition': 'attachment; filename="dm-users.csv"',
+        }),
+        blob: async () => mockBlob,
+      })
+
+      await apiClient.downloadUsersCSV()
+
+      // fetchが正しく呼ばれたか確認
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:8080/api/export/dm-users/csv',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          }),
+        })
+      )
+
+      // Blob URLが生成されたか確認
+      expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob)
+
+      // リンクが正しく設定されたか確認
+      expect(mockLink.href).toBe('blob:http://localhost/mock-blob-url')
+      expect(mockLink.download).toBe('dm-users.csv')
+
+      // クリックが実行されたか確認
+      expect(mockClick).toHaveBeenCalled()
+
+      // クリーンアップが行われたか確認
+      expect(mockRemoveChild).toHaveBeenCalledWith(mockLink)
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:http://localhost/mock-blob-url')
+    })
+
+    it('uses default filename when Content-Disposition is not present', async () => {
+      const mockBlob = new Blob(['ID,Name,Email\n1,Test,test@example.com'], { type: 'text/csv' })
+
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({}),
+        blob: async () => mockBlob,
+      })
+
+      await apiClient.downloadUsersCSV()
+
+      // デフォルトのファイル名が使用されているか確認
+      expect(mockLink.download).toBe('dm-users.csv')
+    })
+
+    it('handles 401 error correctly', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({ message: 'Invalid token' }),
+      })
+
+      await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Invalid token')
+    })
+
+    it('handles 403 error correctly', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        json: async () => ({ message: 'Access denied' }),
+      })
+
+      await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Access denied')
+    })
+
+    it('handles 500 error correctly', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'Server error occurred',
+      })
+
+      await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Server error occurred')
+    })
+  })
 })

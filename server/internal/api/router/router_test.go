@@ -173,6 +173,7 @@ func TestEndpointSecurityInOpenAPI(t *testing.T) {
 		{"/api/dm-users/{id}", "get"},
 		{"/api/dm-users/{id}", "put"},
 		{"/api/dm-users/{id}", "delete"},
+		{"/api/export/dm-users/csv", "get"},
 		// Posts endpoints
 		{"/api/dm-posts", "post"},
 		{"/api/dm-posts", "get"},
@@ -248,6 +249,7 @@ func TestEndpointAccessLevelInOpenAPI(t *testing.T) {
 		{"/api/dm-users/{id}", "get", "users", "", "**Access Level:** `public`"},
 		{"/api/dm-users/{id}", "put", "users", "", "**Access Level:** `public`"},
 		{"/api/dm-users/{id}", "delete", "users", "", "**Access Level:** `public`"},
+		{"/api/export/dm-users/csv", "get", "users", "", "**Access Level:** `public`"},
 		// Posts endpoints - Public API（Summaryに[public]は含まない）
 		{"/api/dm-posts", "post", "posts", "", "**Access Level:** `public`"},
 		{"/api/dm-posts", "get", "posts", "", "**Access Level:** `public`"},

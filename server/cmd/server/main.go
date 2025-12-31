@@ -69,6 +69,7 @@ func main() {
 	// Echoサーバーのタイムアウト設定
 	e.Server.ReadTimeout = cfg.Server.ReadTimeout
 	e.Server.WriteTimeout = cfg.Server.WriteTimeout
+	e.Server.IdleTimeout = cfg.Server.IdleTimeout
 
 	// Graceful shutdown
 	go func() {
