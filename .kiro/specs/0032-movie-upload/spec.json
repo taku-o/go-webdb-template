@@ -1,0 +1,23 @@
+{
+  "feature": "0032-movie-upload",
+  "description": "動画ファイルアップロード機能の実装（大容量ファイル対応、中断・再開サポート）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "updated_at": "2025-01-27T15:00:00Z",
+  "phase": "tasks-approved",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}
