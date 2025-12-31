@@ -130,6 +130,55 @@ class ApiClient {
   async getToday(jwt: string): Promise<{ date: string }> {
     return this.request<{ date: string }>('/api/today', undefined, jwt)
   }
+
+  // CSV Download API
+  async downloadUsersCSV(): Promise<void> {
+    const url = `${this.baseURL}/api/export/dm-users/csv`
+    const token = this.apiKey
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || response.statusText)
+      }
+      const error = await response.text()
+      throw new Error(error || response.statusText)
+    }
+
+    // Blobとして取得
+    const blob = await response.blob()
+
+    // Content-Dispositionヘッダーからファイル名を取得
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = 'dm-users.csv'
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/i)
+      if (filenameMatch) {
+        filename = filenameMatch[1]
+      }
+    }
+
+    // Blob URLを生成
+    const blobUrl = URL.createObjectURL(blob)
+
+    // <a>要素を作成してダウンロード
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+
+    // クリーンアップ
+    document.body.removeChild(link)
+    URL.revokeObjectURL(blobUrl)
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)

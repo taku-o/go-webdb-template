@@ -2,7 +2,10 @@ package handler
 
 import (
 	"context"
+	"encoding/csv"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
@@ -56,6 +59,80 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 		resp := &humaapi.DmUserOutput{}
 		resp.Body = *dmUser
 		return resp, nil
+	})
+
+	// GET /api/export/dm-users/csv - ユーザー情報をCSV形式でダウンロード
+	huma.Register(api, huma.Operation{
+		OperationID: "download-users-csv",
+		Method:      http.MethodGet,
+		Path:        "/api/export/dm-users/csv",
+		Summary:     "ユーザー情報をCSV形式でダウンロード",
+		Description: "**Access Level:** `public` (Public API Key JWT または Auth0 JWT でアクセス可能)",
+		Tags:        []string{"users"},
+		Security: []map[string][]string{
+			{"bearerAuth": {}},
+		},
+	}, func(ctx context.Context, input *struct{}) (*huma.StreamResponse, error) {
+		// 公開レベルのチェック（publicエンドポイント）
+		if err := auth.CheckAccessLevel(ctx, auth.AccessLevelPublic); err != nil {
+			return nil, huma.Error403Forbidden(err.Error())
+		}
+
+		// ユーザー情報20件を取得
+		users, err := h.dmUserService.ListDmUsers(ctx, 20, 0)
+		if err != nil {
+			return nil, huma.Error500InternalServerError(err.Error())
+		}
+
+		// ストリーミングレスポンスを返す
+		return &huma.StreamResponse{
+			Body: func(humaCtx huma.Context) {
+				// ヘッダーを設定
+				humaCtx.SetHeader("Content-Type", "text/csv; charset=utf-8")
+				humaCtx.SetHeader("Content-Disposition", `attachment; filename="dm-users.csv"`)
+
+				// BodyWriterを取得
+				w := humaCtx.BodyWriter()
+
+				// http.ResponseWriterを取り出してタイムアウトを設定
+				if rw, ok := w.(http.ResponseWriter); ok {
+					rc := http.NewResponseController(rw)
+					if err := rc.SetWriteDeadline(time.Now().Add(3 * time.Minute)); err != nil {
+						log.Printf("Warning: Failed to set write deadline: %v", err)
+					}
+				}
+
+				// CSVエンコーダーを作成
+				csvWriter := csv.NewWriter(w)
+				defer csvWriter.Flush()
+
+				// ヘッダー行を書き込み
+				if err := csvWriter.Write([]string{
+					"ID",
+					"Name",
+					"Email",
+					"Created At",
+					"Updated At",
+				}); err != nil {
+					log.Printf("Error writing CSV header: %v", err)
+					return
+				}
+
+				// ユーザーデータを1件ずつCSV行として書き込み
+				for _, user := range users {
+					if err := csvWriter.Write([]string{
+						user.ID,
+						user.Name,
+						user.Email,
+						user.CreatedAt.Format(time.RFC3339),
+						user.UpdatedAt.Format(time.RFC3339),
+					}); err != nil {
+						log.Printf("Error writing CSV row: %v", err)
+						return
+					}
+				}
+			},
+		}, nil
 	})
 
 	// GET /api/dm-users/{id} - ユーザー取得

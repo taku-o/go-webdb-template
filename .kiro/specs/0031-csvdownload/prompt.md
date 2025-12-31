@@ -52,15 +52,34 @@ _serena_indexing
 
 /kiro:spec-impl 0031-csvdownload
 
+URLをかえることを検討しましょう。
 
+まず実装前に提案を出して欲しい。
 
+これにしましょう。
+> /api/dm-users/export/csv
 
+では、こちらに。
+/api/export/dm-users/csv
 
+クライアントサーバー、APIサーバーを起動してください。
 
+クライアント側、
+CSVのダウンロードボタンかリンクはどこに表示されている？
 
+確認した。
 
+test-results/ は必要なディレクトリ？
+消して良い？
 
+削除してください。
 
+こちらも削除していいよね？不要なら削除して。
+/Users/taku-o/Documents/workspaces/go-webdb-template/test-results/.last-run.json
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/62 に対して
+pull requestを作成してください。
 
 
 
