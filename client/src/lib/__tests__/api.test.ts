@@ -377,4 +377,104 @@ describe('apiClient', () => {
       await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Server error occurred')
     })
   })
+
+  describe('Email API', () => {
+    it('sends email successfully', async () => {
+      const mockResponse = { success: true, message: 'メールを送信しました' }
+
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      })
+
+      const result = await apiClient.sendEmail(
+        ['test@example.com'],
+        'welcome',
+        { Name: 'テスト太郎', Email: 'test@example.com' }
+      )
+
+      expect(result).toEqual(mockResponse)
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:8080/api/email/send',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          },
+          body: JSON.stringify({
+            to: ['test@example.com'],
+            template: 'welcome',
+            data: { Name: 'テスト太郎', Email: 'test@example.com' },
+          }),
+        })
+      )
+    })
+
+    it('sends email to multiple recipients', async () => {
+      const mockResponse = { success: true, message: 'メールを送信しました' }
+
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      })
+
+      const result = await apiClient.sendEmail(
+        ['user1@example.com', 'user2@example.com'],
+        'welcome',
+        { Name: 'ユーザーの皆様', Email: 'users@example.com' }
+      )
+
+      expect(result).toEqual(mockResponse)
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:8080/api/email/send',
+        expect.objectContaining({
+          body: JSON.stringify({
+            to: ['user1@example.com', 'user2@example.com'],
+            template: 'welcome',
+            data: { Name: 'ユーザーの皆様', Email: 'users@example.com' },
+          }),
+        })
+      )
+    })
+
+    it('handles 400 Bad Request error', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        text: async () => 'invalid email address',
+      })
+
+      await expect(
+        apiClient.sendEmail(['invalid'], 'welcome', { Name: 'Test', Email: 'invalid' })
+      ).rejects.toThrow('invalid email address')
+    })
+
+    it('handles 401 Unauthorized error', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({ message: 'Invalid API key' }),
+      })
+
+      await expect(
+        apiClient.sendEmail(['test@example.com'], 'welcome', { Name: 'Test', Email: 'test@example.com' })
+      ).rejects.toThrow('Invalid API key')
+    })
+
+    it('handles 500 Internal Server Error', async () => {
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'Failed to send email',
+      })
+
+      await expect(
+        apiClient.sendEmail(['test@example.com'], 'welcome', { Name: 'Test', Email: 'test@example.com' })
+      ).rejects.toThrow('Failed to send email')
+    })
+  })
 })

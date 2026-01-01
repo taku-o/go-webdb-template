@@ -16,6 +16,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/logging"
 	"github.com/taku-o/go-webdb-template/internal/repository"
 	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/service/email"
 )
 
 func main() {
@@ -51,8 +52,18 @@ func main() {
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 	todayHandler := handler.NewTodayHandler()
 
+	// EmailServiceとTemplateServiceの初期化
+	emailService, err := email.NewEmailService(&cfg.Email)
+	if err != nil {
+		log.Fatalf("Failed to create email service: %v", err)
+	}
+	templateService := email.NewTemplateService()
+
+	// EmailHandlerの初期化
+	emailHandler := handler.NewEmailHandler(emailService, templateService)
+
 	// Echoルーターの初期化
-	e := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, cfg)
+	e := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, cfg)
 
 	// UploadHandlerの初期化（設定がある場合のみ）
 	if cfg.Upload.BasePath != "" {

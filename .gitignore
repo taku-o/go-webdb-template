@@ -54,6 +54,10 @@ client/yarn-debug.log*
 client/yarn-error.log*
 client/.pnpm-debug.log*
 
+# TypeScript
+client/tsconfig.tsbuildinfo
+*.tsbuildinfo
+
 # Testing
 client/coverage/
 client/.nyc_output/

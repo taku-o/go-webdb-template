@@ -18,6 +18,7 @@ type Config struct {
 	API         APIConfig         `mapstructure:"api"`
 	CacheServer CacheServerConfig `mapstructure:"cache_server"` // キャッシュサーバー設定
 	Upload      UploadConfig      `mapstructure:"upload"`       // アップロード設定
+	Email       EmailConfig       `mapstructure:"email"`        // メール送信設定
 }
 
 // CacheServerConfig はキャッシュサーバー設定
@@ -171,6 +172,31 @@ type LocalStorageConfig struct {
 // S3StorageConfig はS3ストレージ設定
 type S3StorageConfig struct {
 	Bucket string `mapstructure:"bucket"` // S3バケット名
+	Region string `mapstructure:"region"` // AWSリージョン
+}
+
+// EmailConfig はメール送信機能の設定
+type EmailConfig struct {
+	SenderType string        `mapstructure:"sender_type"` // 送信方式（"mock", "mailpit", "ses"）
+	Mock       MockConfig    `mapstructure:"mock"`        // MockSender設定
+	Mailpit    MailpitConfig `mapstructure:"mailpit"`     // MailpitSender設定
+	SES        SESConfig     `mapstructure:"ses"`         // SESSender設定
+}
+
+// MockConfig はMockSenderの設定
+type MockConfig struct {
+	// 設定項目なし（標準出力に出力するだけ）
+}
+
+// MailpitConfig はMailpitSenderの設定
+type MailpitConfig struct {
+	SMTPHost string `mapstructure:"smtp_host"` // SMTPホスト（デフォルト: "localhost"）
+	SMTPPort int    `mapstructure:"smtp_port"` // SMTPポート（デフォルト: 1025）
+}
+
+// SESConfig はSESSenderの設定
+type SESConfig struct {
+	From   string `mapstructure:"from"`   // 送信元メールアドレス
 	Region string `mapstructure:"region"` // AWSリージョン
 }
 

@@ -27,4 +27,35 @@ _serena_indexing
 
 /kiro:spec-impl 0033-mailsender
 
+client/tsconfig.tsbuildinfo は.gitignoreに追加して言いファイルだよね？
+
+標準出力版のメール送信は総合テスト、E2Eテストを追加して欲しい。
+Mailpit、SES版のテストはMockなどが用意できるならやる。できないならやらなくて良い。
+> ユーザー判断待ち - メール送信機能のコア実装とユニットテストは作成しました。統合テスト、E2Eテストの追加が必要かどうか確認をお願いします。
+
+/kiro:spec-impl 0033-mailsender
+
+完了したタスクはtasks.mdのチェックを更新してください。
+
+APIサーバー、クライアントサーバーを再起動してください。
+
+メール送信の画面にはクライアントのトップページにリンクがない？
+
+動画アップロードのリンクの下に追加お願いします。
+> メール送信（/dm_email/send）へのリンクがありません。追加しますか？
+
+次は、Mailpitでの動作を確認したい。
+Mailpitの起動と、設定ファイルの切替をお願いします。
+
+非常に良いです。
+Mailpitを停止してください。
+設定ファイルをMock版に戻してください。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/66 に対して
+pull requestを作成してください。
+
+
+
+
 

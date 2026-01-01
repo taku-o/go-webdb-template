@@ -69,3 +69,13 @@ upload:
     s3:
       bucket: "your-bucket-name"
       region: "ap-northeast-1"
+
+email:
+  sender_type: "ses"
+  mock: {}
+  mailpit:
+    smtp_host: "localhost"
+    smtp_port: 1025
+  ses:
+    from: "sender@example.com"
+    region: "us-east-1"

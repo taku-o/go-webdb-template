@@ -17,7 +17,7 @@ import (
 )
 
 // NewRouter は新しいEchoルーターを作成
-func NewRouter(dmUserHandler *handler.DmUserHandler, dmPostHandler *handler.DmPostHandler, todayHandler *handler.TodayHandler, cfg *config.Config) *echo.Echo {
+func NewRouter(dmUserHandler *handler.DmUserHandler, dmPostHandler *handler.DmPostHandler, todayHandler *handler.TodayHandler, emailHandler *handler.EmailHandler, cfg *config.Config) *echo.Echo {
 	e := echo.New()
 
 	// デバッグモードの設定（開発環境のみ）
@@ -91,6 +91,11 @@ func NewRouter(dmUserHandler *handler.DmUserHandler, dmPostHandler *handler.DmPo
 	handler.RegisterDmUserEndpoints(humaAPI, dmUserHandler)
 	handler.RegisterDmPostEndpoints(humaAPI, dmPostHandler)
 	handler.RegisterTodayEndpoints(humaAPI, todayHandler)
+
+	// EmailHandlerが設定されている場合のみ登録
+	if emailHandler != nil {
+		handler.RegisterEmailEndpoints(humaAPI, emailHandler)
+	}
 
 	return e
 }

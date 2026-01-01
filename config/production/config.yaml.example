@@ -73,3 +73,13 @@ upload:
     s3:
       bucket: "<YOUR_S3_BUCKET_NAME>"  # 必須: S3バケット名
       region: "ap-northeast-1"         # AWSリージョン
+
+email:
+  sender_type: "ses"  # 本番環境ではAWS SESを使用
+  mock: {}
+  mailpit:
+    smtp_host: "localhost"
+    smtp_port: 1025
+  ses:
+    from: "<YOUR_SES_VERIFIED_EMAIL>"  # 必須: SESで検証済みのメールアドレス
+    region: "us-east-1"                # AWSリージョン

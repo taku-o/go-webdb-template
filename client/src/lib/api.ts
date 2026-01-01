@@ -131,6 +131,18 @@ class ApiClient {
     return this.request<{ date: string }>('/api/today', undefined, jwt)
   }
 
+  // Email API
+  async sendEmail(
+    to: string[],
+    template: string,
+    data: Record<string, unknown>
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>('/api/email/send', {
+      method: 'POST',
+      body: JSON.stringify({ to, template, data }),
+    })
+  }
+
   // CSV Download API
   async downloadUsersCSV(): Promise<void> {
     const url = `${this.baseURL}/api/export/dm-users/csv`

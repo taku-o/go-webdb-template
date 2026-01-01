@@ -41,3 +41,11 @@ type TodayOutput struct {
 		Date string `json:"date" doc:"今日の日付（YYYY-MM-DD形式）"`
 	}
 }
+
+// SendEmailOutput はメール送信レスポンス構造体
+type SendEmailOutput struct {
+	Body struct {
+		Success bool   `json:"success" doc:"送信成功フラグ"`
+		Message string `json:"message" doc:"メッセージ"`
+	}
+}
