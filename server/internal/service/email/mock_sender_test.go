@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"strings"
@@ -49,7 +50,7 @@ func TestMockSender_Send(t *testing.T) {
 			os.Stdout = w
 
 			sender := NewMockSender()
-			err := sender.Send(tt.to, tt.subject, tt.body)
+			err := sender.Send(context.Background(), tt.to, tt.subject, tt.body)
 
 			// 標準出力を復元してキャプチャした内容を取得
 			w.Close()

@@ -66,7 +66,7 @@ func RegisterEmailEndpoints(api huma.API, h *EmailHandler) {
 		}
 
 		// メール送信
-		if err := h.emailService.SendEmail(input.Body.To, subject, body); err != nil {
+		if err := h.emailService.SendEmail(ctx, input.Body.To, subject, body); err != nil {
 			return nil, huma.Error500InternalServerError(fmt.Sprintf("failed to send email: %v", err))
 		}
 

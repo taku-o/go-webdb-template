@@ -33,7 +33,7 @@ func NewSESSender(region, from string) (*SESSender, error) {
 }
 
 // Send はAWS SES SDKを使用してメールを送信
-func (s *SESSender) Send(to []string, subject, body string) error {
+func (s *SESSender) Send(ctx context.Context, to []string, subject, body string) error {
 	input := &ses.SendEmailInput{
 		Destination: &types.Destination{
 			ToAddresses: to,
@@ -51,6 +51,6 @@ func (s *SESSender) Send(to []string, subject, body string) error {
 		Source: aws.String(s.from),
 	}
 
-	_, err := s.client.SendEmail(context.TODO(), input)
+	_, err := s.client.SendEmail(ctx, input)
 	return err
 }

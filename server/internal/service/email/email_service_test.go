@@ -1,6 +1,7 @@
 package email
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -105,6 +106,6 @@ func TestEmailService_SendEmail(t *testing.T) {
 	service, err := NewEmailService(cfg)
 	assert.NoError(t, err)
 
-	err = service.SendEmail([]string{"test@example.com"}, "Test Subject", "Test Body")
+	err = service.SendEmail(context.Background(), []string{"test@example.com"}, "Test Subject", "Test Body")
 	assert.NoError(t, err)
 }

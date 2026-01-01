@@ -1,6 +1,9 @@
 package email
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 // MockSender は標準出力にメールを出力する送信実装
 type MockSender struct{}
@@ -11,7 +14,7 @@ func NewMockSender() *MockSender {
 }
 
 // Send はメール内容を標準出力に出力
-func (s *MockSender) Send(to []string, subject, body string) error {
+func (s *MockSender) Send(ctx context.Context, to []string, subject, body string) error {
 	fmt.Printf("[Mock Email] To: %v | Subject: %s\nBody: %s\n", to, subject, body)
 	return nil
 }

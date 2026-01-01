@@ -1,6 +1,8 @@
 package email
 
 import (
+	"context"
+
 	"gopkg.in/mail.v2"
 )
 
@@ -21,7 +23,7 @@ func NewMailpitSender(smtpHost string, smtpPort int, from string) *MailpitSender
 }
 
 // Send はgomailを使用してMailpitにメールを送信
-func (s *MailpitSender) Send(to []string, subject, body string) error {
+func (s *MailpitSender) Send(ctx context.Context, to []string, subject, body string) error {
 	m := mail.NewMessage()
 	m.SetHeader("From", s.from)
 	m.SetHeader("To", to...)

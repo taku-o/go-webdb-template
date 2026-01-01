@@ -1,6 +1,7 @@
 package email
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,6 +47,6 @@ func TestNewMailpitSender(t *testing.T) {
 func TestMailpitSender_Send_ConnectionError(t *testing.T) {
 	// Mailpitが起動していない場合のテスト（接続エラー）
 	sender := NewMailpitSender("localhost", 19999, "noreply@example.com") // 存在しないポート
-	err := sender.Send([]string{"test@example.com"}, "Test Subject", "Test Body")
+	err := sender.Send(context.Background(), []string{"test@example.com"}, "Test Subject", "Test Body")
 	assert.Error(t, err, "Mailpitが起動していない場合はエラーになるべき")
 }

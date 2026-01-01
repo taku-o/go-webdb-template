@@ -55,6 +55,7 @@ Mailpitを停止してください。
 その後、https://github.com/taku-o/go-webdb-template/issues/66 に対して
 pull requestを作成してください。
 
+/review 67
 
 
 

@@ -1,6 +1,7 @@
 package email
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -57,6 +58,6 @@ func NewEmailService(cfg *config.EmailConfig) (*EmailService, error) {
 }
 
 // SendEmail はメールを送信します
-func (s *EmailService) SendEmail(to []string, subject, body string) error {
-	return s.sender.Send(to, subject, body)
+func (s *EmailService) SendEmail(ctx context.Context, to []string, subject, body string) error {
+	return s.sender.Send(ctx, to, subject, body)
 }
