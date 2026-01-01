@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "8001:5540"
+    volumes:
+      - ./redis/insight:/data
+    restart: unless-stopped
+    networks:
+      - redis-network
+
+networks:
+  redis-network:
+    external: true
+    name: redis-network

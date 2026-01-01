@@ -49,7 +49,7 @@ func setupEmailE2EServer(t *testing.T) *httptest.Server {
 
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()
-	r := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, cfg)
+	r := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, nil, cfg)
 
 	return httptest.NewServer(r)
 }

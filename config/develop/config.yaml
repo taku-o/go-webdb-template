@@ -60,6 +60,7 @@ api:
     enabled: true
     requests_per_minute: 60
     requests_per_hour: 1000
+    storage_type: "auto"  # "auto"（自動判定）、"redis"（強制Redis）、"memory"（強制InMemory）
 
 upload:
   base_path: "/api/upload/dm_movie"

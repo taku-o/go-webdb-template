@@ -28,6 +28,17 @@ type CacheServerConfig struct {
 
 // RedisConfig はRedis設定
 type RedisConfig struct {
+	JobQueue RedisSingleConfig  `mapstructure:"jobqueue"` // ジョブキュー用（単一接続）
+	Default  RedisDefaultConfig `mapstructure:"default"`  // デフォルト用（複数台対応、rate limit等で使用）
+}
+
+// RedisSingleConfig は単一Redis接続設定（ジョブキュー用）
+type RedisSingleConfig struct {
+	Addr string `mapstructure:"addr"` // 単一Redis接続アドレス（例: "localhost:6379"）
+}
+
+// RedisDefaultConfig はデフォルト用Redis設定（複数台対応、rate limit等で使用）
+type RedisDefaultConfig struct {
 	Cluster RedisClusterConfig `mapstructure:"cluster"`
 }
 
@@ -126,9 +137,10 @@ type APIConfig struct {
 
 // RateLimitConfig はレートリミット設定
 type RateLimitConfig struct {
-	Enabled           bool `mapstructure:"enabled"`
-	RequestsPerMinute int  `mapstructure:"requests_per_minute"`
-	RequestsPerHour   int  `mapstructure:"requests_per_hour"` // オプション
+	Enabled           bool   `mapstructure:"enabled"`
+	RequestsPerMinute int    `mapstructure:"requests_per_minute"`
+	RequestsPerHour   int    `mapstructure:"requests_per_hour"`  // オプション
+	StorageType       string `mapstructure:"storage_type"`       // "auto"（自動判定）、"redis"（強制Redis）、"memory"（強制InMemory）
 }
 
 // AdminConfig は管理画面設定

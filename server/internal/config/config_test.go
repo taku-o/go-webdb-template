@@ -362,6 +362,7 @@ func TestRateLimitConfig_Structure(t *testing.T) {
 		Enabled:           true,
 		RequestsPerMinute: 60,
 		RequestsPerHour:   1000,
+		StorageType:       "auto",
 	}
 
 	if !cfg.Enabled {
@@ -372,6 +373,33 @@ func TestRateLimitConfig_Structure(t *testing.T) {
 	}
 	if cfg.RequestsPerHour != 1000 {
 		t.Errorf("expected RequestsPerHour 1000, got %d", cfg.RequestsPerHour)
+	}
+	if cfg.StorageType != "auto" {
+		t.Errorf("expected StorageType 'auto', got %s", cfg.StorageType)
+	}
+}
+
+// タスク2.3: RateLimitConfigのStorageTypeフィールドテスト
+func TestRateLimitConfig_StorageType(t *testing.T) {
+	tests := []struct {
+		name        string
+		storageType string
+	}{
+		{"auto", "auto"},
+		{"memory", "memory"},
+		{"redis", "redis"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := RateLimitConfig{
+				Enabled:     true,
+				StorageType: tt.storageType,
+			}
+			if cfg.StorageType != tt.storageType {
+				t.Errorf("expected StorageType '%s', got '%s'", tt.storageType, cfg.StorageType)
+			}
+		})
 	}
 }
 
@@ -398,17 +426,52 @@ func TestAPIConfig_HasRateLimitField(t *testing.T) {
 func TestCacheServerConfig_Structure(t *testing.T) {
 	cfg := CacheServerConfig{
 		Redis: RedisConfig{
-			Cluster: RedisClusterConfig{
-				Addrs: []string{"host1:6379", "host2:6379"},
+			JobQueue: RedisSingleConfig{
+				Addr: "localhost:6379",
+			},
+			Default: RedisDefaultConfig{
+				Cluster: RedisClusterConfig{
+					Addrs: []string{"host1:6379", "host2:6379"},
+				},
 			},
 		},
 	}
 
-	if len(cfg.Redis.Cluster.Addrs) != 2 {
-		t.Errorf("expected 2 addresses, got %d", len(cfg.Redis.Cluster.Addrs))
+	// JobQueue設定の確認
+	if cfg.Redis.JobQueue.Addr != "localhost:6379" {
+		t.Errorf("expected 'localhost:6379', got %s", cfg.Redis.JobQueue.Addr)
 	}
-	if cfg.Redis.Cluster.Addrs[0] != "host1:6379" {
-		t.Errorf("expected 'host1:6379', got %s", cfg.Redis.Cluster.Addrs[0])
+
+	// Default設定の確認
+	if len(cfg.Redis.Default.Cluster.Addrs) != 2 {
+		t.Errorf("expected 2 addresses, got %d", len(cfg.Redis.Default.Cluster.Addrs))
+	}
+	if cfg.Redis.Default.Cluster.Addrs[0] != "host1:6379" {
+		t.Errorf("expected 'host1:6379', got %s", cfg.Redis.Default.Cluster.Addrs[0])
+	}
+}
+
+// タスク2.1: RedisSingleConfig構造体のテスト
+func TestRedisSingleConfig_Structure(t *testing.T) {
+	cfg := RedisSingleConfig{
+		Addr: "redis.example.com:6379",
+	}
+
+	if cfg.Addr != "redis.example.com:6379" {
+		t.Errorf("expected 'redis.example.com:6379', got %s", cfg.Addr)
+	}
+}
+
+// タスク2.1: RedisDefaultConfig構造体のテスト
+func TestRedisDefaultConfig_Structure(t *testing.T) {
+	cfg := RedisDefaultConfig{
+		Cluster: RedisClusterConfig{
+			Addrs: []string{"node1:6379", "node2:6379", "node3:6379"},
+		},
+	}
+
+	if len(cfg.Cluster.Addrs) != 3 {
+		t.Errorf("expected 3 addresses, got %d", len(cfg.Cluster.Addrs))
 	}
 }
 
@@ -417,15 +480,23 @@ func TestConfig_HasCacheServerField(t *testing.T) {
 	cfg := Config{
 		CacheServer: CacheServerConfig{
 			Redis: RedisConfig{
-				Cluster: RedisClusterConfig{
-					Addrs: []string{},
+				JobQueue: RedisSingleConfig{
+					Addr: "localhost:6379",
+				},
+				Default: RedisDefaultConfig{
+					Cluster: RedisClusterConfig{
+						Addrs: []string{},
+					},
 				},
 			},
 		},
 	}
 
-	if cfg.CacheServer.Redis.Cluster.Addrs == nil {
-		t.Error("expected CacheServer.Redis.Cluster.Addrs to be initialized")
+	if cfg.CacheServer.Redis.JobQueue.Addr == "" {
+		t.Error("expected CacheServer.Redis.JobQueue.Addr to be initialized")
+	}
+	if cfg.CacheServer.Redis.Default.Cluster.Addrs == nil {
+		t.Error("expected CacheServer.Redis.Default.Cluster.Addrs to be initialized")
 	}
 }
 
@@ -467,9 +538,14 @@ func TestLoad_CacheServerConfig(t *testing.T) {
 		t.Skipf("config files not found, skipping: %v", err)
 	}
 
-	// 開発環境ではRedis Clusterのアドレスが空であることを確認
-	if len(cfg.CacheServer.Redis.Cluster.Addrs) != 0 {
-		t.Errorf("expected CacheServer.Redis.Cluster.Addrs to be empty, got %v", cfg.CacheServer.Redis.Cluster.Addrs)
+	// ジョブキュー用Redis設定の確認
+	if cfg.CacheServer.Redis.JobQueue.Addr != "localhost:6379" {
+		t.Errorf("expected CacheServer.Redis.JobQueue.Addr 'localhost:6379', got %s", cfg.CacheServer.Redis.JobQueue.Addr)
+	}
+
+	// 開発環境ではデフォルト用Redis Clusterのアドレスが空であることを確認
+	if len(cfg.CacheServer.Redis.Default.Cluster.Addrs) != 0 {
+		t.Errorf("expected CacheServer.Redis.Default.Cluster.Addrs to be empty, got %v", cfg.CacheServer.Redis.Default.Cluster.Addrs)
 	}
 }
 

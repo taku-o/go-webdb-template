@@ -1,4 +1,12 @@
-# 開発環境ではRedis Clusterを使用しない（In-Memoryストレージを使用）
-redis:
-  cluster:
-    addrs: []
+# キャッシュサーバー設定
+cache_server:
+  redis:
+    # ジョブキュー用Redis接続設定（単一接続、1台）
+    jobqueue:
+      addr: "localhost:6379"
+
+    # デフォルト用Redis接続設定（複数台対応可能、rate limit等で使用）
+    # 開発環境ではRedis Clusterを使用しない（In-Memoryストレージを使用）
+    default:
+      cluster:
+        addrs: []

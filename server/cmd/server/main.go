@@ -17,6 +17,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/repository"
 	"github.com/taku-o/go-webdb-template/internal/service"
 	"github.com/taku-o/go-webdb-template/internal/service/email"
+	"github.com/taku-o/go-webdb-template/internal/service/jobqueue"
 )
 
 func main() {
@@ -77,8 +78,44 @@ func main() {
 	// EmailHandlerの初期化
 	emailHandler := handler.NewEmailHandler(emailService, templateService)
 
+	// Asynqクライアントの初期化
+	// Redisが起動していない場合でも、APIサーバーの起動は継続する
+	var jobQueueClient *jobqueue.Client
+	jobQueueClient, err = jobqueue.NewClient(cfg)
+	if err != nil {
+		// Redis接続エラーを標準エラー出力に記録（起動処理は継続）
+		log.Printf("WARNING: Failed to create job queue client: %v", err)
+		log.Printf("WARNING: Job queue functionality will be unavailable until Redis is started")
+		jobQueueClient = nil
+	} else {
+		defer jobQueueClient.Close()
+	}
+
+	// Asynqサーバーの初期化と起動
+	// Redisが起動していない場合でも、APIサーバーの起動は継続する
+	var jobQueueServer *jobqueue.Server
+	if jobQueueClient != nil {
+		jobQueueServer, err = jobqueue.NewServer(cfg)
+		if err != nil {
+			// Redis接続エラーを標準エラー出力に記録（起動処理は継続）
+			log.Printf("WARNING: Failed to create job queue server: %v", err)
+			log.Printf("WARNING: Job queue processing will be unavailable until Redis is started")
+		} else {
+			// バックグラウンドでジョブ処理サーバーを起動
+			go func() {
+				if err := jobQueueServer.Start(); err != nil {
+					// ジョブ処理サーバーの起動エラーを標準エラー出力に記録
+					log.Printf("ERROR: Failed to start job queue server: %v", err)
+				}
+			}()
+		}
+	}
+
+	// ジョブキューハンドラーの初期化（jobQueueClientがnilの場合も許可）
+	dmJobqueueHandler := handler.NewDmJobqueueHandler(jobQueueClient)
+
 	// Echoルーターの初期化
-	e := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, cfg)
+	e := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, dmJobqueueHandler, cfg)
 
 	// UploadHandlerの初期化（設定がある場合のみ）
 	if cfg.Upload.BasePath != "" {
@@ -124,6 +161,14 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
+
+	// ジョブキューサーバーの停止
+	if jobQueueServer != nil {
+		log.Println("Shutting down job queue server...")
+		if err := jobQueueServer.Shutdown(); err != nil {
+			log.Printf("Job queue server shutdown error: %v", err)
+		}
+	}
 
 	// Graceful shutdown (30秒のタイムアウト)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

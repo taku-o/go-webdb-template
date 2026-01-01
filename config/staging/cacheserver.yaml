@@ -1,7 +1,14 @@
-# Staging環境のRedis Cluster設定
-redis:
-  cluster:
-    addrs:
-      - host1:6379
-      - host2:6379
-      - host3:6379
+# キャッシュサーバー設定
+cache_server:
+  redis:
+    # ジョブキュー用Redis接続設定（単一接続、1台）
+    jobqueue:
+      addr: "redis-jobqueue:6379"
+
+    # デフォルト用Redis接続設定（複数台対応可能、rate limit等で使用）
+    default:
+      cluster:
+        addrs:
+          - host1:6379
+          - host2:6379
+          - host3:6379

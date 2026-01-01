@@ -64,6 +64,14 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-2">メール送信</h2>
             <p className="text-gray-600">ウェルカムメールの送信</p>
           </Link>
+
+          <Link
+            href="/dm-jobqueue"
+            className="p-6 border rounded-lg hover:border-blue-500 hover:shadow-lg transition-all"
+          >
+            <h2 className="text-2xl font-semibold mb-2">ジョブキュー</h2>
+            <p className="text-gray-600">遅延ジョブの登録（参考実装）</p>
+          </Link>
         </div>
 
         <hr className="my-8 border-gray-200" />
