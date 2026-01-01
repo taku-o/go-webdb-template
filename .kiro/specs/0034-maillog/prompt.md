@@ -43,5 +43,30 @@ pull requestを作成してください。
 /review 69
 
 
+この指摘が正しいか調査して。
+>  a. 未使用のlogrusインスタンス
+>  mail_logger.go:68-72
+>  logger := logrus.New()
+>  logger.SetOutput(writer)
+>  logger.SetFormatter(&MailLogFormatter{})
+>  logger.SetLevel(logrus.InfoLevel)
+>  loggerフィールドは構造体に保持されるが、LogMail内では直接m.writer.Write()を使用しており、logrusが実際には使われていない。logrusを使用するか、削除を検討。
+
+
+既存のログの実装はどうなっているか調査してください。
+
+  1. logrusフィールドを削除 - writerのみ使用しているため、logrus関連を削除
+  2. logrusを使用するように修正 - 設計書のパターンに合わせてlogrus経由で出力
+
+
+このように修正しましょう。
+> MailLoggerもlogrus経由でログ出力する
+
+修正をcommitして、pull requestを更新してください。
+
+
+/review 69
+
+
 
 
