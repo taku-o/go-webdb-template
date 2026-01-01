@@ -24,7 +24,7 @@ export default function Home() {
         <hr className="my-8 border-gray-200" />
 
         {/* データ操作機能 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Link
             href="/dm-users"
             className="p-6 border rounded-lg hover:border-blue-500 hover:shadow-lg transition-all"
@@ -47,6 +47,14 @@ export default function Home() {
           >
             <h2 className="text-2xl font-semibold mb-2">ユーザーと投稿</h2>
             <p className="text-gray-600">ユーザーと投稿をJOINして表示（クロスシャードクエリ）</p>
+          </Link>
+
+          <Link
+            href="/dm_movie/upload"
+            className="p-6 border rounded-lg hover:border-blue-500 hover:shadow-lg transition-all"
+          >
+            <h2 className="text-2xl font-semibold mb-2">動画アップロード</h2>
+            <p className="text-gray-600">動画ファイルのアップロード（TUSプロトコル）</p>
           </Link>
         </div>
 

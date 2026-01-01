@@ -17,6 +17,10 @@
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.14.0",
+    "@uppy/core": "^5.2.0",
+    "@uppy/dashboard": "^5.1.0",
+    "@uppy/react": "^5.1.1",
+    "@uppy/tus": "^5.1.0",
     "next": "^14.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

@@ -20,6 +20,10 @@ server/bin/
 *.db-journal
 server/data/
 
+# Upload files (development environment)
+server/uploads/
+test_files/
+
 # Config files (production and staging secrets)
 config/production/config.yaml
 config/production/database.yaml

@@ -42,6 +42,7 @@ func NewRouter(dmUserHandler *handler.DmUserHandler, dmPostHandler *handler.DmPo
 		AllowOrigins:     cfg.CORS.AllowedOrigins,
 		AllowMethods:     cfg.CORS.AllowedMethods,
 		AllowHeaders:     cfg.CORS.AllowedHeaders,
+		ExposeHeaders:    cfg.CORS.ExposeHeaders,
 		AllowCredentials: true,
 	}))
 
@@ -92,4 +93,38 @@ func NewRouter(dmUserHandler *handler.DmUserHandler, dmPostHandler *handler.DmPo
 	handler.RegisterTodayEndpoints(humaAPI, todayHandler)
 
 	return e
+}
+
+
+// RegisterUploadEndpoints はTUSアップロードエンドポイントを登録する
+func RegisterUploadEndpoints(e *echo.Echo, h *handler.UploadHandler, cfg *config.Config) error {
+	if h == nil {
+		return nil
+	}
+
+	uploadCfg := h.GetConfig()
+	basePath := uploadCfg.BasePath
+
+	// TUSハンドラーをEchoにマウント
+	// StripPrefixを使用してパスを調整
+	tusHandler := http.StripPrefix(basePath, h.GetHandler())
+
+	// 環境情報を取得
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "develop"
+	}
+
+	// 認証ミドルウェアを作成
+	authMiddleware := auth.NewEchoAuthMiddleware(&cfg.API, env, cfg.API.Auth0IssuerBaseURL)
+
+	// ファイル検証ミドルウェアを作成
+	validationMiddleware := handler.NewUploadValidationMiddleware(uploadCfg)
+
+	// TUSプロトコルの全メソッドをサポート（認証ミドルウェアとファイル検証ミドルウェアを適用）
+	// ミドルウェアは後から追加したものが先に実行される（認証 -> 検証 -> TUSハンドラー）
+	e.Any(basePath, echo.WrapHandler(tusHandler), authMiddleware, validationMiddleware)
+	e.Any(basePath+"/*", echo.WrapHandler(tusHandler), authMiddleware, validationMiddleware)
+
+	return nil
 }

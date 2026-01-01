@@ -472,3 +472,148 @@ func TestLoad_CacheServerConfig(t *testing.T) {
 		t.Errorf("expected CacheServer.Redis.Cluster.Addrs to be empty, got %v", cfg.CacheServer.Redis.Cluster.Addrs)
 	}
 }
+
+// タスク1.1: UploadConfig構造体のテスト
+func TestUploadConfig_Structure(t *testing.T) {
+	// UploadConfig構造体が正しいフィールドを持つことを確認
+	cfg := UploadConfig{
+		BasePath:          "/api/upload/dm_movie",
+		MaxFileSize:       2147483648,
+		AllowedExtensions: []string{"mp4"},
+		Storage: StorageConfig{
+			Type: "local",
+			Local: LocalStorageConfig{
+				Path: "./uploads",
+			},
+			S3: S3StorageConfig{
+				Bucket: "test-bucket",
+				Region: "ap-northeast-1",
+			},
+		},
+	}
+
+	if cfg.BasePath != "/api/upload/dm_movie" {
+		t.Errorf("expected BasePath '/api/upload/dm_movie', got %s", cfg.BasePath)
+	}
+	if cfg.MaxFileSize != 2147483648 {
+		t.Errorf("expected MaxFileSize 2147483648, got %d", cfg.MaxFileSize)
+	}
+	if len(cfg.AllowedExtensions) != 1 {
+		t.Errorf("expected 1 allowed extension, got %d", len(cfg.AllowedExtensions))
+	}
+	if cfg.AllowedExtensions[0] != "mp4" {
+		t.Errorf("expected 'mp4', got %s", cfg.AllowedExtensions[0])
+	}
+	if cfg.Storage.Type != "local" {
+		t.Errorf("expected Storage.Type 'local', got %s", cfg.Storage.Type)
+	}
+	if cfg.Storage.Local.Path != "./uploads" {
+		t.Errorf("expected Storage.Local.Path './uploads', got %s", cfg.Storage.Local.Path)
+	}
+	if cfg.Storage.S3.Bucket != "test-bucket" {
+		t.Errorf("expected Storage.S3.Bucket 'test-bucket', got %s", cfg.Storage.S3.Bucket)
+	}
+	if cfg.Storage.S3.Region != "ap-northeast-1" {
+		t.Errorf("expected Storage.S3.Region 'ap-northeast-1', got %s", cfg.Storage.S3.Region)
+	}
+}
+
+// タスク1.1: StorageConfig構造体のテスト
+func TestStorageConfig_Structure(t *testing.T) {
+	cfg := StorageConfig{
+		Type: "s3",
+		Local: LocalStorageConfig{
+			Path: "./uploads",
+		},
+		S3: S3StorageConfig{
+			Bucket: "my-bucket",
+			Region: "us-east-1",
+		},
+	}
+
+	if cfg.Type != "s3" {
+		t.Errorf("expected Type 's3', got %s", cfg.Type)
+	}
+	if cfg.Local.Path != "./uploads" {
+		t.Errorf("expected Local.Path './uploads', got %s", cfg.Local.Path)
+	}
+	if cfg.S3.Bucket != "my-bucket" {
+		t.Errorf("expected S3.Bucket 'my-bucket', got %s", cfg.S3.Bucket)
+	}
+	if cfg.S3.Region != "us-east-1" {
+		t.Errorf("expected S3.Region 'us-east-1', got %s", cfg.S3.Region)
+	}
+}
+
+// タスク1.1: LocalStorageConfig構造体のテスト
+func TestLocalStorageConfig_Structure(t *testing.T) {
+	cfg := LocalStorageConfig{
+		Path: "/var/uploads",
+	}
+
+	if cfg.Path != "/var/uploads" {
+		t.Errorf("expected Path '/var/uploads', got %s", cfg.Path)
+	}
+}
+
+// タスク1.1: S3StorageConfig構造体のテスト
+func TestS3StorageConfig_Structure(t *testing.T) {
+	cfg := S3StorageConfig{
+		Bucket: "production-bucket",
+		Region: "ap-northeast-1",
+	}
+
+	if cfg.Bucket != "production-bucket" {
+		t.Errorf("expected Bucket 'production-bucket', got %s", cfg.Bucket)
+	}
+	if cfg.Region != "ap-northeast-1" {
+		t.Errorf("expected Region 'ap-northeast-1', got %s", cfg.Region)
+	}
+}
+
+// タスク1.1: ConfigにUploadフィールドがあることを確認
+func TestConfig_HasUploadField(t *testing.T) {
+	cfg := Config{
+		Upload: UploadConfig{
+			BasePath: "/api/upload/dm_movie",
+		},
+	}
+
+	if cfg.Upload.BasePath != "/api/upload/dm_movie" {
+		t.Errorf("expected Upload.BasePath '/api/upload/dm_movie', got %s", cfg.Upload.BasePath)
+	}
+}
+
+// タスク1.2: 設定ファイルからUploadConfigが読み込まれることを確認
+func TestLoad_UploadConfig(t *testing.T) {
+	originalEnv := os.Getenv("APP_ENV")
+	os.Setenv("APP_ENV", "develop")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	viper.Reset()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Skipf("config files not found, skipping: %v", err)
+	}
+
+	// アップロード設定が読み込まれることを確認
+	if cfg.Upload.BasePath != "/api/upload/dm_movie" {
+		t.Errorf("expected Upload.BasePath '/api/upload/dm_movie', got %s", cfg.Upload.BasePath)
+	}
+	if cfg.Upload.MaxFileSize != 2147483648 {
+		t.Errorf("expected Upload.MaxFileSize 2147483648, got %d", cfg.Upload.MaxFileSize)
+	}
+	if len(cfg.Upload.AllowedExtensions) != 1 {
+		t.Errorf("expected 1 allowed extension, got %d", len(cfg.Upload.AllowedExtensions))
+	}
+	if len(cfg.Upload.AllowedExtensions) > 0 && cfg.Upload.AllowedExtensions[0] != "mp4" {
+		t.Errorf("expected 'mp4', got %s", cfg.Upload.AllowedExtensions[0])
+	}
+	if cfg.Upload.Storage.Type != "local" {
+		t.Errorf("expected Storage.Type 'local', got %s", cfg.Upload.Storage.Type)
+	}
+	if cfg.Upload.Storage.Local.Path != "./uploads" {
+		t.Errorf("expected Storage.Local.Path './uploads', got %s", cfg.Upload.Storage.Local.Path)
+	}
+}

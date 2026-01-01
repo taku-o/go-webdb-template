@@ -54,6 +54,19 @@ func main() {
 	// Echoルーターの初期化
 	e := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, cfg)
 
+	// UploadHandlerの初期化（設定がある場合のみ）
+	if cfg.Upload.BasePath != "" {
+		uploadHandler, err := handler.NewUploadHandler(&cfg.Upload)
+		if err != nil {
+			log.Fatalf("Failed to create upload handler: %v", err)
+		}
+		// TUSアップロードエンドポイントの登録
+		if err := router.RegisterUploadEndpoints(e, uploadHandler, cfg); err != nil {
+			log.Fatalf("Failed to register upload endpoints: %v", err)
+		}
+		log.Printf("Upload endpoint enabled: %s", cfg.Upload.BasePath)
+	}
+
 	// アクセスログの初期化
 	accessLogger, err := logging.NewAccessLogger("api", cfg.Logging.OutputDir)
 	if err != nil {
