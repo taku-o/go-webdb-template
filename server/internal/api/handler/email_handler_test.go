@@ -13,7 +13,7 @@ func TestNewEmailHandler(t *testing.T) {
 	cfg := &config.EmailConfig{
 		SenderType: "mock",
 	}
-	emailService, err := email.NewEmailService(cfg)
+	emailService, err := email.NewEmailService(cfg, nil)
 	assert.NoError(t, err)
 
 	templateService := email.NewTemplateService()

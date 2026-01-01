@@ -584,6 +584,47 @@ func TestConfig_HasUploadField(t *testing.T) {
 	}
 }
 
+// タスク1.1: LoggingConfig構造体にMailLogOutputDirフィールドがあることを確認
+func TestLoggingConfig_HasMailLogOutputDirField(t *testing.T) {
+	cfg := LoggingConfig{
+		Level:            "debug",
+		Format:           "json",
+		Output:           "stdout",
+		OutputDir:        "logs",
+		SQLLogEnabled:    true,
+		SQLLogOutputDir:  "logs",
+		MailLogOutputDir: "logs", // 新規追加フィールド
+	}
+
+	if cfg.MailLogOutputDir != "logs" {
+		t.Errorf("expected MailLogOutputDir 'logs', got %s", cfg.MailLogOutputDir)
+	}
+}
+
+// タスク1.1: Load関数でMailLogOutputDirのデフォルト値が設定されることを確認
+func TestLoad_MailLogOutputDirDefault(t *testing.T) {
+	originalEnv := os.Getenv("APP_ENV")
+	os.Setenv("APP_ENV", "develop")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	viper.Reset()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Skipf("config files not found, skipping: %v", err)
+	}
+
+	// MailLogOutputDirが設定されていない場合はOutputDirをデフォルトとして使用
+	if cfg.Logging.MailLogOutputDir == "" {
+		t.Error("expected MailLogOutputDir to have a default value")
+	}
+	// デフォルト値はOutputDirと同じであるべき
+	if cfg.Logging.MailLogOutputDir != cfg.Logging.OutputDir {
+		t.Errorf("expected MailLogOutputDir to default to OutputDir (%s), got %s",
+			cfg.Logging.OutputDir, cfg.Logging.MailLogOutputDir)
+	}
+}
+
 // タスク1.2: 設定ファイルからUploadConfigが読み込まれることを確認
 func TestLoad_UploadConfig(t *testing.T) {
 	originalEnv := os.Getenv("APP_ENV")

@@ -20,6 +20,8 @@ logging:
   output: stdout
   output_dir: ../logs
   sql_log_enabled: true
+  mail_log_enabled: true  # メール送信ログの有効/無効
+  # mail_log_output_dir: ../logs  # メール送信ログ出力先（オプション、未設定時はoutput_dirを使用）
 
 cors:
   allowed_origins:

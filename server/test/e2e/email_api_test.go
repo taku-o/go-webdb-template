@@ -42,7 +42,7 @@ func setupEmailE2EServer(t *testing.T) *httptest.Server {
 	emailCfg := &config.EmailConfig{
 		SenderType: "mock",
 	}
-	emailService, err := email.NewEmailService(emailCfg)
+	emailService, err := email.NewEmailService(emailCfg, nil)
 	require.NoError(t, err)
 	templateService := email.NewTemplateService()
 	emailHandler := handler.NewEmailHandler(emailService, templateService)

@@ -52,8 +52,23 @@ func main() {
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 	todayHandler := handler.NewTodayHandler()
 
+	// メール送信ログの初期化
+	var mailLogger *logging.MailLogger
+	if cfg.Logging.MailLogEnabled {
+		var err error
+		mailLogger, err = logging.NewMailLogger(cfg.Logging.MailLogOutputDir, true)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize mail logger: %v", err)
+			log.Println("Mail logging will be disabled")
+			mailLogger = nil
+		} else {
+			defer mailLogger.Close()
+			log.Printf("Mail logging enabled: %s", cfg.Logging.MailLogOutputDir)
+		}
+	}
+
 	// EmailServiceとTemplateServiceの初期化
-	emailService, err := email.NewEmailService(&cfg.Email)
+	emailService, err := email.NewEmailService(&cfg.Email, mailLogger)
 	if err != nil {
 		log.Fatalf("Failed to create email service: %v", err)
 	}

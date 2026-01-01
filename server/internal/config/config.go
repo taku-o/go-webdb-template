@@ -96,12 +96,14 @@ type ShardConfig struct {
 
 // LoggingConfig はロギング設定
 type LoggingConfig struct {
-	Level           string `mapstructure:"level"`
-	Format          string `mapstructure:"format"`
-	Output          string `mapstructure:"output"`
-	OutputDir       string `mapstructure:"output_dir"`
-	SQLLogEnabled   bool   `mapstructure:"sql_log_enabled"`    // SQLログの有効/無効（オプション）
-	SQLLogOutputDir string `mapstructure:"sql_log_output_dir"` // SQLログ出力先ディレクトリ（オプション）
+	Level            string `mapstructure:"level"`
+	Format           string `mapstructure:"format"`
+	Output           string `mapstructure:"output"`
+	OutputDir        string `mapstructure:"output_dir"`
+	SQLLogEnabled    bool   `mapstructure:"sql_log_enabled"`     // SQLログの有効/無効（オプション）
+	SQLLogOutputDir  string `mapstructure:"sql_log_output_dir"`  // SQLログ出力先ディレクトリ（オプション）
+	MailLogEnabled   bool   `mapstructure:"mail_log_enabled"`    // メール送信ログの有効/無効
+	MailLogOutputDir string `mapstructure:"mail_log_output_dir"` // メール送信ログ出力先ディレクトリ（オプション）
 }
 
 // CORSConfig はCORS設定
@@ -265,6 +267,11 @@ func Load() (*Config, error) {
 	// SQLログ出力先のデフォルト値設定
 	if cfg.Logging.SQLLogOutputDir == "" {
 		cfg.Logging.SQLLogOutputDir = cfg.Logging.OutputDir
+	}
+
+	// メール送信ログ出力先のデフォルト値設定
+	if cfg.Logging.MailLogOutputDir == "" {
+		cfg.Logging.MailLogOutputDir = cfg.Logging.OutputDir
 	}
 
 	// SQLログ有効/無効の環境判定（設定ファイルで明示的に指定されていない場合）
