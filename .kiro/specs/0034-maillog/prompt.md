@@ -21,6 +21,24 @@ _serena_indexing
 
 /kiro:spec-impl 0034-maillog
 
+APIサーバー、クライアントサーバーを再起動してください。
+
+起動して欲しいクライアントサーバーはport 3000のサーバーです。
+
+
+メール送信するしないの判定をコードにもっているけど、これの判別は設定ファイルに移動して欲しい。
+server/cmd/server/main.go
++       // 環境判定（メール送信ログの有効/無効）
++       appEnv := os.Getenv("APP_ENV")
++       if appEnv == "" {
++               appEnv = "develop"
++       }
++       mailLogEnabled := appEnv == "develop" || appEnv == "staging"
+
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/68 に対して
+pull requestを作成してください。
 
 
 

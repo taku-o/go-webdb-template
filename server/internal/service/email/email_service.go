@@ -6,17 +6,20 @@ import (
 	"os"
 
 	"github.com/taku-o/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/logging"
 )
 
 // EmailService はメール送信サービス
 type EmailService struct {
 	sender EmailSender
+	logger *logging.MailLogger
 }
 
 // NewEmailService は新しいEmailServiceを作成
 // 設定ファイルのsender_typeに基づいて適切な送信実装を選択します
 // sender_typeが空の場合は環境変数APP_ENVに基づいてデフォルトを選択します
-func NewEmailService(cfg *config.EmailConfig) (*EmailService, error) {
+// mailLoggerがnilの場合はログ出力を行いません
+func NewEmailService(cfg *config.EmailConfig, mailLogger *logging.MailLogger) (*EmailService, error) {
 	senderType := cfg.SenderType
 
 	// sender_typeが空の場合は環境に基づいてデフォルトを選択
@@ -54,10 +57,34 @@ func NewEmailService(cfg *config.EmailConfig) (*EmailService, error) {
 
 	return &EmailService{
 		sender: sender,
+		logger: mailLogger,
 	}, nil
 }
 
 // SendEmail はメールを送信します
 func (s *EmailService) SendEmail(ctx context.Context, to []string, subject, body string) error {
-	return s.sender.Send(ctx, to, subject, body)
+	// メール送信
+	err := s.sender.Send(ctx, to, subject, body)
+
+	// 送信後のログ出力
+	if s.logger != nil {
+		success := err == nil
+		s.logger.LogMail(to, subject, body, s.GetSenderType(), success, err)
+	}
+
+	return err
+}
+
+// GetSenderType は送信実装の種類を取得
+func (s *EmailService) GetSenderType() string {
+	switch s.sender.(type) {
+	case *MockSender:
+		return "mock"
+	case *MailpitSender:
+		return "mailpit"
+	case *SESSender:
+		return "ses"
+	default:
+		return "unknown"
+	}
 }

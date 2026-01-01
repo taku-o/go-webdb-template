@@ -23,6 +23,9 @@ logging:
   output_dir: /var/log/go-webdb-template
   # SQLログは本番環境では無効化（デフォルトはfalse）
   # sql_log_enabled: false
+  # メール送信ログは本番環境では出力されません（環境判定により自動無効化）
+  # mail_log_enabled: false
+  # mail_log_output_dir: /var/log/go-webdb-template
 
 cors:
   allowed_origins:
