@@ -40,6 +40,8 @@ server/cmd/server/main.go
 その後、https://github.com/taku-o/go-webdb-template/issues/68 に対して
 pull requestを作成してください。
 
+/review 69
+
 
 
 

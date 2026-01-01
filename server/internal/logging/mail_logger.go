@@ -31,14 +31,53 @@ type MailLogEntry struct {
 	Error         string   `json:"error,omitempty"`
 }
 
-// MailLogFormatter はメール送信ログのフォーマッター
-// logrusのFormatterインターフェースに適合させるため定義
-// 実際のJSON出力はLogMailメソッド内で直接行う
+// MailLogFormatter はメール送信ログのJSON形式フォーマッター
 type MailLogFormatter struct{}
 
+// Format はログエントリをJSON形式でフォーマット
+func (f *MailLogFormatter) Format(timestamp time.Time, fields map[string]interface{}) ([]byte, error) {
+	// エラーメッセージの取得
+	errorMsg := ""
+	if fields["error"] != nil {
+		errorMsg = fields["error"].(string)
+	}
+
+	entry := MailLogEntry{
+		Timestamp:     timestamp.Format("2006-01-02 15:04:05"),
+		To:            fields["to"].([]string),
+		Subject:       fields["subject"].(string),
+		Body:          fields["body"].(string),
+		BodyTruncated: fields["body_truncated"].(bool),
+		SenderType:    fields["sender_type"].(string),
+		Success:       fields["success"].(bool),
+		Error:         errorMsg,
+	}
+
+	jsonBytes, err := json.Marshal(entry)
+	if err != nil {
+		return nil, err
+	}
+
+	// 改行を追加
+	return append(jsonBytes, '\n'), nil
+}
+
+// mailLogFormatterAdapter はMailLogFormatterをlogrus.Formatterに適合させるアダプター
+type mailLogFormatterAdapter struct {
+	formatter *MailLogFormatter
+}
+
 // Format はlogrus.Formatterインターフェースを実装
-func (f *MailLogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
-	return []byte{}, nil
+func (a *mailLogFormatterAdapter) Format(entry *logrus.Entry) ([]byte, error) {
+	return a.formatter.Format(entry.Time, map[string]interface{}{
+		"to":             entry.Data["to"],
+		"subject":        entry.Data["subject"],
+		"body":           entry.Data["body"],
+		"body_truncated": entry.Data["body_truncated"],
+		"sender_type":    entry.Data["sender_type"],
+		"success":        entry.Data["success"],
+		"error":          entry.Data["error"],
+	})
 }
 
 // NewMailLogger は新しいMailLoggerを作成
@@ -68,7 +107,7 @@ func NewMailLogger(outputDir string, enabled bool) (*MailLogger, error) {
 	// logrusの設定
 	logger := logrus.New()
 	logger.SetOutput(writer)
-	logger.SetFormatter(&MailLogFormatter{})
+	logger.SetFormatter(&mailLogFormatterAdapter{formatter: &MailLogFormatter{}})
 	logger.SetLevel(logrus.InfoLevel)
 
 	return &MailLogger{
@@ -97,31 +136,16 @@ func (m *MailLogger) LogMail(to []string, subject, body, senderType string, succ
 		errorMsg = err.Error()
 	}
 
-	// ログエントリの作成
-	entry := MailLogEntry{
-		Timestamp:     time.Now().Format("2006-01-02 15:04:05"),
-		To:            to,
-		Subject:       subject,
-		Body:          body,
-		BodyTruncated: bodyTruncated,
-		SenderType:    senderType,
-		Success:       success,
-		Error:         errorMsg,
-	}
-
-	// JSON形式で出力
-	jsonBytes, jsonErr := json.Marshal(entry)
-	if jsonErr != nil {
-		// JSONエンコードに失敗した場合は標準エラー出力に記録
-		fmt.Fprintf(os.Stderr, "Failed to encode mail log: %v\n", jsonErr)
-		return
-	}
-
-	// ログファイルに出力（改行を追加）
-	if _, writeErr := m.writer.Write(append(jsonBytes, '\n')); writeErr != nil {
-		// ログ出力に失敗した場合は標準エラー出力に記録
-		fmt.Fprintf(os.Stderr, "Failed to write mail log: %v\n", writeErr)
-	}
+	// logrus経由でログ出力
+	m.logger.WithFields(logrus.Fields{
+		"to":             to,
+		"subject":        subject,
+		"body":           body,
+		"body_truncated": bodyTruncated,
+		"sender_type":    senderType,
+		"success":        success,
+		"error":          errorMsg,
+	}).Info("mail")
 }
 
 // Close はロガーをクローズ
