@@ -51,8 +51,10 @@ func TestNewRateLimitMiddleware_Enabled(t *testing.T) {
 		},
 		CacheServer: config.CacheServerConfig{
 			Redis: config.RedisConfig{
-				Cluster: config.RedisClusterConfig{
-					Addrs: []string{}, // In-Memoryストレージを使用
+				Default: config.RedisDefaultConfig{
+					Cluster: config.RedisClusterConfig{
+						Addrs: []string{}, // In-Memoryストレージを使用
+					},
 				},
 			},
 		},
@@ -94,8 +96,10 @@ func TestNewRateLimitMiddleware_RateLimitExceeded(t *testing.T) {
 		},
 		CacheServer: config.CacheServerConfig{
 			Redis: config.RedisConfig{
-				Cluster: config.RedisClusterConfig{
-					Addrs: []string{}, // In-Memoryストレージを使用
+				Default: config.RedisDefaultConfig{
+					Cluster: config.RedisClusterConfig{
+						Addrs: []string{}, // In-Memoryストレージを使用
+					},
 				},
 			},
 		},
@@ -143,8 +147,10 @@ func TestNewRateLimitMiddleware_DifferentIPs(t *testing.T) {
 		},
 		CacheServer: config.CacheServerConfig{
 			Redis: config.RedisConfig{
-				Cluster: config.RedisClusterConfig{
-					Addrs: []string{}, // In-Memoryストレージを使用
+				Default: config.RedisDefaultConfig{
+					Cluster: config.RedisClusterConfig{
+						Addrs: []string{}, // In-Memoryストレージを使用
+					},
 				},
 			},
 		},
@@ -186,8 +192,10 @@ func TestNewRateLimitMiddleware_HourlyRateLimitEnabled(t *testing.T) {
 		},
 		CacheServer: config.CacheServerConfig{
 			Redis: config.RedisConfig{
-				Cluster: config.RedisClusterConfig{
-					Addrs: []string{}, // In-Memoryストレージを使用
+				Default: config.RedisDefaultConfig{
+					Cluster: config.RedisClusterConfig{
+						Addrs: []string{}, // In-Memoryストレージを使用
+					},
 				},
 			},
 		},
@@ -235,8 +243,10 @@ func TestNewRateLimitMiddleware_HourlyRateLimitExceeded(t *testing.T) {
 		},
 		CacheServer: config.CacheServerConfig{
 			Redis: config.RedisConfig{
-				Cluster: config.RedisClusterConfig{
-					Addrs: []string{}, // In-Memoryストレージを使用
+				Default: config.RedisDefaultConfig{
+					Cluster: config.RedisClusterConfig{
+						Addrs: []string{}, // In-Memoryストレージを使用
+					},
 				},
 			},
 		},
@@ -285,8 +295,10 @@ func TestNewRateLimitMiddleware_HourlyRateLimitNotConfigured(t *testing.T) {
 		},
 		CacheServer: config.CacheServerConfig{
 			Redis: config.RedisConfig{
-				Cluster: config.RedisClusterConfig{
-					Addrs: []string{}, // In-Memoryストレージを使用
+				Default: config.RedisDefaultConfig{
+					Cluster: config.RedisClusterConfig{
+						Addrs: []string{}, // In-Memoryストレージを使用
+					},
 				},
 			},
 		},

@@ -129,15 +129,39 @@ func NewRateLimitMiddleware(cfg *config.Config) (echo.MiddlewareFunc, error) {
 
 // initStore は環境に応じたストレージを初期化
 func initStore(cfg *config.Config, prefix string) (limiter.Store, error) {
-	// キャッシュサーバー設定からRedis Clusterのアドレスを取得
-	if len(cfg.CacheServer.Redis.Cluster.Addrs) == 0 {
+	// StorageType設定を取得（デフォルトは"auto"）
+	storageType := cfg.API.RateLimit.StorageType
+	if storageType == "" {
+		storageType = "auto"
+	}
+
+	// "memory"が指定された場合は強制的にIn-Memoryストレージを使用
+	if storageType == "memory" {
+		return memory.NewStore(), nil
+	}
+
+	// "redis"が指定された場合は強制的にRedisを使用
+	if storageType == "redis" {
+		if len(cfg.CacheServer.Redis.Default.Cluster.Addrs) == 0 {
+			return nil, fmt.Errorf("redis storage type specified but no redis addresses configured")
+		}
+		rdb := redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs: cfg.CacheServer.Redis.Default.Cluster.Addrs,
+		})
+		return redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
+			Prefix: prefix,
+		})
+	}
+
+	// "auto"の場合：Redis設定があればRedis、なければIn-Memory
+	if len(cfg.CacheServer.Redis.Default.Cluster.Addrs) == 0 {
 		// In-Memoryストレージを使用
 		return memory.NewStore(), nil
 	}
 
 	// Redis Clusterを使用
 	rdb := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs: cfg.CacheServer.Redis.Cluster.Addrs,
+		Addrs: cfg.CacheServer.Redis.Default.Cluster.Addrs,
 	})
 
 	// Redisストアの作成

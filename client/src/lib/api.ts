@@ -1,5 +1,6 @@
 import { User, CreateUserRequest, UpdateUserRequest } from '@/types/user'
 import { Post, CreatePostRequest, UpdatePostRequest, UserPost } from '@/types/post'
+import { RegisterJobRequest, RegisterJobResponse } from '@/types/jobqueue'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
 
@@ -140,6 +141,14 @@ class ApiClient {
     return this.request<{ success: boolean; message: string }>('/api/email/send', {
       method: 'POST',
       body: JSON.stringify({ to, template, data }),
+    })
+  }
+
+  // JobQueue API (Demo)
+  async registerJob(data?: RegisterJobRequest): Promise<RegisterJobResponse> {
+    return this.request<RegisterJobResponse>('/api/dm-jobqueue/register', {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
     })
   }
 

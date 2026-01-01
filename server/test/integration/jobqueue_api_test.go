@@ -19,7 +19,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func setupEmailTestServer(t *testing.T) *httptest.Server {
+func setupJobqueueTestServer(t *testing.T, withJobqueueHandler bool) *httptest.Server {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	t.Cleanup(func() {
@@ -47,15 +47,23 @@ func setupEmailTestServer(t *testing.T) *httptest.Server {
 	templateService := email.NewTemplateService()
 	emailHandler := handler.NewEmailHandler(emailService, templateService)
 
+	// JobqueueHandler（Redisなしでテストする場合はnil）
+	var dmJobqueueHandler *handler.DmJobqueueHandler
+	if withJobqueueHandler {
+		// nilクライアントでハンドラーを作成（Redis接続なしのテスト用）
+		dmJobqueueHandler = handler.NewDmJobqueueHandler(nil)
+	}
+
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()
-	r := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, nil, cfg)
+	r := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, dmJobqueueHandler, cfg)
 
 	return httptest.NewServer(r)
 }
 
-func TestEmailAPI_SendEmail_Success(t *testing.T) {
-	server := setupEmailTestServer(t)
+func TestJobqueueAPI_RegisterJob_ServiceUnavailable(t *testing.T) {
+	// nilクライアントでサーバーを起動（Redisなし）
+	server := setupJobqueueTestServer(t, true)
 	defer server.Close()
 
 	// Get valid token
@@ -64,164 +72,142 @@ func TestEmailAPI_SendEmail_Success(t *testing.T) {
 
 	// Prepare request body
 	requestBody := map[string]interface{}{
-		"to":       []string{"test@example.com"},
-		"template": "welcome",
-		"data": map[string]interface{}{
-			"Name":  "テスト太郎",
-			"Email": "test@example.com",
-		},
+		"message":       "Test job message",
+		"delay_seconds": 10,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(t, err)
 
 	// Send request
-	req, err := http.NewRequest("POST", server.URL+"/api/email/send", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", server.URL+"/api/dm-jobqueue/register", bytes.NewReader(body))
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	// Parse response
-	var result map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	require.NoError(t, err)
-	assert.Equal(t, true, result["success"])
+	// Redis接続なしの場合は503エラー
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 }
 
-func TestEmailAPI_SendEmail_NoAuth(t *testing.T) {
-	server := setupEmailTestServer(t)
+func TestJobqueueAPI_RegisterJob_WithoutHandler(t *testing.T) {
+	// ハンドラーなしでサーバーを起動
+	server := setupJobqueueTestServer(t, false)
 	defer server.Close()
+
+	// Get valid token
+	token, err := testutil.GetTestAPIToken()
+	require.NoError(t, err)
 
 	// Prepare request body
 	requestBody := map[string]interface{}{
-		"to":       []string{"test@example.com"},
-		"template": "welcome",
-		"data": map[string]interface{}{
-			"Name":  "テスト太郎",
-			"Email": "test@example.com",
-		},
+		"message": "Test job message",
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(t, err)
 
-	// Send request without auth
-	req, err := http.NewRequest("POST", server.URL+"/api/email/send", bytes.NewReader(body))
+	// Send request
+	req, err := http.NewRequest("POST", server.URL+"/api/dm-jobqueue/register", bytes.NewReader(body))
 	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
+	// ハンドラーが登録されていない場合は404エラー
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestJobqueueAPI_RegisterJob_EmptyBody(t *testing.T) {
+	// nilクライアントでサーバーを起動
+	server := setupJobqueueTestServer(t, true)
+	defer server.Close()
+
+	// Get valid token
+	token, err := testutil.GetTestAPIToken()
+	require.NoError(t, err)
+
+	// 空のリクエストボディ
+	requestBody := map[string]interface{}{}
+	body, err := json.Marshal(requestBody)
+	require.NoError(t, err)
+
+	// Send request
+	req, err := http.NewRequest("POST", server.URL+"/api/dm-jobqueue/register", bytes.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Redis接続なしの場合は503エラー（ボディが空でもnilクライアントチェックが先に行われる）
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestJobqueueAPI_RegisterJob_WithCustomDelaySeconds(t *testing.T) {
+	// nilクライアントでサーバーを起動
+	server := setupJobqueueTestServer(t, true)
+	defer server.Close()
+
+	// Get valid token
+	token, err := testutil.GetTestAPIToken()
+	require.NoError(t, err)
+
+	// カスタム遅延時間を含むリクエストボディ
+	requestBody := map[string]interface{}{
+		"message":       "Test with custom delay",
+		"delay_seconds": 60,
+		"max_retry":     3,
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(t, err)
+
+	// Send request
+	req, err := http.NewRequest("POST", server.URL+"/api/dm-jobqueue/register", bytes.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Redis接続なしの場合は503エラー
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+}
+
+func TestJobqueueAPI_RegisterJob_UnauthorizedWithoutToken(t *testing.T) {
+	// サーバーを起動
+	server := setupJobqueueTestServer(t, true)
+	defer server.Close()
+
+	// リクエストボディ
+	requestBody := map[string]interface{}{
+		"message": "Test job message",
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(t, err)
+
+	// トークンなしでリクエスト
+	req, err := http.NewRequest("POST", server.URL+"/api/dm-jobqueue/register", bytes.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// 認証エラー
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
-}
-
-func TestEmailAPI_SendEmail_InvalidEmail(t *testing.T) {
-	server := setupEmailTestServer(t)
-	defer server.Close()
-
-	// Get valid token
-	token, err := testutil.GetTestAPIToken()
-	require.NoError(t, err)
-
-	// Prepare request body with invalid email
-	requestBody := map[string]interface{}{
-		"to":       []string{"invalid-email"},
-		"template": "welcome",
-		"data": map[string]interface{}{
-			"Name":  "テスト太郎",
-			"Email": "invalid-email",
-		},
-	}
-	body, err := json.Marshal(requestBody)
-	require.NoError(t, err)
-
-	// Send request
-	req, err := http.NewRequest("POST", server.URL+"/api/email/send", bytes.NewReader(body))
-	require.NoError(t, err)
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-}
-
-func TestEmailAPI_SendEmail_InvalidTemplate(t *testing.T) {
-	server := setupEmailTestServer(t)
-	defer server.Close()
-
-	// Get valid token
-	token, err := testutil.GetTestAPIToken()
-	require.NoError(t, err)
-
-	// Prepare request body with non-existent template
-	requestBody := map[string]interface{}{
-		"to":       []string{"test@example.com"},
-		"template": "nonexistent",
-		"data": map[string]interface{}{
-			"Name":  "テスト太郎",
-			"Email": "test@example.com",
-		},
-	}
-	body, err := json.Marshal(requestBody)
-	require.NoError(t, err)
-
-	// Send request
-	req, err := http.NewRequest("POST", server.URL+"/api/email/send", bytes.NewReader(body))
-	require.NoError(t, err)
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-}
-
-func TestEmailAPI_SendEmail_MultipleRecipients(t *testing.T) {
-	server := setupEmailTestServer(t)
-	defer server.Close()
-
-	// Get valid token
-	token, err := testutil.GetTestAPIToken()
-	require.NoError(t, err)
-
-	// Prepare request body with multiple recipients
-	requestBody := map[string]interface{}{
-		"to":       []string{"user1@example.com", "user2@example.com", "user3@example.com"},
-		"template": "welcome",
-		"data": map[string]interface{}{
-			"Name":  "テスト太郎",
-			"Email": "user1@example.com",
-		},
-	}
-	body, err := json.Marshal(requestBody)
-	require.NoError(t, err)
-
-	// Send request
-	req, err := http.NewRequest("POST", server.URL+"/api/email/send", bytes.NewReader(body))
-	require.NoError(t, err)
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	// Parse response
-	var result map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	require.NoError(t, err)
-	assert.Equal(t, true, result["success"])
 }

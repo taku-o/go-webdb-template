@@ -20,6 +20,13 @@ server/bin/
 *.db-journal
 server/data/
 
+# Redis data
+redis/data/
+
+# Redis Insight (接続設定のみGit管理対象)
+redis/insight/*
+!redis/insight/redisinsight.db
+
 # Upload files (development environment)
 server/uploads/
 test_files/
