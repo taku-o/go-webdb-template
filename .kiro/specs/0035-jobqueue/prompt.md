@@ -276,10 +276,13 @@ tasks.mdのチェックボックスを更新してください。
 https://github.com/taku-o/go-webdb-template/issues/70 に対して
 pull requestを作成してください。
 
+/review 71
 
+> ドキュメントの複数サーバーインスタンスの問題
+これ間違ってない？
+複数サーバーでも正しく動作しそうだよ
 
-
-
+いや、これは私が直した方がいいな。
 
 
 
