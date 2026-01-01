@@ -80,3 +80,12 @@ type GetDmUserPostsInput struct {
 // GetTodayInput は今日の日付取得リクエストの入力構造体
 type GetTodayInput struct {
 }
+
+// SendEmailInput はメール送信リクエストの入力構造体
+type SendEmailInput struct {
+	Body struct {
+		To       []string               `json:"to" required:"true" minItems:"1" doc:"送信先メールアドレスリスト"`
+		Template string                 `json:"template" required:"true" doc:"テンプレート名"`
+		Data     map[string]interface{} `json:"data" required:"true" doc:"テンプレートデータ"`
+	}
+}

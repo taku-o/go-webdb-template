@@ -20,7 +20,7 @@ func TestOpenAPIEndpoint(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
 	// ハンドラーはnilでも登録テストは可能
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// テスト用のAPIトークンを取得
 	token, err := testutil.GetTestAPIToken()
@@ -66,7 +66,7 @@ func TestOpenAPIEndpoint(t *testing.T) {
 func TestHealthEndpoint(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
@@ -98,7 +98,7 @@ func TestSecuritySchemeInOpenAPI(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
 	// ルーターを作成
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// テスト用のAPIトークンを取得
 	token, err := testutil.GetTestAPIToken()
@@ -141,7 +141,7 @@ func TestEndpointSecurityInOpenAPI(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
 	// ルーターを作成
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// テスト用のAPIトークンを取得
 	token, err := testutil.GetTestAPIToken()
@@ -214,7 +214,7 @@ func TestEndpointAccessLevelInOpenAPI(t *testing.T) {
 	cfg := testutil.GetTestConfig()
 
 	// ルーターを作成
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// テスト用のAPIトークンを取得
 	token, err := testutil.GetTestAPIToken()
@@ -319,7 +319,7 @@ func TestRegisterUploadEndpoints(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := testutil.GetTestConfig()
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// TUSエンドポイントを登録
 	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
@@ -361,7 +361,7 @@ func TestRegisterUploadEndpoints_Unauthorized(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := testutil.GetTestConfig()
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// TUSエンドポイントを登録
 	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
@@ -398,7 +398,7 @@ func TestRegisterUploadEndpoints_FileSizeExceeded(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := testutil.GetTestConfig()
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// TUSエンドポイントを登録
 	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
@@ -440,7 +440,7 @@ func TestRegisterUploadEndpoints_InvalidExtension(t *testing.T) {
 	require.NoError(t, err)
 
 	cfg := testutil.GetTestConfig()
-	router := NewRouter(nil, nil, nil, cfg)
+	router := NewRouter(nil, nil, nil, nil, cfg)
 
 	// TUSエンドポイントを登録
 	err = RegisterUploadEndpoints(router, uploadHandler, cfg)

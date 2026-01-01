@@ -1,0 +1,23 @@
+{
+  "feature": "0033-mailsender",
+  "description": "メール送信機能の実装（標準出力、Mailpit、AWS SES対応、テンプレート機能）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "updated_at": "2025-01-27T20:00:00Z",
+  "phase": "tasks-approved",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}

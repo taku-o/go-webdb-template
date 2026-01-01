@@ -8,8 +8,10 @@ require (
 	github.com/GoAdminGroup/go-admin v1.2.26
 	github.com/GoAdminGroup/themes v0.0.48
 	github.com/MicahParks/keyfunc/v2 v2.1.0
+	github.com/aws/aws-sdk-go-v2 v1.41.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.6
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.95.0
+	github.com/aws/aws-sdk-go-v2/service/ses v1.34.17
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
@@ -24,6 +26,7 @@ require (
 	github.com/tus/tusd/v2 v2.8.0
 	github.com/ulule/limiter/v3 v3.11.2
 	golang.org/x/crypto v0.46.0
+	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/driver/postgres v1.5.9
@@ -37,7 +40,6 @@ require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1 // indirect
 	github.com/GoAdminGroup/html v0.0.1 // indirect
 	github.com/NebulousLabs/fastrand v0.0.0-20181203155948-6fb6489aac4e // indirect
-	github.com/aws/aws-sdk-go-v2 v1.41.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.4 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.6 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.16 // indirect
@@ -119,6 +121,7 @@ require (
 	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
