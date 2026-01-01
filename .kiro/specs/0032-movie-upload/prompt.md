@@ -170,9 +170,10 @@ tus: unexpected response while creating upload, originated from request (method:
 
 一時的な設定の変更は元に戻しておきました。
 ここまでの修正をcommitしてください。
-その後、https://github.com/taku-o/go-webdb-template/issues/62 に対して
+その後、https://github.com/taku-o/go-webdb-template/issues/64 に対して
 pull requestを作成してください。
 
+/review 65
 
 
 
