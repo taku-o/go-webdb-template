@@ -57,6 +57,14 @@ pull requestを作成してください。
 
 /review 67
 
+この指摘を取り込んでください。
+>  1. エラーハンドリング（軽微）
+>
+>  ファイル: server/internal/service/email/ses_sender.go:40
+>  _, err := s.client.SendEmail(context.TODO(), input)
+>  - context.TODO()ではなく、ハンドラーから渡されたcontextを使用することを推奨
+>  - タイムアウト制御が効かない可能性
 
+/review 67
 
 
