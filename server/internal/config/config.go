@@ -17,6 +17,7 @@ type Config struct {
 	CORS        CORSConfig        `mapstructure:"cors"`
 	API         APIConfig         `mapstructure:"api"`
 	CacheServer CacheServerConfig `mapstructure:"cache_server"` // キャッシュサーバー設定
+	Upload      UploadConfig      `mapstructure:"upload"`       // アップロード設定
 }
 
 // CacheServerConfig はキャッシュサーバー設定
@@ -107,6 +108,7 @@ type CORSConfig struct {
 	AllowedOrigins []string `mapstructure:"allowed_origins"`
 	AllowedMethods []string `mapstructure:"allowed_methods"`
 	AllowedHeaders []string `mapstructure:"allowed_headers"`
+	ExposeHeaders  []string `mapstructure:"expose_headers"`
 }
 
 // APIConfig はAPIキー設定
@@ -144,6 +146,32 @@ type AuthConfig struct {
 // SessionConfig はセッション設定
 type SessionConfig struct {
 	Lifetime int `mapstructure:"lifetime"`
+}
+
+// UploadConfig はアップロード機能の設定
+type UploadConfig struct {
+	BasePath          string        `mapstructure:"base_path"`          // TUSエンドポイントのベースパス
+	MaxFileSize       int64         `mapstructure:"max_file_size"`      // 最大ファイルサイズ
+	AllowedExtensions []string      `mapstructure:"allowed_extensions"` // 許可された拡張子リスト
+	Storage           StorageConfig `mapstructure:"storage"`            // ストレージ設定
+}
+
+// StorageConfig はストレージ設定
+type StorageConfig struct {
+	Type  string             `mapstructure:"type"` // ストレージタイプ（"local" or "s3"）
+	Local LocalStorageConfig `mapstructure:"local"`
+	S3    S3StorageConfig    `mapstructure:"s3"`
+}
+
+// LocalStorageConfig はローカルストレージ設定
+type LocalStorageConfig struct {
+	Path string `mapstructure:"path"` // ローカル保存パス
+}
+
+// S3StorageConfig はS3ストレージ設定
+type S3StorageConfig struct {
+	Bucket string `mapstructure:"bucket"` // S3バケット名
+	Region string `mapstructure:"region"` // AWSリージョン
 }
 
 // Load は指定された環境の設定ファイルを読み込む

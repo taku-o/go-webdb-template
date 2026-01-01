@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	"github.com/taku-o/go-webdb-template/internal/api/handler"
+	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/test/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -293,4 +295,169 @@ func TestEndpointAccessLevelInOpenAPI(t *testing.T) {
 			assert.Contains(t, description, ep.expectedDescription, "description should contain '%s' for %s %s", ep.expectedDescription, ep.method, ep.path)
 		})
 	}
+}
+
+// TestRegisterUploadEndpoints はTUSアップロードエンドポイントが登録されることを確認
+func TestRegisterUploadEndpoints(t *testing.T) {
+	// テスト用の一時ディレクトリを作成
+	tempDir := t.TempDir()
+	uploadPath := filepath.Join(tempDir, "uploads")
+
+	uploadCfg := &config.UploadConfig{
+		BasePath:          "/api/upload/dm_movie",
+		MaxFileSize:       2147483648,
+		AllowedExtensions: []string{"mp4"},
+		Storage: config.StorageConfig{
+			Type: "local",
+			Local: config.LocalStorageConfig{
+				Path: uploadPath,
+			},
+		},
+	}
+
+	uploadHandler, err := handler.NewUploadHandler(uploadCfg)
+	require.NoError(t, err)
+
+	cfg := testutil.GetTestConfig()
+	router := NewRouter(nil, nil, nil, cfg)
+
+	// TUSエンドポイントを登録
+	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
+	require.NoError(t, err)
+
+	// TUS OPTIONSリクエストのテスト
+	token, err := testutil.GetTestAPIToken()
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodOptions, "/api/upload/dm_movie", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	// TUSプロトコルのOPTIONSリクエストは200または204を返す
+	assert.True(t, rec.Code == http.StatusOK || rec.Code == http.StatusNoContent,
+		"expected status 200 or 204, got %d", rec.Code)
+}
+
+// TestRegisterUploadEndpoints_Unauthorized は認証なしでTUSエンドポイントにアクセスした場合に401を返すことを確認
+func TestRegisterUploadEndpoints_Unauthorized(t *testing.T) {
+	// テスト用の一時ディレクトリを作成
+	tempDir := t.TempDir()
+	uploadPath := filepath.Join(tempDir, "uploads")
+
+	uploadCfg := &config.UploadConfig{
+		BasePath:          "/api/upload/dm_movie",
+		MaxFileSize:       2147483648,
+		AllowedExtensions: []string{"mp4"},
+		Storage: config.StorageConfig{
+			Type: "local",
+			Local: config.LocalStorageConfig{
+				Path: uploadPath,
+			},
+		},
+	}
+
+	uploadHandler, err := handler.NewUploadHandler(uploadCfg)
+	require.NoError(t, err)
+
+	cfg := testutil.GetTestConfig()
+	router := NewRouter(nil, nil, nil, cfg)
+
+	// TUSエンドポイントを登録
+	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
+	require.NoError(t, err)
+
+	// 認証なしのリクエスト
+	req := httptest.NewRequest(http.MethodPost, "/api/upload/dm_movie", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	// 認証エラーで401が返される
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+}
+
+// TestRegisterUploadEndpoints_FileSizeExceeded はファイルサイズ超過時に413を返すことを確認
+func TestRegisterUploadEndpoints_FileSizeExceeded(t *testing.T) {
+	// テスト用の一時ディレクトリを作成
+	tempDir := t.TempDir()
+	uploadPath := filepath.Join(tempDir, "uploads")
+
+	uploadCfg := &config.UploadConfig{
+		BasePath:          "/api/upload/dm_movie",
+		MaxFileSize:       1024 * 1024, // 1MB
+		AllowedExtensions: []string{"mp4"},
+		Storage: config.StorageConfig{
+			Type: "local",
+			Local: config.LocalStorageConfig{
+				Path: uploadPath,
+			},
+		},
+	}
+
+	uploadHandler, err := handler.NewUploadHandler(uploadCfg)
+	require.NoError(t, err)
+
+	cfg := testutil.GetTestConfig()
+	router := NewRouter(nil, nil, nil, cfg)
+
+	// TUSエンドポイントを登録
+	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
+	require.NoError(t, err)
+
+	token, err := testutil.GetTestAPIToken()
+	require.NoError(t, err)
+
+	// 2MBのファイルをアップロードしようとする（制限超過）
+	req := httptest.NewRequest(http.MethodPost, "/api/upload/dm_movie", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Upload-Length", "2097152") // 2MB
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	// ファイルサイズ超過で413が返される
+	assert.Equal(t, http.StatusRequestEntityTooLarge, rec.Code)
+}
+
+// TestRegisterUploadEndpoints_InvalidExtension は無効な拡張子で400を返すことを確認
+func TestRegisterUploadEndpoints_InvalidExtension(t *testing.T) {
+	// テスト用の一時ディレクトリを作成
+	tempDir := t.TempDir()
+	uploadPath := filepath.Join(tempDir, "uploads")
+
+	uploadCfg := &config.UploadConfig{
+		BasePath:          "/api/upload/dm_movie",
+		MaxFileSize:       2147483648,
+		AllowedExtensions: []string{"mp4"},
+		Storage: config.StorageConfig{
+			Type: "local",
+			Local: config.LocalStorageConfig{
+				Path: uploadPath,
+			},
+		},
+	}
+
+	uploadHandler, err := handler.NewUploadHandler(uploadCfg)
+	require.NoError(t, err)
+
+	cfg := testutil.GetTestConfig()
+	router := NewRouter(nil, nil, nil, cfg)
+
+	// TUSエンドポイントを登録
+	err = RegisterUploadEndpoints(router, uploadHandler, cfg)
+	require.NoError(t, err)
+
+	token, err := testutil.GetTestAPIToken()
+	require.NoError(t, err)
+
+	// 無効な拡張子のファイルをアップロードしようとする
+	req := httptest.NewRequest(http.MethodPost, "/api/upload/dm_movie", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Upload-Length", "524288")
+	// filename test.txt -> dGVzdC50eHQ=
+	req.Header.Set("Upload-Metadata", "filename dGVzdC50eHQ=")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	// 拡張子エラーで400が返される
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }

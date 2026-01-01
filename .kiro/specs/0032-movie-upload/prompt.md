@@ -106,7 +106,73 @@ _serena_indexing
 
 /serena-initialize
 
+/kiro:spec-impl 0032-movie-upload 1
 /kiro:spec-impl 0032-movie-upload
+
+クライアントサーバーと、APIサーバーを再起動して。
+
+クライアントのトップページから動画アップロード画面に遷移するリンクがない？
+
+他のページのように
+動画アップロード画面に「トップページに戻る」リンクが欲しい。
+
+動画アップロードのテストをしたい。
+小さな.mp4ファイルと、大きな.mp4ファイルを生成して。拡張子がmp4なだけのダミーファイルでいい。
+
+動画をアップロード時にエラー
+
+> URLが undefined/api/upload/dm_movie になっています。NEXT_PUBLIC_API_URL 環境変数が設定されていません。
+
+お願いします。
+>   1. main.goでUploadHandlerを作成
+>   2. RegisterUploadEndpointsを呼び出してエンドポイントを登録
+> 
+>   この変更を実施してよろしいでしょうか？
+
+
+NEXT_PUBLIC_API_URL が追加されたけど、
+既に、APP_BASE_URL っていう設定が入っているみたい。
+APP_BASE_URLを使用するように修正できない？
+
+今まで、NEXT_PUBLIC_API_URLの設定はなかったけど、
+APIサーバーにリクエストを飛ばしていたよね？
+どうやって、APIサーバーのURLを特定してたの？ポートのみ？
+
+いや、設定は明示的に行うべき。
+client/.env.* 全部に今回追加した設定のキーを追加したい。
+
+
+動画ファイルアップロード時にエラー
+[Error] Request header field Tus-Resumable is not allowed by Access-Control-Allow-Headers.
+[Error] XMLHttpRequest cannot load http://localhost:8080/api/upload/dm_movie due to access control checks.
+[Error] Failed to load resource: Request header field Tus-Resumable is not allowed by Access-Control-Allow-Headers. (dm_movie, line 0)
+
+
+config/develop/config.yaml に入れた修正を
+config/production/config.yaml
+config/staging/config.yaml
+にも追加して。
+
+アップロードしたファイルは、
+server/uploadsに置かれる？
+ファイル名などの情報は、.infoファイルから取得すればいい？
+
+作って貰った large_test.mp4 でも一瞬でアップロード終わっちゃうね。
+アップロードの中断、再開をテストする方法はないかな？
+一時的に設定を変更しても良い。
+
+これお願い。git add してあるから、あとですぐに戻せるよ。
+>  方法2: クライアント側でチャンクサイズを小さくする
+>  - page.tsxのchunkSizeを小さくして、チャンク送信間隔を追加
+
+動画アップロードの最中に次のエラーが起きた。
+tus: unexpected response while creating upload, originated from request (method: POST, url: http://localhost:8080/api/upload/dm_movie, response code: 429, response text: { "code": 429, "message": "Too Many Requests" } , request id: n/a)
+
+一時的な設定の変更は元に戻しておきました。
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/62 に対して
+pull requestを作成してください。
+
 
 
 

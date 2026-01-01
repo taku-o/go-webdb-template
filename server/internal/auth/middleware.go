@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
@@ -151,6 +152,97 @@ func NewHumaAuthMiddleware(cfg *config.APIConfig, env string, auth0IssuerBaseURL
 
 		// 次のハンドラーを実行
 		next(ctx)
+	}
+}
+
+
+// NewEchoAuthMiddleware はEcho用の認証ミドルウェアを作成する
+// TUSエンドポイントなどEchoに直接登録されるハンドラーで使用する
+func NewEchoAuthMiddleware(cfg *config.APIConfig, env string, auth0IssuerBaseURL string) echo.MiddlewareFunc {
+	validator := NewJWTValidator(cfg, env)
+
+	// Auth0Validatorの初期化
+	var auth0Validator *Auth0Validator
+	if auth0IssuerBaseURL != "" {
+		var err error
+		auth0Validator, err = NewAuth0Validator(auth0IssuerBaseURL)
+		if err != nil {
+			// エラーハンドリング（起動時エラーとして処理）
+			panic("failed to create Auth0Validator: " + err.Error())
+		}
+	}
+
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// AuthorizationヘッダーからJWTトークンを取得
+			authHeader := c.Request().Header.Get("Authorization")
+			if authHeader == "" {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Authorization header is required",
+				})
+			}
+
+			// Bearerトークンの抽出
+			parts := strings.Split(authHeader, " ")
+			if len(parts) != 2 || parts[0] != "Bearer" {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Invalid authorization header format",
+				})
+			}
+
+			tokenString := parts[1]
+
+			// JWT種類の判別
+			jwtType, err := DetectJWTType(tokenString)
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Invalid token format",
+				})
+			}
+
+			var claims *JWTClaims
+
+			// JWT種類に応じた検証
+			switch jwtType {
+			case JWTTypeAuth0:
+				if auth0Validator == nil {
+					return c.JSON(http.StatusUnauthorized, map[string]string{
+						"error": "Auth0 JWT validation is not configured",
+					})
+				}
+				_, err = auth0Validator.ValidateAuth0JWT(tokenString)
+				if err != nil {
+					return c.JSON(http.StatusUnauthorized, map[string]string{
+						"error": "Invalid Auth0 JWT",
+					})
+				}
+
+			case JWTTypePublicAPIKey:
+				claims, err = validator.ValidateJWT(tokenString)
+				if err != nil {
+					return c.JSON(http.StatusUnauthorized, map[string]string{
+						"error": "Invalid API key",
+					})
+				}
+
+			default:
+				return c.JSON(http.StatusUnauthorized, map[string]string{
+					"error": "Unknown JWT type",
+				})
+			}
+
+			// スコープ検証（Public API Key JWTの場合のみ）
+			if jwtType == JWTTypePublicAPIKey && claims != nil {
+				if err := validateScope(claims, c.Request().Method); err != nil {
+					return c.JSON(http.StatusForbidden, map[string]string{
+						"error": "Insufficient scope",
+					})
+				}
+			}
+
+			// 次のハンドラーを実行
+			return next(c)
+		}
 	}
 }
 

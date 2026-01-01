@@ -29,10 +29,24 @@ cors:
     - POST
     - PUT
     - DELETE
+    - PATCH
+    - HEAD
     - OPTIONS
   allowed_headers:
     - Content-Type
     - Authorization
+    - Tus-Resumable
+    - Upload-Length
+    - Upload-Offset
+    - Upload-Metadata
+  expose_headers:
+    - Location
+    - Upload-Offset
+    - Upload-Length
+    - Tus-Resumable
+    - Tus-Version
+    - Tus-Extension
+    - Tus-Max-Size
 
 api:
   current_version: "v2"
@@ -44,3 +58,13 @@ api:
     enabled: true
     requests_per_minute: 60
     requests_per_hour: 1000
+
+upload:
+  base_path: "/api/upload/dm_movie"
+  max_file_size: 2147483648
+  allowed_extensions:
+    - "mp4"
+  storage:
+    type: "local"
+    local:
+      path: "./uploads"
