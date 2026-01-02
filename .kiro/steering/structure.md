@@ -17,7 +17,20 @@ go-webdb-template/
 │   │   │       └── router.go
 │   │   ├── service/            # ビジネスロジック層
 │   │   │   ├── user_service.go
-│   │   │   └── post_service.go
+│   │   │   ├── post_service.go
+│   │   │   ├── email/          # メール送信サービス
+│   │   │   │   ├── email_sender.go
+│   │   │   │   ├── email_service.go
+│   │   │   │   ├── mock_sender.go
+│   │   │   │   ├── mailpit_sender.go
+│   │   │   │   ├── ses_sender.go
+│   │   │   │   └── template.go
+│   │   │   └── jobqueue/      # ジョブキューサービス
+│   │   │       ├── client.go
+│   │   │       ├── server.go
+│   │   │       ├── processor.go
+│   │   │       ├── constants.go
+│   │   │       └── redis_options.go
 │   │   ├── repository/         # データベース処理層
 │   │   │   ├── user_repository.go
 │   │   │   ├── user_repository_test.go
@@ -80,13 +93,16 @@ go-webdb-template/
 ├── config/                      # 環境別設定ファイル
 │   ├── develop/                # 開発環境設定ディレクトリ
 │   │   ├── config.yaml         # メイン設定（server, admin, logging, cors）
-│   │   └── database.yaml       # データベース設定
+│   │   ├── database.yaml       # データベース設定
+│   │   └── cacheserver.yaml    # Redis設定（ジョブキュー用、レートリミット用）
 │   ├── production/             # 本番環境設定ディレクトリ
 │   │   ├── config.yaml.example # メイン設定テンプレート
-│   │   └── database.yaml.example # データベース設定テンプレート
+│   │   ├── database.yaml.example # データベース設定テンプレート
+│   │   └── cacheserver.yaml.example # Redis設定テンプレート
 │   └── staging/                # ステージング環境設定ディレクトリ
 │       ├── config.yaml         # メイン設定
-│       └── database.yaml       # データベース設定
+│       ├── database.yaml       # データベース設定
+│       └── cacheserver.yaml    # Redis設定
 │
 ├── db/
 │   └── migrations/             # マイグレーションSQL
@@ -102,6 +118,16 @@ go-webdb-template/
 │   ├── Testing.md              # テストドキュメント
 │   └── Project-Structure.md    # プロジェクト構造計画
 │
+├── docker-compose.redis.yml        # Redis（ジョブキュー用）Docker Compose設定
+├── docker-compose.redis-cluster.yml # Redis Cluster（レートリミット用）Docker Compose設定
+├── docker-compose.redis-insight.yml # Redis Insight（データビューワ）Docker Compose設定
+├── scripts/
+│   ├── start-redis.sh              # Redis起動スクリプト
+│   ├── start-redis-cluster.sh       # Redis Cluster起動スクリプト
+│   └── start-redis-insight.sh       # Redis Insight起動スクリプト
+├── redis/                           # Redisデータ永続化ディレクトリ
+│   └── data/
+│       └── jobqueue/               # ジョブキュー用Redisデータ
 ├── .gitignore
 └── README.md
 ```
