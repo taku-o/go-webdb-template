@@ -198,6 +198,31 @@ Redisサーバーを起動してください。
 
 修正をcommit後、pull requestを更新してください。
 
+/review 76
+
+
+これは対応出来る？
+>  1. コードの重複 (client.go, server.go)
+>    - 接続オプション設定ロジックがclient.goとserver.goで重複
+>    - ヘルパー関数への抽出を検討
+>
+>  // 例: 共通化の提案
+>  func applyRedisOptions(opts *redis.Options, cfg *config.RedisSingleConfig) {
+>      // 共通の設定ロジック
+>  }
+>  2. middleware.goの2箇所の修正
+>    - 144行目付近と163行目付近で同様のオプション設定コードが重複
+>    - ヘルパー関数化が望ましい
+think.
+
+実装お願いします。
+
+APIサーバーを再起動してください。
+それとAPIサーバーの標準出力が出力されるファイルが知りたい。
+
+修正をcommit後、pull requestを更新してください。
+
+/review 76
 
 Redis、Redis Insight、APIサーバー、クライアントサーバーを止めてください。
 
