@@ -25,32 +25,67 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		redisAddr = "localhost:6379" // デフォルト値
 	}
 
-	redisOpt := asynq.RedisClientOpt{
+	// go-redisクライアントを直接作成し、全ての接続オプションを設定
+	// asynq.NewServerFromRedisClient()を使用することで、設定が確実に反映される
+	redisOpts := &redis.Options{
 		Addr: redisAddr,
 	}
 
 	// 接続オプションの設定（設定ファイルから読み込む、未設定の場合はデフォルト値を使用）
-	if cfg.CacheServer.Redis.JobQueue.DialTimeout > 0 {
-		redisOpt.DialTimeout = cfg.CacheServer.Redis.JobQueue.DialTimeout
+	if cfg.CacheServer.Redis.JobQueue.MaxRetries > 0 {
+		redisOpts.MaxRetries = cfg.CacheServer.Redis.JobQueue.MaxRetries
 	} else {
-		redisOpt.DialTimeout = 5 * time.Second // デフォルト値
+		redisOpts.MaxRetries = 2 // デフォルト値
+	}
+
+	if cfg.CacheServer.Redis.JobQueue.MinRetryBackoff > 0 {
+		redisOpts.MinRetryBackoff = cfg.CacheServer.Redis.JobQueue.MinRetryBackoff
+	} else {
+		redisOpts.MinRetryBackoff = 8 * time.Millisecond // デフォルト値
+	}
+
+	if cfg.CacheServer.Redis.JobQueue.MaxRetryBackoff > 0 {
+		redisOpts.MaxRetryBackoff = cfg.CacheServer.Redis.JobQueue.MaxRetryBackoff
+	} else {
+		redisOpts.MaxRetryBackoff = 512 * time.Millisecond // デフォルト値
+	}
+
+	if cfg.CacheServer.Redis.JobQueue.DialTimeout > 0 {
+		redisOpts.DialTimeout = cfg.CacheServer.Redis.JobQueue.DialTimeout
+	} else {
+		redisOpts.DialTimeout = 5 * time.Second // デフォルト値
 	}
 
 	if cfg.CacheServer.Redis.JobQueue.ReadTimeout > 0 {
-		redisOpt.ReadTimeout = cfg.CacheServer.Redis.JobQueue.ReadTimeout
+		redisOpts.ReadTimeout = cfg.CacheServer.Redis.JobQueue.ReadTimeout
 	} else {
-		redisOpt.ReadTimeout = 3 * time.Second // デフォルト値
+		redisOpts.ReadTimeout = 3 * time.Second // デフォルト値
 	}
 
 	if cfg.CacheServer.Redis.JobQueue.WriteTimeout > 0 {
-		redisOpt.WriteTimeout = cfg.CacheServer.Redis.JobQueue.WriteTimeout
+		redisOpts.WriteTimeout = cfg.CacheServer.Redis.JobQueue.WriteTimeout
 	} else {
-		redisOpt.WriteTimeout = 3 * time.Second // デフォルト値
+		redisOpts.WriteTimeout = 3 * time.Second // デフォルト値
 	}
 
-	// Asynqサーバーの設定
-	srv := asynq.NewServer(
-		redisOpt,
+	if cfg.CacheServer.Redis.JobQueue.PoolSize > 0 {
+		redisOpts.PoolSize = cfg.CacheServer.Redis.JobQueue.PoolSize
+	} else {
+		redisOpts.PoolSize = 10 * runtime.NumCPU() // デフォルト値: CPU数×10
+	}
+
+	if cfg.CacheServer.Redis.JobQueue.PoolTimeout > 0 {
+		redisOpts.PoolTimeout = cfg.CacheServer.Redis.JobQueue.PoolTimeout
+	} else {
+		redisOpts.PoolTimeout = 4 * time.Second // デフォルト値
+	}
+
+	// go-redisクライアントを作成
+	redisClient := redis.NewClient(redisOpts)
+
+	// asynq.NewServerFromRedisClient()を使用して、設定済みのRedisクライアントを渡す
+	srv := asynq.NewServerFromRedisClient(
+		redisClient,
 		asynq.Config{
 			Concurrency: 10, // 同時実行数
 			Queues: map[string]int{
@@ -58,40 +93,6 @@ func NewServer(cfg *config.Config) (*Server, error) {
 			},
 		},
 	)
-
-	// リトライ設定は、asynqが内部的に使用するgo-redisクライアントのオプションを直接設定
-	// MakeRedisClient()でredis.Clientを取得して設定
-	if redisClient, ok := redisOpt.MakeRedisClient().(*redis.Client); ok {
-		if cfg.CacheServer.Redis.JobQueue.MaxRetries > 0 {
-			redisClient.Options().MaxRetries = cfg.CacheServer.Redis.JobQueue.MaxRetries
-		} else {
-			redisClient.Options().MaxRetries = 2 // デフォルト値
-		}
-
-		if cfg.CacheServer.Redis.JobQueue.MinRetryBackoff > 0 {
-			redisClient.Options().MinRetryBackoff = cfg.CacheServer.Redis.JobQueue.MinRetryBackoff
-		} else {
-			redisClient.Options().MinRetryBackoff = 8 * time.Millisecond // デフォルト値
-		}
-
-		if cfg.CacheServer.Redis.JobQueue.MaxRetryBackoff > 0 {
-			redisClient.Options().MaxRetryBackoff = cfg.CacheServer.Redis.JobQueue.MaxRetryBackoff
-		} else {
-			redisClient.Options().MaxRetryBackoff = 512 * time.Millisecond // デフォルト値
-		}
-
-		if cfg.CacheServer.Redis.JobQueue.PoolSize > 0 {
-			redisClient.Options().PoolSize = cfg.CacheServer.Redis.JobQueue.PoolSize
-		} else {
-			redisClient.Options().PoolSize = 10 * runtime.NumCPU() // デフォルト値: CPU数×10
-		}
-
-		if cfg.CacheServer.Redis.JobQueue.PoolTimeout > 0 {
-			redisClient.Options().PoolTimeout = cfg.CacheServer.Redis.JobQueue.PoolTimeout
-		} else {
-			redisClient.Options().PoolTimeout = 4 * time.Second // デフォルト値
-		}
-	}
 
 	// ジョブハンドラーの登録
 	mux := asynq.NewServeMux()

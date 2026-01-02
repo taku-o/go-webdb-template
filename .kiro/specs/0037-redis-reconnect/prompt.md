@@ -170,6 +170,36 @@ Redis-Clusterを再起動。
 その後、https://github.com/taku-o/go-webdb-template/issues/74 に対して
 pull requestを作成してください。
 
+/review 76
+
+
+このpull requestレビューを検証してください。
+検証した結果問題なしと判断してもOK。
+>  1. MakeRedisClient()の使用方法 (client.go:51-86, server.go:64-94)
+>  if redisClient, ok := redisOpt.MakeRedisClient().(*redis.Client); ok {
+>      redisClient.Options().MaxRetries = ...
+>  }
+>    - MakeRedisClient()は新しいクライアントを作成するため、この設定が実際のasynqクライアントに反映されない可能性がある
+think.
+
+修正お願いします。
+> この問題を修正するにはユーザーの許可が必要です。
+
+
+Redis、Redis Insight、APIサーバー、クライアントサーバー
+を起動してください。
+それとAPIサーバーの標準出力が出力されるファイルが知りたい。
+
+> /tmp/claude/-Users-taku-o-Documents-workspaces-go-webdb-template/tasks/bcc589c.output
+
+Redisサーバーを止めてください。
+
+Redisサーバーを起動してください。
+
+修正をcommit後、pull requestを更新してください。
+
+
+Redis、Redis Insight、APIサーバー、クライアントサーバーを止めてください。
 
 
 
