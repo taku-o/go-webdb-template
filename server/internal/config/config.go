@@ -34,7 +34,15 @@ type RedisConfig struct {
 
 // RedisSingleConfig は単一Redis接続設定（ジョブキュー用）
 type RedisSingleConfig struct {
-	Addr string `mapstructure:"addr"` // 単一Redis接続アドレス（例: "localhost:6379"）
+	Addr            string        `mapstructure:"addr"`              // 単一Redis接続アドレス（例: "localhost:6379"）
+	MaxRetries      int           `mapstructure:"max_retries"`       // コマンド失敗時の最大リトライ数（デフォルト: 2）
+	MinRetryBackoff time.Duration `mapstructure:"min_retry_backoff"` // リトライ間隔（最小）（デフォルト: 8ms）
+	MaxRetryBackoff time.Duration `mapstructure:"max_retry_backoff"` // リトライ間隔（最大）（デフォルト: 512ms）
+	DialTimeout     time.Duration `mapstructure:"dial_timeout"`      // 接続確立のタイムアウト（デフォルト: 5s）
+	ReadTimeout     time.Duration `mapstructure:"read_timeout"`      // 読み取りタイムアウト（デフォルト: 3s）
+	WriteTimeout    time.Duration `mapstructure:"write_timeout"`     // 書き込みタイムアウト（デフォルト: 3s）
+	PoolSize        int           `mapstructure:"pool_size"`         // 接続プールサイズ（デフォルト: CPU数×10）
+	PoolTimeout     time.Duration `mapstructure:"pool_timeout"`      // プールから接続を取り出す際の待機時間（デフォルト: 4s）
 }
 
 // RedisDefaultConfig はデフォルト用Redis設定（複数台対応、rate limit等で使用）
@@ -44,7 +52,14 @@ type RedisDefaultConfig struct {
 
 // RedisClusterConfig はRedis Cluster設定
 type RedisClusterConfig struct {
-	Addrs []string `mapstructure:"addrs"` // Redis Clusterのアドレスリスト
+	Addrs           []string      `mapstructure:"addrs"`             // Redis Clusterのアドレスリスト
+	MaxRetries      int           `mapstructure:"max_retries"`       // コマンド失敗時の最大リトライ数（デフォルト: 2）
+	MinRetryBackoff time.Duration `mapstructure:"min_retry_backoff"` // リトライ間隔（最小）（デフォルト: 8ms）
+	MaxRetryBackoff time.Duration `mapstructure:"max_retry_backoff"` // リトライ間隔（最大）（デフォルト: 512ms）
+	DialTimeout     time.Duration `mapstructure:"dial_timeout"`      // 接続確立のタイムアウト（デフォルト: 5s）
+	ReadTimeout     time.Duration `mapstructure:"read_timeout"`      // 読み取りタイムアウト（デフォルト: 3s）
+	PoolSize        int           `mapstructure:"pool_size"`         // 接続プールサイズ（デフォルト: CPU数×10）
+	PoolTimeout     time.Duration `mapstructure:"pool_timeout"`      // プールから接続を取り出す際の待機時間（デフォルト: 4s）
 }
 
 // ServerConfig はサーバー設定

@@ -1,0 +1,24 @@
+{
+  "feature": "0037-redis-reconnect",
+  "title": "Redis遅延接続・自動再接続機能",
+  "issue": 74,
+  "language": "ja",
+  "status": "tasks-approved",
+  "created_at": "2025-01-27",
+  "updated_at": "2025-01-27",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
@@ -17,7 +18,8 @@ type JobOptions struct {
 
 // Client はAsynqクライアントをラップする構造体
 type Client struct {
-	client *asynq.Client
+	client      *asynq.Client
+	redisClient *redis.Client
 }
 
 // NewClient は新しいJobQueueClientを作成
@@ -29,14 +31,19 @@ func NewClient(cfg *config.Config) (*Client, error) {
 		redisAddr = "localhost:6379" // デフォルト値
 	}
 
-	redisOpt := asynq.RedisClientOpt{
-		Addr: redisAddr,
-	}
+	// go-redisクライアントを直接作成し、全ての接続オプションを設定
+	// asynq.NewClientFromRedisClient()を使用することで、設定が確実に反映される
+	redisOpts := buildRedisOptions(&cfg.CacheServer.Redis.JobQueue, redisAddr)
 
-	client := asynq.NewClient(redisOpt)
+	// go-redisクライアントを作成
+	redisClient := redis.NewClient(redisOpts)
+
+	// asynq.NewClientFromRedisClient()を使用して、設定済みのRedisクライアントを渡す
+	client := asynq.NewClientFromRedisClient(redisClient)
 
 	return &Client{
-		client: client,
+		client:      client,
+		redisClient: redisClient,
 	}, nil
 }
 
@@ -71,6 +78,7 @@ func (c *Client) EnqueueJob(ctx context.Context, jobType string, payload []byte,
 }
 
 // Close はクライアントをクローズ
+// NewClientFromRedisClientを使用しているため、Redisクライアントを直接クローズする
 func (c *Client) Close() error {
-	return c.client.Close()
+	return c.redisClient.Close()
 }

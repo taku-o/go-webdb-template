@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/taku-o/go-webdb-template/internal/config"
 )
 
@@ -22,13 +23,16 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		redisAddr = "localhost:6379" // デフォルト値
 	}
 
-	redisOpt := asynq.RedisClientOpt{
-		Addr: redisAddr,
-	}
+	// go-redisクライアントを直接作成し、全ての接続オプションを設定
+	// asynq.NewServerFromRedisClient()を使用することで、設定が確実に反映される
+	redisOpts := buildRedisOptions(&cfg.CacheServer.Redis.JobQueue, redisAddr)
 
-	// Asynqサーバーの設定
-	srv := asynq.NewServer(
-		redisOpt,
+	// go-redisクライアントを作成
+	redisClient := redis.NewClient(redisOpts)
+
+	// asynq.NewServerFromRedisClient()を使用して、設定済みのRedisクライアントを渡す
+	srv := asynq.NewServerFromRedisClient(
+		redisClient,
 		asynq.Config{
 			Concurrency: 10, // 同時実行数
 			Queues: map[string]int{
