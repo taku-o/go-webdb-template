@@ -24,6 +24,13 @@
 - **DB接続**: `database/sql` + `github.com/mattn/go-sqlite3` / `github.com/lib/pq`
 - **設定管理**: `github.com/spf13/viper` (YAML設定ファイル読み込み)
 - **CORS**: `github.com/rs/cors`
+- **Redis**: 
+  - `github.com/redis/go-redis/v9` (Redisクライアント)
+  - ジョブキュー用（単一接続）とレートリミット用（Cluster接続）の2種類の接続設定
+- **ジョブキュー**: `github.com/hibiken/asynq` (Redisベースのジョブキュー)
+- **メール送信**: 
+  - `gopkg.in/mail.v2` (Mailpit用SMTP送信)
+  - AWS SES SDK (本番環境用)
 - **テスト**:
   - `testing` (標準ライブラリ)
   - `github.com/stretchr/testify` (アサーション、モック)
@@ -101,6 +108,8 @@
 - トランザクション管理
 - クロスシャード操作
 - データ変換
+- メール送信処理（`email/`）
+- ジョブキュー処理（`jobqueue/`）
 
 #### 3. Repository Layer (`internal/repository/`)
 - データアクセスの抽象化
@@ -202,8 +211,11 @@ shard_id = hash(user_id) % shard_count + 1
 
 - サーバー設定（ポート、タイムアウト）
 - データベース設定（各シャードの接続情報、接続プール設定）
-- ログ設定（ログレベル、出力先）
+- ログ設定（ログレベル、出力先、SQLログ、メールログ）
 - CORS設定（許可するオリジン）
+- Redis設定（ジョブキュー用、レートリミット用）
+  - 接続オプション（MaxRetries、RetryBackoff、DialTimeout、ReadTimeout、PoolSize、PoolTimeout）
+- メール送信設定（送信方式、SMTP設定、AWS SES設定）
 
 ## エラーハンドリング
 
@@ -283,6 +295,10 @@ json.NewEncoder(w).Encode(map[string]string{
 - `github.com/mattn/go-sqlite3`: SQLiteドライバ（開発）
 - `github.com/lib/pq`: PostgreSQLドライバ（本番）
 - `github.com/rs/cors`: CORSミドルウェア
+- `github.com/redis/go-redis/v9`: Redisクライアント
+- `github.com/hibiken/asynq`: Redisベースのジョブキュー
+- `gopkg.in/mail.v2`: SMTPメール送信（Mailpit用）
+- AWS SES SDK: AWS SESメール送信（本番環境用）
 
 ### クライアント依存関係
 

@@ -19,6 +19,10 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 - ✅ **型安全**: TypeScriptによる型定義
 - ✅ **テスト**: ユニット/統合/E2Eテスト対応
 - ✅ **レートリミット**: IPアドレス単位でのAPI呼び出し制限（ulule/limiter使用）
+- ✅ **ジョブキュー**: Redis + Asynqを使用したバックグラウンドジョブ処理
+- ✅ **メール送信**: 標準出力、Mailpit、AWS SES対応のメール送信機能
+- ✅ **ファイルアップロード**: TUSプロトコルによる大容量ファイルアップロード（ローカル/S3ストレージ対応）
+- ✅ **ログ機能**: アクセスログ、メール送信ログ、SQLログの出力
 
 ## セットアップ
 
@@ -31,6 +35,8 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
   - インストール方法: `brew install ariga/tap/atlas`（macOS）
   - インストール確認: `atlas version`
   - 詳細: https://atlasgo.io/
+- Redis（ジョブキュー機能を使用する場合、オプション）
+  - Dockerを使用して起動可能（`./scripts/start-redis.sh`）
 
 ### 1. 依存関係のインストール
 
@@ -236,7 +242,32 @@ Metabaseは http://localhost:8970 で起動します。
 
 詳細は [Metabase.md](docs/Metabase.md) を参照してください。
 
-### 7. クライアント起動
+### 7. Redisの起動（ジョブキュー機能用）
+
+```bash
+# Redisを起動
+./scripts/start-redis.sh start
+
+# Redis Insightを起動（オプション、データビューワ）
+./scripts/start-redis-insight.sh start
+```
+
+Redisは http://localhost:6379 で起動します。
+Redis Insightは http://localhost:8001 で起動します。
+
+詳細は [Queue-Job.md](docs/Queue-Job.md) を参照してください。
+
+### 8. Mailpitの起動（メール送信機能用、オプション）
+
+```bash
+./scripts/start-mailpit.sh start
+```
+
+Mailpitは http://localhost:8025 で起動します。
+
+詳細は [Send-Mail.md](docs/Send-Mail.md) を参照してください。
+
+### 9. クライアント起動
 
 ```bash
 cd client
@@ -247,12 +278,36 @@ npm run dev
 
 ## API エンドポイント
 
-- `GET /api/users` - ユーザー一覧
-- `POST /api/users` - ユーザー作成
-- `GET /api/posts` - 投稿一覧
-- `POST /api/posts` - 投稿作成
-- `GET /api/user-posts` - ユーザーと投稿をJOIN（クロスシャードクエリ）
+### 基本エンドポイント
+
+#### ユーザー関連
+
+- `GET /api/dm-users` - ユーザー一覧取得
+- `GET /api/dm-users/{id}` - ユーザー取得
+- `POST /api/dm-users` - ユーザー作成
+- `PUT /api/dm-users/{id}` - ユーザー更新
+- `DELETE /api/dm-users/{id}` - ユーザー削除
+- `GET /api/export/dm-users/csv` - ユーザー情報をCSV形式でダウンロード
+
+#### 投稿関連
+
+- `GET /api/dm-posts` - 投稿一覧取得
+- `GET /api/dm-posts/{id}` - 投稿取得
+- `POST /api/dm-posts` - 投稿作成
+- `PUT /api/dm-posts/{id}` - 投稿更新
+- `DELETE /api/dm-posts/{id}` - 投稿削除
+- `GET /api/dm-user-posts` - ユーザーと投稿をJOIN（クロスシャードクエリ）
+
+#### その他
+
+- `GET /api/today` - 今日の日付取得（private API、Auth0 JWT必須）
 - `GET /health` - ヘルスチェック（認証不要）
+
+### 機能別エンドポイント
+
+- `POST /api/email/send` - メール送信
+- `POST /api/dm-jobqueue/register` - ジョブ登録
+- `POST /api/upload/dm_movie` - ファイルアップロード（TUSプロトコル）
 
 ### OpenAPI仕様
 
@@ -264,6 +319,16 @@ npm run dev
 ※ OpenAPIドキュメントエンドポイントは認証不要でアクセス可能です。
 
 詳細は [API.md](docs/API.md) を参照してください。
+
+## 機能別ドキュメント
+
+以下の機能の詳細な利用手順は、各ドキュメントを参照してください：
+
+- [ジョブキュー機能](docs/Queue-Job.md) - Redis + Asynqを使用したバックグラウンドジョブ処理
+- [メール送信機能](docs/Send-Mail.md) - 標準出力、Mailpit、AWS SES対応のメール送信
+- [ファイルアップロード機能](docs/File-Upload.md) - TUSプロトコルによる大容量ファイルアップロード
+- [ログ機能](docs/Logging.md) - アクセスログ、メール送信ログ、SQLログ
+- [レートリミット機能](docs/Rate-Limit.md) - APIレートリミットの詳細設定
 
 ## APIレートリミット
 
@@ -346,6 +411,8 @@ curl -i -H "Authorization: Bearer <YOUR_API_KEY>" http://localhost:8080/api/user
 # X-RateLimit-Remaining: 59
 # X-RateLimit-Reset: 1706342460
 ```
+
+詳細は [Rate-Limit.md](docs/Rate-Limit.md) を参照してください。
 
 ## API認証
 
@@ -557,58 +624,6 @@ database:
 - `github.com/redis/go-redis/v9` v9.17.2 (Redis Cluster接続)
 
 詳細は [Architecture.md](docs/Architecture.md) を参照してください。
-
-## 静的ファイル（CSS・画像）の配置
-
-クライアント側（Next.js）の静的ファイルは`client/public/`ディレクトリに配置します。
-
-### ディレクトリ構造
-
-```
-client/
-├── public/
-│   ├── css/              # CSSファイル用ディレクトリ
-│   │   └── style.css     # サンプルCSSファイル
-│   └── images/           # 画像ファイル用ディレクトリ
-│       ├── logo.svg      # サンプルSVG画像
-│       ├── logo.png      # サンプルPNG画像
-│       └── icon.jpg      # サンプルJPG画像
-```
-
-### 参照方法
-
-Next.jsの`public/`ディレクトリ配下のファイルは、ルート（`/`）から直接参照できます。
-
-#### CSSファイルの参照
-
-`client/src/app/layout.tsx`でCSSファイルを参照:
-
-```tsx
-<html lang="en">
-  <head>
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
-  <body>{children}</body>
-</html>
-```
-
-#### 画像ファイルの参照
-
-`client/src/app/page.tsx`などで画像ファイルを参照:
-
-```tsx
-// <img>タグを使用する場合
-<img src="/images/logo.png" alt="Logo" />
-
-// next/imageコンポーネントを使用する場合（推奨）
-import Image from 'next/image'
-<Image src="/images/logo.png" alt="Logo" width={100} height={100} />
-```
-
-**重要なポイント**:
-- パスに`public/`を含めない（`/css/style.css`が正しい）
-- `public/`ディレクトリがルート（`/`）として扱われる
-- 開発環境と本番環境の両方で同じ動作
 
 ## ライセンス
 

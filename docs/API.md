@@ -384,7 +384,9 @@ Allowed headers:
 
 ## Rate Limiting
 
-Currently not implemented. Consider adding rate limiting for production deployment.
+APIレートリミット機能は実装済みです。IPアドレス単位でリクエスト数を制限します。
+
+詳細は [Rate-Limit.md](Rate-Limit.md) を参照してください。
 
 ---
 
