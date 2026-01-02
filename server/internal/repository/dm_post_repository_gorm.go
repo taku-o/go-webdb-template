@@ -53,8 +53,11 @@ func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPo
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// GORM APIで作成（動的テーブル名を使用）
-	if err := conn.DB.WithContext(ctx).Table(tableName).Create(post).Error; err != nil {
+	// リトライ機能付きでGORM APIで作成（動的テーブル名を使用）
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).Table(tableName).Create(post).Error
+	})
+	if err != nil {
 		return nil, fmt.Errorf("failed to create post: %w", err)
 	}
 
@@ -76,7 +79,11 @@ func (r *DmPostRepositoryGORM) GetByID(ctx context.Context, id string, userID st
 	}
 
 	var post model.DmPost
-	if err := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).First(&post).Error; err != nil {
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).First(&post).Error
+	})
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("post not found: %s", id)
 		}
@@ -101,13 +108,17 @@ func (r *DmPostRepositoryGORM) ListByUserID(ctx context.Context, userID string, 
 	}
 
 	var posts []*model.DmPost
-	if err := conn.DB.WithContext(ctx).
-		Table(tableName).
-		Where("user_id = ?", userID).
-		Order("created_at DESC").
-		Limit(limit).
-		Offset(offset).
-		Find(&posts).Error; err != nil {
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).
+			Table(tableName).
+			Where("user_id = ?", userID).
+			Order("created_at DESC").
+			Limit(limit).
+			Offset(offset).
+			Find(&posts).Error
+	})
+	if err != nil {
 		return nil, fmt.Errorf("failed to query posts: %w", err)
 	}
 
@@ -130,12 +141,16 @@ func (r *DmPostRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*
 		tableName := fmt.Sprintf("dm_posts_%03d", tableNum)
 
 		var tablePosts []*model.DmPost
-		if err := conn.DB.WithContext(ctx).
-			Table(tableName).
-			Order("created_at DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&tablePosts).Error; err != nil {
+		// リトライ機能付きでクエリ実行
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).
+				Table(tableName).
+				Order("created_at DESC").
+				Limit(limit).
+				Offset(offset).
+				Find(&tablePosts).Error
+		})
+		if err != nil {
 			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
 		}
 		posts = append(posts, tablePosts...)
@@ -161,23 +176,25 @@ func (r *DmPostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset i
 		usersTable := fmt.Sprintf("dm_users_%03d", tableNum)
 
 		var tableDmUserPosts []*model.DmUserPost
-		err = conn.DB.WithContext(ctx).
-			Table(postsTable+" p").
-			Select(`
-				p.id as post_id,
-				p.title as post_title,
-				p.content as post_content,
-				u.id as user_id,
-				u.name as user_name,
-				u.email as user_email,
-				p.created_at
-			`).
-			Joins(fmt.Sprintf("INNER JOIN %s u ON p.user_id = u.id", usersTable)).
-			Order("p.created_at DESC").
-			Limit(limit).
-			Offset(offset).
-			Find(&tableDmUserPosts).Error
-
+		// リトライ機能付きでクエリ実行
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).
+				Table(postsTable+" p").
+				Select(`
+					p.id as post_id,
+					p.title as post_title,
+					p.content as post_content,
+					u.id as user_id,
+					u.name as user_name,
+					u.email as user_email,
+					p.created_at
+				`).
+				Joins(fmt.Sprintf("INNER JOIN %s u ON p.user_id = u.id", usersTable)).
+				Order("p.created_at DESC").
+				Limit(limit).
+				Offset(offset).
+				Find(&tableDmUserPosts).Error
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to query table %s: %w", postsTable, err)
 		}
@@ -210,13 +227,17 @@ func (r *DmPostRepositoryGORM) Update(ctx context.Context, id string, userID str
 	}
 	updates["updated_at"] = time.Now()
 
-	result := conn.DB.WithContext(ctx).
-		Table(tableName).
-		Where("id = ? AND user_id = ?", id, userID).
-		Updates(updates)
-
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to update post: %w", result.Error)
+	var result *gorm.DB
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		result = conn.DB.WithContext(ctx).
+			Table(tableName).
+			Where("id = ? AND user_id = ?", id, userID).
+			Updates(updates)
+		return result.Error
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update post: %w", err)
 	}
 	if result.RowsAffected == 0 {
 		return nil, fmt.Errorf("post not found: %s", id)
@@ -239,13 +260,17 @@ func (r *DmPostRepositoryGORM) Delete(ctx context.Context, id string, userID str
 		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	result := conn.DB.WithContext(ctx).
-		Table(tableName).
-		Where("id = ? AND user_id = ?", id, userID).
-		Delete(&model.DmPost{})
-
-	if result.Error != nil {
-		return fmt.Errorf("failed to delete post: %w", result.Error)
+	var result *gorm.DB
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		result = conn.DB.WithContext(ctx).
+			Table(tableName).
+			Where("id = ? AND user_id = ?", id, userID).
+			Delete(&model.DmPost{})
+		return result.Error
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete post: %w", err)
 	}
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("post not found: %s", id)

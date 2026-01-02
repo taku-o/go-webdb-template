@@ -34,11 +34,9 @@ func main() {
 	}
 	defer groupManager.CloseAll()
 
-	// すべてのデータベースへの接続確認
-	if err := groupManager.PingAll(); err != nil {
-		log.Fatalf("Failed to ping databases: %v", err)
-	}
-	log.Println("Successfully connected to all database groups")
+	// 起動時のDB接続確認は削除（遅延接続のため）
+	// 最初のクエリ実行時に接続が確立される
+	log.Println("Database connections will be established on first query execution (lazy connection)")
 
 	// Repository層の初期化（GORM版を使用）
 	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)

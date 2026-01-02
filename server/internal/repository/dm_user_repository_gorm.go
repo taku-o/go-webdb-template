@@ -52,8 +52,11 @@ func (r *DmUserRepositoryGORM) Create(ctx context.Context, req *model.CreateDmUs
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// GORM APIで作成（動的テーブル名を使用）
-	if err := conn.DB.WithContext(ctx).Table(tableName).Create(user).Error; err != nil {
+	// リトライ機能付きでGORM APIで作成（動的テーブル名を使用）
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).Table(tableName).Create(user).Error
+	})
+	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -75,7 +78,11 @@ func (r *DmUserRepositoryGORM) GetByID(ctx context.Context, id string) (*model.D
 	}
 
 	var user model.DmUser
-	if err := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).First(&user).Error; err != nil {
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).First(&user).Error
+	})
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("user not found: %s", id)
 		}
@@ -101,12 +108,16 @@ func (r *DmUserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*
 		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
 
 		var tableUsers []*model.DmUser
-		if err := conn.DB.WithContext(ctx).
-			Table(tableName).
-			Order("id").
-			Limit(limit).
-			Offset(offset).
-			Find(&tableUsers).Error; err != nil {
+		// リトライ機能付きでクエリ実行
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).
+				Table(tableName).
+				Order("id").
+				Limit(limit).
+				Offset(offset).
+				Find(&tableUsers).Error
+		})
+		if err != nil {
 			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
 		}
 		users = append(users, tableUsers...)
@@ -138,9 +149,14 @@ func (r *DmUserRepositoryGORM) Update(ctx context.Context, id string, req *model
 	}
 	updates["updated_at"] = time.Now()
 
-	result := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(updates)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to update user: %w", result.Error)
+	var result *gorm.DB
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		result = conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(updates)
+		return result.Error
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 	if result.RowsAffected == 0 {
 		return nil, fmt.Errorf("user not found: %s", id)
@@ -163,9 +179,14 @@ func (r *DmUserRepositoryGORM) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	result := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Delete(&model.DmUser{})
-	if result.Error != nil {
-		return fmt.Errorf("failed to delete user: %w", result.Error)
+	var result *gorm.DB
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		result = conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Delete(&model.DmUser{})
+		return result.Error
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("user not found: %s", id)
