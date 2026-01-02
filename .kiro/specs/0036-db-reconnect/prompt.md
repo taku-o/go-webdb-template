@@ -117,6 +117,19 @@ GoAdminサーバーを起動して
 その後、https://github.com/taku-o/go-webdb-template/issues/72 に対して
 pull requestを作成してください。
 
+/review 73
+
+こういうレビュー指摘が来ている。
+実際これで動いたし、今のままでも問題ないと思っているんだけど、
+何か改善できることはある？
+>  1. IsConnectionError の判定ロジック
+>  // server/internal/db/connection.go:358-368
+>  func IsConnectionError(err error) bool {
+>      // 文字列マッチングは脆弱な可能性
+>      return strings.Contains(errStr, "connection") ||
+>          strings.Contains(errStr, "dial") ...
+>  }
+>  → PostgreSQL/SQLiteドライバ固有のエラー型チェックを追加検討
 
 
 
