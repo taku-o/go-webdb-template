@@ -3,7 +3,6 @@ package jobqueue
 import (
 	"context"
 	"fmt"
-	"runtime"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -34,58 +33,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 
 	// go-redisクライアントを直接作成し、全ての接続オプションを設定
 	// asynq.NewClientFromRedisClient()を使用することで、設定が確実に反映される
-	redisOpts := &redis.Options{
-		Addr: redisAddr,
-	}
-
-	// 接続オプションの設定（設定ファイルから読み込む、未設定の場合はデフォルト値を使用）
-	if cfg.CacheServer.Redis.JobQueue.MaxRetries > 0 {
-		redisOpts.MaxRetries = cfg.CacheServer.Redis.JobQueue.MaxRetries
-	} else {
-		redisOpts.MaxRetries = 2 // デフォルト値
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.MinRetryBackoff > 0 {
-		redisOpts.MinRetryBackoff = cfg.CacheServer.Redis.JobQueue.MinRetryBackoff
-	} else {
-		redisOpts.MinRetryBackoff = 8 * time.Millisecond // デフォルト値
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.MaxRetryBackoff > 0 {
-		redisOpts.MaxRetryBackoff = cfg.CacheServer.Redis.JobQueue.MaxRetryBackoff
-	} else {
-		redisOpts.MaxRetryBackoff = 512 * time.Millisecond // デフォルト値
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.DialTimeout > 0 {
-		redisOpts.DialTimeout = cfg.CacheServer.Redis.JobQueue.DialTimeout
-	} else {
-		redisOpts.DialTimeout = 5 * time.Second // デフォルト値
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.ReadTimeout > 0 {
-		redisOpts.ReadTimeout = cfg.CacheServer.Redis.JobQueue.ReadTimeout
-	} else {
-		redisOpts.ReadTimeout = 3 * time.Second // デフォルト値
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.WriteTimeout > 0 {
-		redisOpts.WriteTimeout = cfg.CacheServer.Redis.JobQueue.WriteTimeout
-	} else {
-		redisOpts.WriteTimeout = 3 * time.Second // デフォルト値
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.PoolSize > 0 {
-		redisOpts.PoolSize = cfg.CacheServer.Redis.JobQueue.PoolSize
-	} else {
-		redisOpts.PoolSize = 10 * runtime.NumCPU() // デフォルト値: CPU数×10
-	}
-
-	if cfg.CacheServer.Redis.JobQueue.PoolTimeout > 0 {
-		redisOpts.PoolTimeout = cfg.CacheServer.Redis.JobQueue.PoolTimeout
-	} else {
-		redisOpts.PoolTimeout = 4 * time.Second // デフォルト値
-	}
+	redisOpts := buildRedisOptions(&cfg.CacheServer.Redis.JobQueue, redisAddr)
 
 	// go-redisクライアントを作成
 	redisClient := redis.NewClient(redisOpts)
