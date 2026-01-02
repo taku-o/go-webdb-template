@@ -1,0 +1,15 @@
+{
+  "feature": "0039-dm_news_view",
+  "description": "Atlasのビュー作成機能を確認し、dm_newsテーブルからdm_news_viewビューを作成",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "phase": "tasks-approved",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  },
+  "tasks": {
+    "generated": true
+  }
+}
