@@ -50,11 +50,24 @@ docs/atlas-operations.md -> docs/Atlas-Operations.md
 docs/atlas-operations.md へのリンクが他のドキュメントにあったら、そこも直して。
 
 
+.kiro/specs/内は修正不要。
+
+db/schema/master.hcl に入った修正は、生SQLでビューを管理することにしたから
+不要で良いよね？
+
+
+このドキュメントは、どのドキュメント？
+> ドキュメントの「HCLファイルにビュー定義を追加（ドキュメント用）」の記述
+
+> docs/Atlas-Operations.md に追加したビュー管理セクションです。
+その記述は消そう。
+
+
 ここまでの修正をcommitしてください。
 その後、https://github.com/taku-o/go-webdb-template/issues/78 に対して
 pull requestを作成してください。
 
-/review 76
+/review 79
 
 
 
