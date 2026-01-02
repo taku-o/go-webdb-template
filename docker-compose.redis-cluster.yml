@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  redis-cluster:
+    image: 'grokzen/redis-cluster:latest'
+    container_name: redis-cluster
+    environment:
+      - IP=0.0.0.0
+      - BIND_ADDRESS=0.0.0.0
+      - INITIAL_PORT=7100
+      - REDIS_CLUSTER_IP=0.0.0.0
+    ports:
+      - "7100-7105:7100-7105"

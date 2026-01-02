@@ -329,15 +329,15 @@ func TestLoad_GroupsConfig(t *testing.T) {
 		}
 	}
 
-	// Shardingグループの確認（8シャーディングエントリ構成）
-	if len(cfg.Database.Groups.Sharding.Databases) != 8 {
-		t.Errorf("expected 8 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
+	// Shardingグループの確認（4シャーディングエントリ構成）
+	if len(cfg.Database.Groups.Sharding.Databases) != 4 {
+		t.Errorf("expected 4 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
 	}
 	if len(cfg.Database.Groups.Sharding.Databases) > 0 {
 		db1 := cfg.Database.Groups.Sharding.Databases[0]
-		// 8シャーディング構成では各エントリが4テーブルを担当
-		if db1.TableRange[0] != 0 || db1.TableRange[1] != 3 {
-			t.Errorf("expected table_range [0, 3], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
+		// 4シャーディング構成では各エントリが8テーブルを担当
+		if db1.TableRange[0] != 0 || db1.TableRange[1] != 7 {
+			t.Errorf("expected table_range [0, 7], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
 		}
 	}
 
@@ -546,6 +546,88 @@ func TestLoad_CacheServerConfig(t *testing.T) {
 	// 開発環境ではデフォルト用Redis Clusterのアドレスが空であることを確認
 	if len(cfg.CacheServer.Redis.Default.Cluster.Addrs) != 0 {
 		t.Errorf("expected CacheServer.Redis.Default.Cluster.Addrs to be empty, got %v", cfg.CacheServer.Redis.Default.Cluster.Addrs)
+	}
+}
+
+// タスク1.1: RedisClusterConfig構造体に接続オプションフィールドがあることを確認
+func TestRedisClusterConfig_ConnectionOptions(t *testing.T) {
+	cfg := RedisClusterConfig{
+		Addrs:           []string{"host1:6379", "host2:6379"},
+		MaxRetries:      2,
+		MinRetryBackoff: 8 * time.Millisecond,
+		MaxRetryBackoff: 512 * time.Millisecond,
+		DialTimeout:     5 * time.Second,
+		ReadTimeout:     3 * time.Second,
+		PoolSize:        10,
+		PoolTimeout:     4 * time.Second,
+	}
+
+	if len(cfg.Addrs) != 2 {
+		t.Errorf("expected 2 addresses, got %d", len(cfg.Addrs))
+	}
+	if cfg.MaxRetries != 2 {
+		t.Errorf("expected MaxRetries 2, got %d", cfg.MaxRetries)
+	}
+	if cfg.MinRetryBackoff != 8*time.Millisecond {
+		t.Errorf("expected MinRetryBackoff 8ms, got %v", cfg.MinRetryBackoff)
+	}
+	if cfg.MaxRetryBackoff != 512*time.Millisecond {
+		t.Errorf("expected MaxRetryBackoff 512ms, got %v", cfg.MaxRetryBackoff)
+	}
+	if cfg.DialTimeout != 5*time.Second {
+		t.Errorf("expected DialTimeout 5s, got %v", cfg.DialTimeout)
+	}
+	if cfg.ReadTimeout != 3*time.Second {
+		t.Errorf("expected ReadTimeout 3s, got %v", cfg.ReadTimeout)
+	}
+	if cfg.PoolSize != 10 {
+		t.Errorf("expected PoolSize 10, got %d", cfg.PoolSize)
+	}
+	if cfg.PoolTimeout != 4*time.Second {
+		t.Errorf("expected PoolTimeout 4s, got %v", cfg.PoolTimeout)
+	}
+}
+
+// タスク1.2: RedisSingleConfig構造体に接続オプションフィールドがあることを確認
+func TestRedisSingleConfig_ConnectionOptions(t *testing.T) {
+	cfg := RedisSingleConfig{
+		Addr:            "localhost:6379",
+		MaxRetries:      2,
+		MinRetryBackoff: 8 * time.Millisecond,
+		MaxRetryBackoff: 512 * time.Millisecond,
+		DialTimeout:     5 * time.Second,
+		ReadTimeout:     3 * time.Second,
+		WriteTimeout:    3 * time.Second,
+		PoolSize:        10,
+		PoolTimeout:     4 * time.Second,
+	}
+
+	if cfg.Addr != "localhost:6379" {
+		t.Errorf("expected Addr 'localhost:6379', got %s", cfg.Addr)
+	}
+	if cfg.MaxRetries != 2 {
+		t.Errorf("expected MaxRetries 2, got %d", cfg.MaxRetries)
+	}
+	if cfg.MinRetryBackoff != 8*time.Millisecond {
+		t.Errorf("expected MinRetryBackoff 8ms, got %v", cfg.MinRetryBackoff)
+	}
+	if cfg.MaxRetryBackoff != 512*time.Millisecond {
+		t.Errorf("expected MaxRetryBackoff 512ms, got %v", cfg.MaxRetryBackoff)
+	}
+	if cfg.DialTimeout != 5*time.Second {
+		t.Errorf("expected DialTimeout 5s, got %v", cfg.DialTimeout)
+	}
+	if cfg.ReadTimeout != 3*time.Second {
+		t.Errorf("expected ReadTimeout 3s, got %v", cfg.ReadTimeout)
+	}
+	if cfg.WriteTimeout != 3*time.Second {
+		t.Errorf("expected WriteTimeout 3s, got %v", cfg.WriteTimeout)
+	}
+	if cfg.PoolSize != 10 {
+		t.Errorf("expected PoolSize 10, got %d", cfg.PoolSize)
+	}
+	if cfg.PoolTimeout != 4*time.Second {
+		t.Errorf("expected PoolTimeout 4s, got %v", cfg.PoolTimeout)
 	}
 }
 

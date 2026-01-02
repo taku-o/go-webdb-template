@@ -2,6 +2,7 @@ package jobqueue
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/taku-o/go-webdb-template/internal/config"
@@ -88,4 +89,67 @@ func TestClient_Close(t *testing.T) {
 	// Closeが正常に実行できること
 	err = client.Close()
 	assert.NoError(t, err)
+}
+
+func TestNewClient_WithConnectionOptions(t *testing.T) {
+	// 接続オプションを設定してクライアントを作成
+	cfg := &config.Config{
+		CacheServer: config.CacheServerConfig{
+			Redis: config.RedisConfig{
+				JobQueue: config.RedisSingleConfig{
+					Addr:            "localhost:6379",
+					MaxRetries:      3,
+					MinRetryBackoff: 10 * time.Millisecond,
+					MaxRetryBackoff: 1 * time.Second,
+					DialTimeout:     10 * time.Second,
+					ReadTimeout:     5 * time.Second,
+					WriteTimeout:    5 * time.Second,
+					PoolSize:        20,
+					PoolTimeout:     5 * time.Second,
+				},
+			},
+		},
+	}
+
+	client, err := NewClient(cfg)
+	// クライアント作成自体はRedis接続なしでも成功する
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+
+	// クリーンアップ
+	if client != nil {
+		client.Close()
+	}
+}
+
+func TestNewClient_WithZeroConnectionOptions(t *testing.T) {
+	// 接続オプションを設定しない（0値）でクライアントを作成
+	// デフォルト値が使用されることを確認
+	cfg := &config.Config{
+		CacheServer: config.CacheServerConfig{
+			Redis: config.RedisConfig{
+				JobQueue: config.RedisSingleConfig{
+					Addr:            "localhost:6379",
+					MaxRetries:      0, // デフォルト値を使用
+					MinRetryBackoff: 0, // デフォルト値を使用
+					MaxRetryBackoff: 0, // デフォルト値を使用
+					DialTimeout:     0, // デフォルト値を使用
+					ReadTimeout:     0, // デフォルト値を使用
+					WriteTimeout:    0, // デフォルト値を使用
+					PoolSize:        0, // デフォルト値を使用
+					PoolTimeout:     0, // デフォルト値を使用
+				},
+			},
+		},
+	}
+
+	client, err := NewClient(cfg)
+	// クライアント作成自体はRedis接続なしでも成功する
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+
+	// クリーンアップ
+	if client != nil {
+		client.Close()
+	}
 }

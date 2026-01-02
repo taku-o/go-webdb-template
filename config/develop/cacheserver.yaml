@@ -4,9 +4,26 @@ cache_server:
     # ジョブキュー用Redis接続設定（単一接続、1台）
     jobqueue:
       addr: "localhost:6379"
+      # 接続オプション（オプション、未設定の場合はデフォルト値を使用）
+      max_retries: 2              # コマンド失敗時の最大リトライ数（デフォルト: 2）
+      min_retry_backoff: 8ms      # リトライ間隔（最小）（デフォルト: 8ms）
+      max_retry_backoff: 512ms    # リトライ間隔（最大）（デフォルト: 512ms）
+      dial_timeout: 5s            # 接続確立のタイムアウト（デフォルト: 5s）
+      read_timeout: 3s            # 読み取りタイムアウト（デフォルト: 3s）
+      write_timeout: 3s           # 書き込みタイムアウト（デフォルト: 3s）
+      pool_size: 10               # 接続プールサイズ（デフォルト: CPU数×10）
+      pool_timeout: 4s            # プールから接続を取り出す際の待機時間（デフォルト: 4s）
 
     # デフォルト用Redis接続設定（複数台対応可能、rate limit等で使用）
     # 開発環境ではRedis Clusterを使用しない（In-Memoryストレージを使用）
     default:
       cluster:
         addrs: []
+        # 接続オプション（オプション、未設定の場合はデフォルト値を使用）
+        max_retries: 2              # コマンド失敗時の最大リトライ数（デフォルト: 2）
+        min_retry_backoff: 8ms      # リトライ間隔（最小）（デフォルト: 8ms）
+        max_retry_backoff: 512ms    # リトライ間隔（最大）（デフォルト: 512ms）
+        dial_timeout: 5s            # 接続確立のタイムアウト（デフォルト: 5s）
+        read_timeout: 3s            # 読み取りタイムアウト（デフォルト: 3s）
+        pool_size: 10               # 接続プールサイズ（デフォルト: CPU数×10）
+        pool_timeout: 4s            # プールから接続を取り出す際の待機時間（デフォルト: 4s）

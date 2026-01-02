@@ -3,6 +3,7 @@ package ratelimit
 import (
 	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -145,9 +146,7 @@ func initStore(cfg *config.Config, prefix string) (limiter.Store, error) {
 		if len(cfg.CacheServer.Redis.Default.Cluster.Addrs) == 0 {
 			return nil, fmt.Errorf("redis storage type specified but no redis addresses configured")
 		}
-		rdb := redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs: cfg.CacheServer.Redis.Default.Cluster.Addrs,
-		})
+		rdb := redis.NewClusterClient(buildRedisClusterOptions(cfg))
 		return redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
 			Prefix: prefix,
 		})
@@ -160,12 +159,63 @@ func initStore(cfg *config.Config, prefix string) (limiter.Store, error) {
 	}
 
 	// Redis Clusterを使用
-	rdb := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs: cfg.CacheServer.Redis.Default.Cluster.Addrs,
-	})
+	rdb := redis.NewClusterClient(buildRedisClusterOptions(cfg))
 
 	// Redisストアの作成
 	return redisstore.NewStoreWithOptions(rdb, limiter.StoreOptions{
 		Prefix: prefix,
 	})
+}
+
+// buildRedisClusterOptions はRedis Cluster接続オプションを構築する
+func buildRedisClusterOptions(cfg *config.Config) *redis.ClusterOptions {
+	clusterCfg := cfg.CacheServer.Redis.Default.Cluster
+	clusterOpts := &redis.ClusterOptions{
+		Addrs: clusterCfg.Addrs,
+	}
+
+	// 接続オプションの設定（設定ファイルから読み込む、未設定の場合はデフォルト値を使用）
+	if clusterCfg.MaxRetries > 0 {
+		clusterOpts.MaxRetries = clusterCfg.MaxRetries
+	} else {
+		clusterOpts.MaxRetries = 2 // デフォルト値
+	}
+
+	if clusterCfg.MinRetryBackoff > 0 {
+		clusterOpts.MinRetryBackoff = clusterCfg.MinRetryBackoff
+	} else {
+		clusterOpts.MinRetryBackoff = 8 * time.Millisecond // デフォルト値
+	}
+
+	if clusterCfg.MaxRetryBackoff > 0 {
+		clusterOpts.MaxRetryBackoff = clusterCfg.MaxRetryBackoff
+	} else {
+		clusterOpts.MaxRetryBackoff = 512 * time.Millisecond // デフォルト値
+	}
+
+	if clusterCfg.DialTimeout > 0 {
+		clusterOpts.DialTimeout = clusterCfg.DialTimeout
+	} else {
+		clusterOpts.DialTimeout = 5 * time.Second // デフォルト値
+	}
+
+	if clusterCfg.ReadTimeout > 0 {
+		clusterOpts.ReadTimeout = clusterCfg.ReadTimeout
+	} else {
+		clusterOpts.ReadTimeout = 3 * time.Second // デフォルト値
+	}
+
+	if clusterCfg.PoolSize > 0 {
+		clusterOpts.PoolSize = clusterCfg.PoolSize
+	} else {
+		clusterOpts.PoolSize = 10 * runtime.NumCPU() // デフォルト値: CPU数×10
+	}
+
+	if clusterCfg.PoolTimeout > 0 {
+		clusterOpts.PoolTimeout = clusterCfg.PoolTimeout
+	} else {
+		clusterOpts.PoolTimeout = 4 * time.Second // デフォルト値
+	}
+
+	return clusterOpts
 }
