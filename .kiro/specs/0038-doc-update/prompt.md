@@ -78,10 +78,9 @@ docs/System-Configuration.drawio
 GoAdminをサーバー層から、管理・可視化ツールに移動してください。
 think.
 
-ここまでの修正をcommitしてください。
+stagingに上がった修正をcommitしてください。
 その後、https://github.com/taku-o/go-webdb-template に対して
 pull requestを作成してください。
-
 
 
 
