@@ -433,3 +433,81 @@ done
 - `db/migrations/sharding_2/` - sharding_db_2.db用（テーブル008-015）
 - `db/migrations/sharding_3/` - sharding_db_3.db用（テーブル016-023）
 - `db/migrations/sharding_4/` - sharding_db_4.db用（テーブル024-031）
+
+## ビュー（VIEW）の管理
+
+### 概要
+
+ビューはSQLファイルを作り、それをAtlasで適用する形で運用します。
+
+### ディレクトリ構成
+
+ビュー用のマイグレーションはテーブル用とは別ディレクトリで管理します。
+
+```
+db/
+├── schema/
+│   └── master.hcl              # テーブル定義のみ（ビュー定義は含めない）
+└── migrations/
+    ├── master/                 # テーブル用マイグレーション
+    │   ├── YYYYMMDD_*.sql
+    │   └── atlas.sum
+    ├── view_master/            # マスターDB用ビューマイグレーション
+    │   ├── YYYYMMDD_*.sql
+    │   └── atlas.sum
+    ├── view_sharding_1/        # シャード1用ビューマイグレーション（将来用）
+    ├── view_sharding_2/        # シャード2用ビューマイグレーション（将来用）
+    ├── view_sharding_3/        # シャード3用ビューマイグレーション（将来用）
+    └── view_sharding_4/        # シャード4用ビューマイグレーション（将来用）
+```
+
+### ビューの作成手順
+
+#### 1. SQLファイルを手動作成
+
+`db/migrations/view_master/`にSQLファイルを作成します。
+
+```bash
+# ディレクトリと名前を指定して、空のファイルを生成
+# db/migrations/view_master/20260103030226_create_view_name.sqlが生成される
+atlas migrate new create_view_name \
+    --dir "file://db/migrations/view_master"
+```
+
+```sql
+-- Create dm_news_view
+CREATE VIEW dm_news_view AS SELECT id, title, content, published_at FROM dm_news;
+```
+
+#### 2. チェックサムを更新
+
+```bash
+atlas migrate hash --dir "file://db/migrations/view_master"
+```
+
+#### 3. マイグレーションを適用
+
+```bash
+# テーブル用を先に適用（ベーステーブルが必要）
+atlas migrate apply \
+    --dir "file://db/migrations/master" \
+    --url "sqlite://server/data/master.db"
+
+# ビュー用を後に適用
+atlas migrate apply \
+    --dir "file://db/migrations/view_master" \
+    --url "sqlite://server/data/master.db"
+```
+
+### ビューの削除
+
+```sql
+-- Drop dm_news_view
+DROP VIEW IF EXISTS dm_news_view;
+```
+
+### 注意事項
+
+- ビューはベーステーブルに依存するため、テーブル用マイグレーションを先に適用する必要があります
+- 履歴テーブル（`atlas_schema_revisions`）は共通です。ファイル名（バージョン番号）で管理されます
+- HCLファイルにビュー定義を追加すると、`atlas migrate diff`が使用できなくなるため、ビュー定義はHCLには追加しないでください

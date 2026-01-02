@@ -97,7 +97,7 @@ atlas migrate diff <migration_name> \
     --dev-url "sqlite://file?mode=memory"
 ```
 
-詳細は [docs/atlas-operations.md](docs/atlas-operations.md) を参照してください。
+詳細は [docs/Atlas-Operations.md](docs/Atlas-Operations.md) を参照してください。
 
 ### PostgreSQL環境（動作確認用）
 
