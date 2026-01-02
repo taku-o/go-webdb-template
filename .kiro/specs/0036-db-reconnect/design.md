@@ -503,19 +503,18 @@ func NewConnection(cfg *config.ShardConfig) (*Connection, error) {
 
 #### 3.5.3 クエリ実行時のリトライ
 
-**Repository層でのリトライ実装**（必要に応じて）:
+**server/internal/db/connection.go に追加**:
 ```go
-// クエリ実行時のリトライ（例）
-func (r *Repository) QueryWithRetry(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-    var rows *sql.Rows
-    var err error
-
-    err = retry.Do(
+// ExecuteWithRetry はクエリ実行時のリトライ機能を提供する
+// 接続エラーの場合のみリトライし、その他のエラーはリトライしない
+func ExecuteWithRetry(fn func() error) error {
+    return retry.Do(
         func() error {
-            rows, err = r.db.QueryContext(ctx, query, args...)
+            err := fn()
             if err != nil {
                 // 接続エラーの場合はリトライ
-                if isConnectionError(err) {
+                if IsConnectionError(err) {
+                    log.Printf("Connection error detected, will retry: %v", err)
                     return err
                 }
                 // その他のエラーはリトライしない
@@ -525,20 +524,24 @@ func (r *Repository) QueryWithRetry(ctx context.Context, query string, args ...i
         },
         retry.Attempts(MaxRetryAttempts),
         retry.Delay(RetryDelay),
+        retry.OnRetry(func(n uint, err error) {
+            log.Printf("Retrying query execution (attempt %d/%d): %v", n+1, MaxRetryAttempts, err)
+        }),
     )
-
-    return rows, err
 }
 
-// 接続エラーの判定
-func isConnectionError(err error) bool {
+// IsConnectionError は接続エラーかどうかを判定する
+func IsConnectionError(err error) bool {
     if err == nil {
         return false
     }
+    errStr := err.Error()
     // sql.ErrConnDone などの接続エラーを判定
-    return errors.Is(err, sql.ErrConnDone) || 
-           strings.Contains(err.Error(), "connection") ||
-           strings.Contains(err.Error(), "network")
+    return errors.Is(err, sql.ErrConnDone) ||
+        strings.Contains(errStr, "connection") ||
+        strings.Contains(errStr, "network") ||
+        strings.Contains(errStr, "dial") ||
+        strings.Contains(errStr, "connect")
 }
 ```
 
@@ -546,6 +549,27 @@ func isConnectionError(err error) bool {
 - クエリ実行時の接続エラーに対してリトライ
 - 接続エラー以外のエラーはリトライしない
 - リトライ回数と間隔は接続作成時と同じ
+- `db`パッケージのエクスポート関数として実装し、Repository層から利用
+
+**Repository層での使用例**（`dm_user_repository_gorm.go`）:
+```go
+// リトライ機能付きでクエリ実行
+err = db.ExecuteWithRetry(func() error {
+    return conn.DB.WithContext(ctx).
+        Table(tableName).
+        Order("id").
+        Limit(limit).
+        Offset(offset).
+        Find(&tableUsers).Error
+})
+if err != nil {
+    return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
+}
+```
+
+**適用対象**:
+- `dm_user_repository_gorm.go`: Create, GetByID, List, Update, Delete
+- `dm_post_repository_gorm.go`: Create, GetByID, ListByUserID, List, GetUserPosts, Update, Delete
 
 ### 3.6 GroupManager のリトライ機能追加
 

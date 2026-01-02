@@ -93,6 +93,66 @@ atlas migrate diff <migration_name> \
 
 詳細は [docs/atlas-operations.md](docs/atlas-operations.md) を参照してください。
 
+### PostgreSQL環境（動作確認用）
+
+開発環境でPostgreSQLを使用して遅延接続・自動再接続機能を確認できます。
+
+#### PostgreSQLの起動・停止
+
+```bash
+# PostgreSQLを起動
+./scripts/start-postgres.sh start
+
+# PostgreSQLを停止
+./scripts/start-postgres.sh stop
+```
+
+PostgreSQLは http://localhost:5432 で起動します。
+
+**接続情報**（開発環境）:
+- ホスト: `localhost`
+- ポート: `5432`
+- ユーザー名: `webdb`
+- パスワード: `webdb`
+- データベース: `webdb`
+
+#### 設定ファイルの切り替え
+
+`config/develop/database.yaml`でデータベースドライバを切り替えます：
+
+```yaml
+# PostgreSQL設定
+database:
+  groups:
+    master:
+      - id: 1
+        driver: postgres
+        host: localhost
+        port: 5432
+        user: webdb
+        password: webdb
+        name: webdb
+        max_connections: 25
+        max_idle_connections: 5
+        connection_max_lifetime: 1h
+```
+
+#### SQLite環境との併用
+
+- **開発時（通常）**: SQLite設定を使用（設定不要）
+- **動作確認時**: PostgreSQL設定に切り替えて使用
+- 設定ファイル内でSQLite/PostgreSQLの設定をコメントアウトで切り替え可能
+
+#### 遅延接続・自動再接続機能
+
+本プロジェクトでは以下の機能を実装しています：
+
+- **遅延接続**: サーバー起動時にDB接続を行わず、最初のクエリ実行時に接続を確立
+- **自動再接続**: データベースが復旧した際に自動的に再接続
+- **リトライ機能**: 接続エラー時に最大3回、1秒間隔でリトライ
+
+これらの機能はPostgreSQL環境で動作確認できます。
+
 ### 3. サーバー起動
 
 ```bash
