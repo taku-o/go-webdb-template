@@ -64,10 +64,22 @@ Test Connection機能は無かったが、
 
 5.1、5.2は不要。
 
+git stagingされている修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/81 に対して
+pull requestを作成してください。
 
+/review 82
 
+PRレビューでこれが指摘された。
+修正できる？
+>  3. depends_onの未使用
+>    - docker-compose.apache-superset.ymlにdepends_on: - postgresがあるが、PostgreSQLは別のComposeファイル
+>    - 実際には使用されないため削除可能（ただし、ドキュメント的な意味では残しても良い）
 
-
+CloudBeaver
+Apache Superset
+PostgreSQL
+を停止してください。
 
 
 
