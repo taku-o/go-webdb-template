@@ -172,6 +172,15 @@
 | **利用料金** | 無料（Open Source Edition）または有料プラン |
 | **注意事項** | **重要**: AGPL v3ライセンスのため、以下の要件があります：<br>- ソースコードを公開する必要がある（ネットワーク経由で提供する場合）<br>- 派生作品もAGPL v3で公開する必要がある<br>- 商用利用でソースコード公開を避けたい場合は、Commercial Licenseの購入が必要<br><br>**有料プラン（Commercial License）**:<br><br>※ 価格情報は変動する可能性があります。最新の情報は[Metabase公式サイト](https://www.metabase.com/pricing/)で確認してください。<br><br>**2025年1月時点の情報**:<br>- Pro Plan: $575/月（10ユーザー、追加$12/ユーザー/月）<br>- Enterprise Plan: $20,000/年から（カスタム価格あり）<br><br>**過去の情報（参考）**:<br>- Starter: $85/月（5ユーザー、追加$5/ユーザー/月）<br>- Pro: $500/月（10ユーザー、追加$10/ユーザー/月）<br>- Enterprise: $15,000/年から |
 
+### Apache Superset
+
+| 項目 | 内容 |
+|-----|------|
+| **ライセンス** | Apache 2.0 |
+| **商用利用可否** | ✅ 可 |
+| **利用料金** | 無料 |
+| **注意事項** | - Apache 2.0ライセンスにより商用利用可能（制限なし）<br>- ソースコード公開の義務なし<br>- 修正・配布も自由に可能<br>- 多くの企業（Airbnb、American Express、Dropbox、Lyft、Netflix、Twitter、Udemyなど）が商用環境で利用実績あり<br>- ソフトウェア自体は無料だが、本番環境での運用にはインフラ・ホスティング・技術リソースのコストが発生する可能性がある<br>- マネージドサービスを利用する場合は別途料金が発生する可能性がある |
+
 ### Redis
 
 | 項目 | 内容 |
@@ -233,6 +242,7 @@
 - **JavaScript/TypeScriptライブラリ**: すべてMIT、Apache 2.0のパーミッシブライセンス
 - **開発ツール**: Atlas CLI（Apache 2.0、オープンソース版は無料、PRO版は有料）
 - **CloudBeaver**: Apache 2.0（Community Edition）
+- **Apache Superset**: Apache 2.0
 - **Mailpit**: MIT
 - **AWS S3/SES**: 従量課金制の商用サービス
 - **Auth0**: Free Planでも商用利用可能
@@ -255,6 +265,7 @@
 - すべてのGo/JavaScriptライブラリ（ライセンス料なし）
 - Atlas CLI（オープンソース版、Apache 2.0）
 - CloudBeaver Community Edition
+- Apache Superset（Apache 2.0）
 - Metabase Open Source Edition（AGPL要件を満たす場合）
 - Mailpit
 - Auth0 Free Plan（25,000 MAUまで）
@@ -290,6 +301,12 @@
    - Free Planで25,000 MAUまで対応可能なため、小規模な商用アプリケーションでは十分
    - カスタムドメインを使用する場合はクレジットカード認証が必要
 
+5. **Apache Supersetの使用について**
+   - Apache 2.0ライセンスにより商用利用可能で、ソースコード公開の義務なし
+   - Metabase（AGPL v3）と比較して、商用利用時の制約が少ない
+   - 多くの企業が商用環境で利用実績あり
+   - ソフトウェア自体は無料だが、本番環境での運用にはインフラ・ホスティング・技術リソースのコストが発生する可能性がある
+
 ---
 
 ## 参考リンク
@@ -297,6 +314,8 @@
 - [AWS S3 料金](https://aws.amazon.com/s3/pricing/)
 - [AWS SES 料金](https://aws.amazon.com/ses/pricing/)
 - [Auth0 料金](https://auth0.com/pricing/)
+- [Apache Superset 公式サイト](https://superset.apache.org/)
+- [Apache Superset GitHub](https://github.com/apache/superset)
 - [Metabase ライセンス](https://www.metabase.com/license/)
 - [Metabase 料金](https://www.metabase.com/pricing/)
 - [Redis ライセンス変更について](https://redis.io/license)
