@@ -249,8 +249,7 @@ Apache Supersetの初回起動時は、データベースの初期化やセッ�
 
 | 変数名 | 説明 | デフォルト値 |
 |--------|------|-------------|
-| `SUPERSET_SECRET_KEY` | Supersetのシークレットキー | 自動生成 |
-| `SUPERSET_CONFIG_PATH` | 設定ファイルパス | `/app/superset_home/config/` |
+| `SUPERSET_SECRET_KEY` | Supersetのシークレットキー | `dev-secret-key-change-in-production` |
 
 ### データベース接続情報
 

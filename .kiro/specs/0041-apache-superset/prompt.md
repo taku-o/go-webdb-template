@@ -34,5 +34,40 @@ _serena_indexing
 
 /kiro:spec-impl 0041-apache-superset
 
+Apache Supersetにログインはできたが、
+PostgreSQLに接続はできない。
+Connection failed, please check your connection settings
+
+Apache Supersetの再起動は不要？
+
+PostgreSQLに繋がった。
+計画時には想定外の情報としてSQLiteとも繋がるようだ。
+なので、SQLiteとも繋げてみたい。
+接続情報のサポートして。
+
+残念ながらSQLiteは良くないようだ。
+計画に無かったし、SQLiteとの接続は無しにしよう。
+
+SQL Labの使い方を教えて。
+
+SQL Labと、Chart機能は確認した。
+ダッシュボード機能の使い方は分かる？
+
+ダッシュボードは確認した。
+Apache Supersetの機能は一通り確認した。
+
+これを確認したい。
+> タスク4.5: コンテナ再起動後もPostgreSQL接続設定が保持されるか確認
+
+Test Connection機能は無かったが、
+ダッシュボードでPostgreSQLに接続していることは分かった。
+
+5.1、5.2は不要。
+
+
+
+
+
+
 
 
