@@ -91,6 +91,10 @@ cloudbeaver/config/*/user-projects/*/.dbeaver/.*.bak
 !metabase/config/**/*.mv.db
 metabase/config/**/*.trace.db
 
+# Apache Superset (ダッシュボード設定はGit管理対象、アップロードファイルは除外)
+apache-superset/data/
+!apache-superset/data/superset.db
+
 # Misc
 *.log
 .env

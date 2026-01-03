@@ -1,0 +1,24 @@
+{
+  "feature": "0041-apache-superset",
+  "title": "Apache Superset導入",
+  "issue": 81,
+  "language": "ja",
+  "status": "tasks-approved",
+  "created_at": "2025-01-27",
+  "updated_at": "2025-01-27",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true
+}
