@@ -1,0 +1,15 @@
+# server/.dockerignore
+.git
+.gitignore
+*.md
+*.test.go
+vendor/
+.env
+.env.local
+*.log
+coverage/
+.idea/
+.vscode/
+bin/
+admin
+server/

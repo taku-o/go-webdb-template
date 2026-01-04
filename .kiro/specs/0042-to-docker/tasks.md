@@ -3,6 +3,62 @@
 ## 概要
 Docker化の実装を段階的に進めるためのタスク一覧。要件定義書と設計書に基づき、実装可能な粒度でタスクを分解。
 
+## 設計変更事項
+
+実装時に以下の設計変更を行った。詳細は`progress.md`を参照。
+
+### 変更1: Goバージョンとベースイメージ
+- 設計書: `golang:1.21-alpine`, `alpine:latest`
+- 実装: `golang:1.24-bookworm`, `debian:bookworm-slim`
+- 理由:
+  - go.modで`go 1.24.0`が指定されているため
+  - Alpine Linux（musl libc）ではgo-sqlite3のビルドに失敗するため（glibc固有関数の不在）
+  - 環境統一のため、staging/productionも同様にDebian系に変更
+
+### 変更2: 開発用Dockerfileの追加
+SQLite（CGO必要）対応のため、環境別にDockerfileを分離：
+- `server/Dockerfile.develop` - APIサーバー開発用（タスク1.1で追加）
+- `server/Dockerfile.admin.develop` - Adminサーバー開発用（タスク2.1で追加）
+
+### 変更3: docker-compose設定の修正
+開発環境用docker-composeは`Dockerfile.develop`を参照するよう変更：
+- `docker-compose.api.develop.yml` - `Dockerfile.develop`を使用
+- `docker-compose.admin.develop.yml` - `Dockerfile.admin.develop`を使用
+
+### 変更4: WORKDIRの変更
+- 設計書: `/app`
+- 実装: `/app/server`
+- 理由: アプリケーションが`server/`ディレクトリから起動される想定で、`../config/`や`../logs/`を参照するため
+- 影響: docker-composeのボリュームマウントを`./server/data:/app/server/data`に変更
+
+### 変更5: .dockerignoreの追加エントリ
+- 設計書: `*.sum`を除外
+- 実装: `*.sum`を除外対象から削除、`bin/`、`admin`、`server/`を追加
+- 理由:
+  - `go.sum`はGoの依存関係管理に必要なため
+  - ローカルでビルドされたバイナリがDockerコンテキストにコピーされるのを防ぐため
+
+### 変更6: Redis接続設定の環境変数オーバーライド
+- 設計書: 記載なし
+- 実装: `viper.BindEnv`による環境変数オーバーライドを追加
+- 変更ファイル:
+  - `server/internal/config/config.go` - `viper.BindEnv("cache_server.redis.jobqueue.addr", "REDIS_JOBQUEUE_ADDR")`を追加
+  - 全docker-composeファイル - `REDIS_JOBQUEUE_ADDR=redis:6379`環境変数を追加
+- 理由: Docker環境では`localhost:6379`ではなく`redis:6379`でRedisに接続する必要があるため
+
+### 変更7: クライアントpackage-lock.jsonの修正
+- 問題: `yaml@2.8.2`がpackage-lock.jsonに不足
+- 解決: `npm install yaml@2.8.2`で追加
+
+### 変更8: クライアント環境変数の読み込み修正
+- 問題: `environment`セクションで`NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}`を指定していたため、ホスト環境変数がない場合に空文字列で上書きされ、`env_file`の値が無効化されていた
+- 解決: `environment`セクションとビルド引数から`NEXT_PUBLIC_API_KEY`を削除し、`env_file`のみで読み込むよう変更
+
+### 変更9: クライアントDockerfileのユーザー設定修正
+- 問題: `production`ターゲットで`addgroup -g 1000 nodeuser`が失敗（node:22-alpineに既にuid/gid 1000の`node`ユーザーが存在）
+- 解決: 新規ユーザー作成をやめ、既存の`node`ユーザーを使用
+- 影響範囲: staging/production環境のクライアントビルドのみ（develop環境は`dev`ターゲットを使用するため影響なし）
+
 ## 実装フェーズ
 
 ### Phase 1: APIサーバーDockerfile作成
@@ -132,8 +188,7 @@ Docker化の実装を段階的に進めるためのタスク一覧。要件定�
   - 環境変数: `APP_ENV=develop`
   - ボリュームマウント:
     - `./config/develop:/app/config/develop:ro`
-    - `./server/data:/app/data`
-    - `./logs:/app/logs`
+    - `./server/data:/app/server/data`（設計変更4参照）
     - `./logs:/app/logs`
   - ネットワーク: `postgres-network`, `redis-network`（外部ネットワーク）
   - ヘルスチェック設定
@@ -189,8 +244,7 @@ Docker化の実装を段階的に進めるためのタスク一覧。要件定�
   - 環境変数: `APP_ENV=develop`
   - ボリュームマウント:
     - `./config/develop:/app/config/develop:ro`
-    - `./server/data:/app/data`
-    - `./logs:/app/logs`
+    - `./server/data:/app/server/data`（設計変更4参照）
     - `./logs:/app/logs`
   - ネットワーク: `postgres-network`（外部ネットワーク）
   - ヘルスチェック設定
@@ -470,11 +524,11 @@ Docker化の実装を段階的に進めるためのタスク一覧。要件定�
 **作業内容**:
 - `docker images`でイメージサイズを確認
 - マルチステージビルドによりイメージサイズが最小化されていることを確認
-- Alpine Linuxベースの軽量イメージになっていることを確認
+- Debian bookworm-slimベースの軽量イメージになっていることを確認（設計変更1参照）
 
 **受け入れ基準**:
 - イメージサイズが適切に最小化されている
-- Alpine Linuxベースの軽量イメージになっている
+- Debian bookworm-slimベースの軽量イメージになっている
 
 ---
 
@@ -585,7 +639,7 @@ Docker化の実装を段階的に進めるためのタスク一覧。要件定�
 - **環境変数**: `APP_ENV`環境変数で環境を切り替え（develop/staging/production）
 - **ボリュームマウント**: 設定ファイル、データディレクトリ、ログディレクトリを適切にマウントする
   - 設定ファイル: `./config/{env}:/app/config/{env}:ro`
-  - データディレクトリ: `./server/data:/app/data`
+  - データディレクトリ: `./server/data:/app/server/data`（設計変更4参照）
   - ログディレクトリ: `./logs:/app/logs`（デフォルト設定でログファイルは`logs/`に出力されるため）
 - **起動順序**: APIサーバー → Adminサーバー → クライアントサーバーの順で起動することを推奨
 - **ポート競合**: ポート8080、8081、3000が使用可能であることを確認

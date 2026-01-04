@@ -1,0 +1,44 @@
+# ビルドステージ
+FROM golang:1.24-bookworm AS builder
+
+# CGOに必要なビルドツールをインストール（SQLite対応）
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# 依存関係をコピー
+COPY go.mod go.sum ./
+RUN go mod download
+
+# ソースコードをコピー
+COPY . .
+
+# ビルド（CGO_ENABLED=1）
+RUN CGO_ENABLED=1 GOOS=linux go build -a -o server ./cmd/server/main.go
+
+# 実行ステージ
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
+
+# 非rootユーザーを作成
+RUN groupadd -g 1000 appuser && \
+    useradd -u 1000 -g appuser -m appuser
+
+# ディレクトリ構造を作成（server/から起動される想定）
+# /app/server/ - バイナリ配置・作業ディレクトリ
+# /app/config/ - 設定ファイル（../config/でアクセス）
+# /app/logs/   - ログファイル（../logs/でアクセス）
+RUN mkdir -p /app/server/data /app/config /app/logs && \
+    chown -R appuser:appuser /app
+
+WORKDIR /app/server
+
+# ビルド成果物をコピー
+COPY --from=builder /build/server .
+
+USER appuser
+
+EXPOSE 8080
+
+CMD ["./server"]
