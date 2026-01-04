@@ -1,0 +1,28 @@
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        - NEXT_PUBLIC_API_URL=http://api:8080
+    container_name: client-develop
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./client/.env.local
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://api:8080
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - postgres-network
+    restart: unless-stopped
+
+networks:
+  postgres-network:
+    external: true
+    name: postgres-network

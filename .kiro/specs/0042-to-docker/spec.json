@@ -1,0 +1,11 @@
+{
+  "feature": "0042-to-docker",
+  "description": "APIサーバー、クライアントサーバー、GoAdminサーバーをDocker上で動作させる",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

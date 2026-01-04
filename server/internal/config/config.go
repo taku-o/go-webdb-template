@@ -250,6 +250,9 @@ func Load() (*Config, error) {
 	// 環境変数の自動マッピング
 	viper.AutomaticEnv()
 
+	// Docker環境用の環境変数バインディング
+	viper.BindEnv("cache_server.redis.jobqueue.addr", "REDIS_JOBQUEUE_ADDR")
+
 	// メイン設定ファイルの読み込み
 	viper.SetConfigName("config")
 	if err := viper.ReadInConfig(); err != nil {

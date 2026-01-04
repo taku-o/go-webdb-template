@@ -23,6 +23,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 - ✅ **メール送信**: 標準出力、Mailpit、AWS SES対応のメール送信機能
 - ✅ **ファイルアップロード**: TUSプロトコルによる大容量ファイルアップロード（ローカル/S3ストレージ対応）
 - ✅ **ログ機能**: アクセスログ、メール送信ログ、SQLログの出力
+- ✅ **Docker対応**: APIサーバー、Adminサーバー、クライアントサーバーのDocker化
 
 ## セットアップ
 
@@ -276,6 +277,35 @@ npm run dev
 
 クライアントは http://localhost:3000 で起動します。
 
+### 10. Docker環境での起動（オプション）
+
+Docker環境でサーバーを起動することもできます。
+
+```bash
+# PostgreSQL、Redisコンテナの起動（先に起動が必要）
+docker-compose -f docker-compose.postgres.yml up -d
+docker-compose -f docker-compose.redis.yml up -d
+
+# APIサーバーのビルドと起動
+docker-compose -f docker-compose.api.develop.yml build
+docker-compose -f docker-compose.api.develop.yml up -d
+
+# Adminサーバーのビルドと起動
+docker-compose -f docker-compose.admin.develop.yml build
+docker-compose -f docker-compose.admin.develop.yml up -d
+
+# クライアントサーバーのビルドと起動
+docker-compose -f docker-compose.client.develop.yml build
+docker-compose -f docker-compose.client.develop.yml up -d
+```
+
+**起動後のアクセス先**:
+- APIサーバー: http://localhost:8080
+- Adminサーバー: http://localhost:8081/admin
+- クライアント: http://localhost:3000
+
+詳細は [Docker.md](docs/Docker.md) を参照してください。
+
 ## API エンドポイント
 
 ### 基本エンドポイント
@@ -329,6 +359,7 @@ npm run dev
 - [ファイルアップロード機能](docs/File-Upload.md) - TUSプロトコルによる大容量ファイルアップロード
 - [ログ機能](docs/Logging.md) - アクセスログ、メール送信ログ、SQLログ
 - [レートリミット機能](docs/Rate-Limit.md) - APIレートリミットの詳細設定
+- [Docker](docs/Docker.md) - Docker環境での起動・デプロイ
 
 ## APIレートリミット
 
