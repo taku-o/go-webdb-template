@@ -56,7 +56,7 @@
 ## uv
 
 ### uv
-```baash
+```bash
     brew install uv
 ```
 
@@ -67,7 +67,7 @@
 ```
 
 * use some times, to update serena index files.
-```
+```bash
     uvx --from git+https://github.com/oraios/serena index-project
 ```
 
