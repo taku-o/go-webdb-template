@@ -86,6 +86,7 @@ logs/**
 # CloudBeaver
 cloudbeaver/config/*/.data/.*.bak
 cloudbeaver/config/*/user-projects/*/.dbeaver/.*.bak
+cloudbeaver/config/develop/backup/
 
 # Metabase (設定ファイルはGit管理対象、トレースログは除外)
 !metabase/config/**/*.mv.db
