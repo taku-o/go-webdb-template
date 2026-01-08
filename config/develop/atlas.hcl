@@ -1,10 +1,10 @@
-// 開発環境用Atlas設定ファイル
+// 開発環境用Atlas設定ファイル (PostgreSQL)
 
 // マスターデータベース用環境
 env "master" {
   src = "file://db/schema/master.hcl"
-  url = "sqlite://server/data/master.db"
-  dev = "sqlite://file?mode=memory"
+  url = "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+  dev = "docker://postgres/15/dev?search_path=public"
 
   migration {
     dir = "file://db/migrations/master"
@@ -14,8 +14,8 @@ env "master" {
 // シャーディングDB 1
 env "sharding_1" {
   src = "file://db/schema/sharding_1"
-  url = "sqlite://server/data/sharding_db_1.db"
-  dev = "sqlite://file?mode=memory"
+  url = "postgres://webdb:webdb@localhost:5433/webdb_sharding_1?sslmode=disable"
+  dev = "docker://postgres/15/dev?search_path=public"
 
   migration {
     dir = "file://db/migrations/sharding_1"
@@ -25,8 +25,8 @@ env "sharding_1" {
 // シャーディングDB 2
 env "sharding_2" {
   src = "file://db/schema/sharding_2"
-  url = "sqlite://server/data/sharding_db_2.db"
-  dev = "sqlite://file?mode=memory"
+  url = "postgres://webdb:webdb@localhost:5434/webdb_sharding_2?sslmode=disable"
+  dev = "docker://postgres/15/dev?search_path=public"
 
   migration {
     dir = "file://db/migrations/sharding_2"
@@ -36,8 +36,8 @@ env "sharding_2" {
 // シャーディングDB 3
 env "sharding_3" {
   src = "file://db/schema/sharding_3"
-  url = "sqlite://server/data/sharding_db_3.db"
-  dev = "sqlite://file?mode=memory"
+  url = "postgres://webdb:webdb@localhost:5435/webdb_sharding_3?sslmode=disable"
+  dev = "docker://postgres/15/dev?search_path=public"
 
   migration {
     dir = "file://db/migrations/sharding_3"
@@ -47,8 +47,8 @@ env "sharding_3" {
 // シャーディングDB 4
 env "sharding_4" {
   src = "file://db/schema/sharding_4"
-  url = "sqlite://server/data/sharding_db_4.db"
-  dev = "sqlite://file?mode=memory"
+  url = "postgres://webdb:webdb@localhost:5436/webdb_sharding_4?sslmode=disable"
+  dev = "docker://postgres/15/dev?search_path=public"
 
   migration {
     dir = "file://db/migrations/sharding_4"

@@ -1,2 +1,2 @@
-schema "main" {
+schema "public" {
 }

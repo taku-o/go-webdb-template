@@ -200,6 +200,47 @@ docker-compose -f docker-compose.redis.yml up -d
 
 ---
 
+## PostgreSQLコンテナの起動・管理
+
+### 構成概要
+
+本プロジェクトではmaster 1台 + sharding 4台のPostgreSQLコンテナを使用します。
+
+| コンテナ名 | データベース名 | ホストポート |
+|-----------|--------------|-------------|
+| postgres-master | webdb_master | 5432 |
+| postgres-sharding-1 | webdb_sharding_1 | 5433 |
+| postgres-sharding-2 | webdb_sharding_2 | 5434 |
+| postgres-sharding-3 | webdb_sharding_3 | 5435 |
+| postgres-sharding-4 | webdb_sharding_4 | 5436 |
+
+### 起動・停止コマンド
+
+```bash
+# 起動
+./scripts/start-postgres.sh start
+
+# 停止
+./scripts/start-postgres.sh stop
+
+# 状態確認
+./scripts/start-postgres.sh status
+
+# ヘルスチェック
+./scripts/start-postgres.sh health
+```
+
+### マイグレーション
+
+```bash
+# PostgreSQL起動後にマイグレーションを適用
+APP_ENV=develop ./scripts/migrate.sh all
+```
+
+マイグレーションの詳細は [Atlas-Operations.md](./Atlas-Operations.md) を参照してください。
+
+---
+
 ## トラブルシューティング
 
 ### CGO関連エラー
