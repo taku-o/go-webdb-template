@@ -231,9 +231,14 @@ CloudBeaverを停止してください。
 その後、https://github.com/taku-o/go-webdb-template/issues/86 に対して
 pull requestを作成してください。
 
+git switch master
+git switch -c switch-to-postgresql
+git push origin switch-to-postgresql
+git switch feature/0043-pgmain-postgresql
 
+/review 92
 
-
+git switch switch-to-postgresql
 
 
 
