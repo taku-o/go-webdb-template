@@ -221,6 +221,9 @@ func FilterDSN(dsn string, driver string) string {
 		// MySQL DSN: "user:password@tcp(host:port)/dbname"
 		re := regexp.MustCompile(`:[^@]+@`)
 		return re.ReplaceAllString(dsn, ":***@")
+	case "sqlite3":
+		// SQLite DSN: 通常password情報は含まれないが、そのまま返す
+		return dsn
 	default:
 		return dsn
 	}

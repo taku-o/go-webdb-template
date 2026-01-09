@@ -1,13 +1,17 @@
 package db_test
 
 import (
+	"context"
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/model"
 )
 
 func TestHashBasedSharding_GetShardID(t *testing.T) {
@@ -76,6 +80,327 @@ func TestHashBasedSharding_Distribution(t *testing.T) {
 	// Allow up to 70-30 split for 100 keys
 	assert.Greater(t, distribution[1], 20, "Shard 1 should have at least 20% of keys")
 	assert.Greater(t, distribution[2], 20, "Shard 2 should have at least 20% of keys")
+}
+
+// TestGORMManagerSharding tests that GORMManager correctly routes to shards
+func TestGORMManagerSharding(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create 3 shards
+	shards := []config.ShardConfig{
+		{
+			ID:         1,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard1.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+		},
+		{
+			ID:         2,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard2.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+		},
+		{
+			ID:         3,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard3.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard3.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard3.db")},
+		},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+	defer manager.CloseAll()
+
+	// Initialize schema on all shards
+	for i := 1; i <= 3; i++ {
+		database, err := manager.GetGORM(i)
+		require.NoError(t, err)
+		err = database.AutoMigrate(&model.DmUser{})
+		require.NoError(t, err)
+	}
+
+	ctx := context.Background()
+
+	// Create users with different keys to distribute across shards
+	userKeys := []int64{100, 200, 300, 400, 500}
+	for _, key := range userKeys {
+		database, err := manager.GetGORMByKey(key)
+		require.NoError(t, err)
+
+		user := &model.DmUser{
+			ID:    fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256),
+			Name:  fmt.Sprintf("User %d", key),
+			Email: fmt.Sprintf("user%d@example.com", key),
+		}
+		err = database.WithContext(ctx).Create(user).Error
+		require.NoError(t, err)
+	}
+
+	// Verify that users are distributed across different shards
+	shardCounts := make(map[int]int)
+	for _, key := range userKeys {
+		database, err := manager.GetGORMByKey(key)
+		require.NoError(t, err)
+
+		var user model.DmUser
+		userID := fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256)
+		err = database.WithContext(ctx).First(&user, "id = ?", userID).Error
+		require.NoError(t, err)
+
+		// Determine which shard this key belongs to
+		shardID := manager.GetShardIDByKey(key)
+		shardCounts[shardID]++
+	}
+
+	// Verify that at least 2 different shards are used (probabilistic)
+	assert.GreaterOrEqual(t, len(shardCounts), 2, "Users should be distributed across multiple shards")
+}
+
+// TestGORMManagerGetAllConnections tests retrieving all GORM connections
+func TestGORMManagerGetAllConnections(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	shards := []config.ShardConfig{
+		{
+			ID:         1,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard1.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+		},
+		{
+			ID:         2,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard2.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+		},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+	defer manager.CloseAll()
+
+	// Get all connections
+	connections := manager.GetAllGORMConnections()
+	assert.Len(t, connections, 2)
+
+	// Verify shard IDs
+	shardIDs := make(map[int]bool)
+	for _, conn := range connections {
+		shardIDs[conn.ShardID] = true
+	}
+	assert.True(t, shardIDs[1])
+	assert.True(t, shardIDs[2])
+}
+
+// TestGORMManagerCrossShardQuery tests querying across multiple shards
+func TestGORMManagerCrossShardQuery(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	shards := []config.ShardConfig{
+		{
+			ID:         1,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard1.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+		},
+		{
+			ID:         2,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard2.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+		},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+	defer manager.CloseAll()
+
+	// Initialize schema on all shards
+	for i := 1; i <= 2; i++ {
+		database, err := manager.GetGORM(i)
+		require.NoError(t, err)
+		err = database.AutoMigrate(&model.DmUser{})
+		require.NoError(t, err)
+	}
+
+	ctx := context.Background()
+
+	// Create users on specific shards
+	db1, err := manager.GetGORM(1)
+	require.NoError(t, err)
+
+	user1 := &model.DmUser{
+		ID:    "550e8400e29b41d4a716446655440001",
+		Name:  "User on Shard 1",
+		Email: "user1@example.com",
+	}
+	err = db1.WithContext(ctx).Create(user1).Error
+	require.NoError(t, err)
+
+	db2, err := manager.GetGORM(2)
+	require.NoError(t, err)
+
+	user2 := &model.DmUser{
+		ID:    "550e8400e29b41d4a716446655440002",
+		Name:  "User on Shard 2",
+		Email: "user2@example.com",
+	}
+	err = db2.WithContext(ctx).Create(user2).Error
+	require.NoError(t, err)
+
+	// Query all shards
+	allUsers := make([]*model.DmUser, 0)
+	connections := manager.GetAllGORMConnections()
+
+	for _, conn := range connections {
+		var users []*model.DmUser
+		err := conn.DB.WithContext(ctx).Find(&users).Error
+		require.NoError(t, err)
+		allUsers = append(allUsers, users...)
+	}
+
+	// Verify we got users from both shards
+	assert.Len(t, allUsers, 2)
+}
+
+// TestGORMManagerShardingConsistency tests that the same key always maps to the same shard
+func TestGORMManagerShardingConsistency(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	shards := []config.ShardConfig{
+		{
+			ID:         1,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard1.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+		},
+		{
+			ID:         2,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard2.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+		},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+	defer manager.CloseAll()
+
+	// Test that the same key always maps to the same shard
+	testKeys := []int64{100, 200, 300, 400, 500}
+	shardMapping := make(map[int64]int)
+
+	// First pass - record shard mappings
+	for _, key := range testKeys {
+		shardID := manager.GetShardIDByKey(key)
+		shardMapping[key] = shardID
+	}
+
+	// Second pass - verify consistency
+	for i := 0; i < 10; i++ {
+		for _, key := range testKeys {
+			shardID := manager.GetShardIDByKey(key)
+			assert.Equal(t, shardMapping[key], shardID,
+				"Key %d should always map to shard %d, got %d", key, shardMapping[key], shardID)
+		}
+	}
+}
+
+// TestGORMManagerPingAll tests pinging all shard connections
+func TestGORMManagerPingAll(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	shards := []config.ShardConfig{
+		{
+			ID:         1,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard1.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+		},
+		{
+			ID:         2,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard2.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+		},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+	defer manager.CloseAll()
+
+	// Ping all connections
+	err = manager.PingAll()
+	assert.NoError(t, err)
+}
+
+// TestGORMManagerCloseAll tests closing all shard connections
+func TestGORMManagerCloseAll(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	shards := []config.ShardConfig{
+		{
+			ID:         1,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard1.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+		},
+		{
+			ID:         2,
+			Driver:     "sqlite3",
+			DSN:        filepath.Join(tmpDir, "shard2.db"),
+			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
+			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+		},
+	}
+
+	cfg := &config.Config{
+		Database: config.DatabaseConfig{Shards: shards},
+	}
+
+	manager, err := db.NewGORMManager(cfg)
+	require.NoError(t, err)
+
+	// Verify connections work
+	err = manager.PingAll()
+	require.NoError(t, err)
+
+	// Close all connections
+	err = manager.CloseAll()
+	assert.NoError(t, err)
 }
 
 // =============================================================================

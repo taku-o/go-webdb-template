@@ -54,7 +54,7 @@ func main() {
 	}
 
 	// Repository層の初期化
-	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 
 	// Service層の初期化
 	dmUserService := service.NewDmUserService(dmUserRepo)

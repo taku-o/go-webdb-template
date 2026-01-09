@@ -1,15 +1,16 @@
 // Master Database Schema
 // マスターデータベースのスキーマ定義（newsテーブル、GoAdmin関連テーブル）
 
-schema "public" {
+schema "main" {
 }
 
 // dm_news テーブル（ダミーテーブル）
 table "dm_news" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "title" {
     null = false
@@ -25,15 +26,15 @@ table "dm_news" {
   }
   column "published_at" {
     null = true
-    type = timestamp
+    type = datetime
   }
   column "created_at" {
     null = false
-    type = timestamp
+    type = datetime
   }
   column "updated_at" {
     null = false
-    type = timestamp
+    type = datetime
   }
   primary_key {
     columns = [column.id]
@@ -48,10 +49,11 @@ table "dm_news" {
 
 // GoAdmin メニューテーブル
 table "goadmin_menu" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "parent_id" {
     null    = false
@@ -96,12 +98,12 @@ table "goadmin_menu" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -111,10 +113,11 @@ table "goadmin_menu" {
 
 // GoAdmin 操作ログテーブル
 table "goadmin_operation_log" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "user_id" {
     null = false
@@ -138,12 +141,12 @@ table "goadmin_operation_log" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -156,10 +159,11 @@ table "goadmin_operation_log" {
 
 // GoAdmin サイト設定テーブル
 table "goadmin_site" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "key" {
     null = true
@@ -180,12 +184,12 @@ table "goadmin_site" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -195,10 +199,11 @@ table "goadmin_site" {
 
 // GoAdmin 権限テーブル
 table "goadmin_permissions" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "name" {
     null = false
@@ -218,12 +223,12 @@ table "goadmin_permissions" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -237,10 +242,11 @@ table "goadmin_permissions" {
 
 // GoAdmin ロールテーブル
 table "goadmin_roles" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "name" {
     null = false
@@ -252,12 +258,12 @@ table "goadmin_roles" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -271,7 +277,7 @@ table "goadmin_roles" {
 
 // GoAdmin ロール-メニュー関連テーブル
 table "goadmin_role_menu" {
-  schema = schema.public
+  schema = schema.main
   column "role_id" {
     null = false
     type = integer
@@ -282,12 +288,12 @@ table "goadmin_role_menu" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -297,7 +303,7 @@ table "goadmin_role_menu" {
 
 // GoAdmin ロール-権限関連テーブル
 table "goadmin_role_permissions" {
-  schema = schema.public
+  schema = schema.main
   column "role_id" {
     null = false
     type = integer
@@ -308,12 +314,12 @@ table "goadmin_role_permissions" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -323,7 +329,7 @@ table "goadmin_role_permissions" {
 
 // GoAdmin ロール-ユーザー関連テーブル
 table "goadmin_role_users" {
-  schema = schema.public
+  schema = schema.main
   column "role_id" {
     null = false
     type = integer
@@ -334,12 +340,12 @@ table "goadmin_role_users" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -349,10 +355,11 @@ table "goadmin_role_users" {
 
 // GoAdmin セッションテーブル
 table "goadmin_session" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "sid" {
     null = false
@@ -364,12 +371,12 @@ table "goadmin_session" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -379,7 +386,7 @@ table "goadmin_session" {
 
 // GoAdmin ユーザー-権限関連テーブル
 table "goadmin_user_permissions" {
-  schema = schema.public
+  schema = schema.main
   column "user_id" {
     null = false
     type = integer
@@ -390,12 +397,12 @@ table "goadmin_user_permissions" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {
@@ -405,10 +412,11 @@ table "goadmin_user_permissions" {
 
 // GoAdmin 管理者ユーザーテーブル
 table "goadmin_users" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "username" {
     null = false
@@ -432,12 +440,12 @@ table "goadmin_users" {
   }
   column "created_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   column "updated_at" {
     null    = true
-    type    = timestamp
+    type    = datetime
     default = sql("CURRENT_TIMESTAMP")
   }
   primary_key {

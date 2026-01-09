@@ -91,14 +91,10 @@ npm run metabase:restart
 ### マスターデータベースの接続
 
 1. 管理画面からデータベース追加を選択
-2. PostgreSQLを選択
+2. SQLiteを選択
 3. 接続情報を入力:
    - **接続名**: `master` または `Master Database`
-   - **ホスト**: `postgres-master`（Docker内）または `localhost`
-   - **ポート**: `5432`
-   - **データベース名**: `webdb_master`
-   - **ユーザー名**: `webdb`
-   - **パスワード**: `webdb`
+   - **データベースファイル**: `/data/master.db`
 4. 接続をテスト
 5. 接続を保存
 
@@ -106,12 +102,12 @@ npm run metabase:restart
 
 各シャーディングデータベースに対して接続を追加します：
 
-| 接続名 | ホスト | ポート | データベース名 |
-|--------|--------|--------|--------------|
-| `sharding_db_1` | `postgres-sharding-1` | 5433 | `webdb_sharding_1` |
-| `sharding_db_2` | `postgres-sharding-2` | 5434 | `webdb_sharding_2` |
-| `sharding_db_3` | `postgres-sharding-3` | 5435 | `webdb_sharding_3` |
-| `sharding_db_4` | `postgres-sharding-4` | 5436 | `webdb_sharding_4` |
+| 接続名 | データベースファイル |
+|--------|---------------------|
+| `sharding_db_1` | `/data/sharding_db_1.db` |
+| `sharding_db_2` | `/data/sharding_db_2.db` |
+| `sharding_db_3` | `/data/sharding_db_3.db` |
+| `sharding_db_4` | `/data/sharding_db_4.db` |
 
 ## クエリ作成方法
 

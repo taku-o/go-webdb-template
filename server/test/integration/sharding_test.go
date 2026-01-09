@@ -132,35 +132,6 @@ func TestCrossTableQueryUsers(t *testing.T) {
 
 	tableSelector := db.NewTableSelector(32, 8)
 
-	// クリーンアップ: 既存データを削除してから新規作成
-	for _, u := range testUsers {
-		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
-		require.NoError(t, err)
-		conn, err := groupManager.GetShardingConnection(tableNumber)
-		require.NoError(t, err)
-
-		tableName, err := tableSelector.GetTableNameFromUUID("dm_users", u.id)
-		require.NoError(t, err)
-		// 既存データがあれば削除
-		_ = conn.DB.Table(tableName).Where("id = ?", u.id).Delete(&model.DmUser{}).Error
-	}
-
-	// テスト終了時にデータを削除するクリーンアップ
-	defer func() {
-		for _, u := range testUsers {
-			tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
-			if err != nil {
-				continue
-			}
-			conn, err := groupManager.GetShardingConnection(tableNumber)
-			if err != nil {
-				continue
-			}
-			tableName, _ := tableSelector.GetTableNameFromUUID("dm_users", u.id)
-			_ = conn.DB.Table(tableName).Where("id = ?", u.id).Delete(&model.DmUser{}).Error
-		}
-	}()
-
 	// Insert users directly to specific tables
 	for _, u := range testUsers {
 		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
@@ -400,35 +371,6 @@ func TestCrossTableQuery8Sharding(t *testing.T) {
 		{"019b6f83add07d6586044649c19f0019", "User in Table 25", "user25@test.com"}, // 末尾19 -> table 25, DB4
 		{"019b6f83add07d6586044649c19f001d", "User in Table 29", "user29@test.com"}, // 末尾1d -> table 29, DB4
 	}
-
-	// クリーンアップ: 既存データを削除してから新規作成
-	for _, u := range testUsers {
-		tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
-		require.NoError(t, err)
-		conn, err := groupManager.GetShardingConnection(tableNumber)
-		require.NoError(t, err)
-
-		tableName, err := tableSelector.GetTableNameFromUUID("dm_users", u.id)
-		require.NoError(t, err)
-		// 既存データがあれば削除
-		_ = conn.DB.Table(tableName).Where("id = ?", u.id).Delete(&model.DmUser{}).Error
-	}
-
-	// テスト終了時にデータを削除するクリーンアップ
-	defer func() {
-		for _, u := range testUsers {
-			tableNumber, err := tableSelector.GetTableNumberFromUUID(u.id)
-			if err != nil {
-				continue
-			}
-			conn, err := groupManager.GetShardingConnection(tableNumber)
-			if err != nil {
-				continue
-			}
-			tableName, _ := tableSelector.GetTableNameFromUUID("dm_users", u.id)
-			_ = conn.DB.Table(tableName).Where("id = ?", u.id).Delete(&model.DmUser{}).Error
-		}
-	}()
 
 	// Insert users
 	for _, u := range testUsers {

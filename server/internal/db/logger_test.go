@@ -15,27 +15,27 @@ import (
 
 func TestNewSQLLogger(t *testing.T) {
 	t.Run("SQLログが無効な場合はnilを返す", func(t *testing.T) {
-		logger, err := NewSQLLogger(1, "sharding", "postgres", "logs", false)
+		logger, err := NewSQLLogger(1, "sharding", "sqlite3", "logs", false)
 		assert.NoError(t, err)
 		assert.Nil(t, logger)
 	})
 
 	t.Run("SQLログが有効な場合はLoggerインスタンスを返す", func(t *testing.T) {
 		tempDir := t.TempDir()
-		logger, err := NewSQLLogger(1, "sharding", "postgres", tempDir, true)
+		logger, err := NewSQLLogger(1, "sharding", "sqlite3", tempDir, true)
 		require.NoError(t, err)
 		require.NotNil(t, logger)
 		defer logger.Close()
 
 		assert.Equal(t, 1, logger.shardID)
 		assert.Equal(t, "sharding", logger.groupName)
-		assert.Equal(t, "postgres", logger.driver)
+		assert.Equal(t, "sqlite3", logger.driver)
 		assert.Equal(t, tempDir, logger.outputDir)
 	})
 
 	t.Run("ログディレクトリが自動作成される", func(t *testing.T) {
 		tempDir := filepath.Join(t.TempDir(), "new_dir")
-		logger, err := NewSQLLogger(1, "sharding", "postgres", tempDir, true)
+		logger, err := NewSQLLogger(1, "sharding", "sqlite3", tempDir, true)
 		require.NoError(t, err)
 		require.NotNil(t, logger)
 		defer logger.Close()
@@ -49,7 +49,7 @@ func TestNewSQLLogger(t *testing.T) {
 func TestSQLLogger_LogMode(t *testing.T) {
 	t.Run("ログレベルが正しく設定される", func(t *testing.T) {
 		tempDir := t.TempDir()
-		sqlLogger, err := NewSQLLogger(1, "sharding", "postgres", tempDir, true)
+		sqlLogger, err := NewSQLLogger(1, "sharding", "sqlite3", tempDir, true)
 		require.NoError(t, err)
 		require.NotNil(t, sqlLogger)
 		defer sqlLogger.Close()
@@ -76,7 +76,7 @@ func TestSQLLogger_LogMode(t *testing.T) {
 func TestSQLLogger_Trace(t *testing.T) {
 	t.Run("SQLクエリがログに出力される", func(t *testing.T) {
 		tempDir := t.TempDir()
-		sqlLogger, err := NewSQLLogger(1, "sharding", "postgres", tempDir, true)
+		sqlLogger, err := NewSQLLogger(1, "sharding", "sqlite3", tempDir, true)
 		require.NoError(t, err)
 		require.NotNil(t, sqlLogger)
 		defer sqlLogger.Close()
@@ -106,7 +106,7 @@ func TestSQLLogger_Trace(t *testing.T) {
 func TestSQLLogger_Close(t *testing.T) {
 	t.Run("正常にクローズできる", func(t *testing.T) {
 		tempDir := t.TempDir()
-		sqlLogger, err := NewSQLLogger(1, "sharding", "postgres", tempDir, true)
+		sqlLogger, err := NewSQLLogger(1, "sharding", "sqlite3", tempDir, true)
 		require.NoError(t, err)
 		require.NotNil(t, sqlLogger)
 
@@ -208,6 +208,12 @@ func TestFilterDSN(t *testing.T) {
 			expected: "admin:***@tcp(localhost:3306)/testdb",
 		},
 		{
+			name:     "SQLite DSNは変更なし",
+			dsn:      "file:test.db?cache=shared&mode=memory",
+			driver:   "sqlite3",
+			expected: "file:test.db?cache=shared&mode=memory",
+		},
+		{
 			name:     "未知のドライバーは変更なし",
 			dsn:      "some:connection@string",
 			driver:   "unknown",
@@ -237,7 +243,7 @@ func TestSQLTextFormatter_Format(t *testing.T) {
 			data: map[string]interface{}{
 				"shard_id":      1,
 				"group_name":    "sharding",
-				"driver":        "postgres",
+				"driver":        "sqlite3",
 				"rows_affected": int64(1),
 				"sql":           "SELECT * FROM users WHERE id = ?",
 				"duration_ms":   2.5,
@@ -250,7 +256,7 @@ func TestSQLTextFormatter_Format(t *testing.T) {
 		resultStr := string(result)
 		assert.Contains(t, resultStr, "[2025-01-27 14:30:45]")
 		assert.Contains(t, resultStr, "[1]")
-		assert.Contains(t, resultStr, "[postgres]")
+		assert.Contains(t, resultStr, "[sqlite3]")
 		assert.Contains(t, resultStr, "[sharding]")
 		assert.Contains(t, resultStr, "SELECT * FROM users WHERE id = ?")
 		assert.Contains(t, resultStr, "2.50ms")

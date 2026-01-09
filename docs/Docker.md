@@ -10,7 +10,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 
 | 環境 | 用途 | データベース |
 |------|------|-------------|
-| develop | 開発環境 | PostgreSQL/MySQL |
+| develop | 開発環境 | SQLite |
 | staging | ステージング環境 | PostgreSQL/MySQL |
 | production | 本番環境 | PostgreSQL/MySQL |
 
@@ -52,7 +52,11 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 | ファイル | 用途 | CGO | ベースイメージ |
 |---------|------|-----|---------------|
 | `server/Dockerfile` | staging/production | 0 | golang:1.24-bookworm → debian:bookworm-slim |
+| `server/Dockerfile.develop` | develop | 1 | golang:1.24-bookworm → debian:bookworm-slim |
 | `server/Dockerfile.admin` | staging/production | 0 | golang:1.24-bookworm → debian:bookworm-slim |
+| `server/Dockerfile.admin.develop` | develop | 1 | golang:1.24-bookworm → debian:bookworm-slim |
+
+**注意**: 開発環境（develop）ではSQLiteを使用するため、CGO_ENABLED=1でビルドする必要があります。
 
 ### クライアント側（Next.js）
 
@@ -84,7 +88,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 | パス | 用途 | モード |
 |------|------|--------|
 | `./config/{env}:/app/config/{env}` | 設定ファイル | 読み取り専用 |
-| `./server/data:/app/server/data` | データディレクトリ | 読み書き可 |
+| `./server/data:/app/server/data` | SQLiteデータベース | 読み書き可 |
 | `./logs:/app/logs` | ログファイル | 読み書き可 |
 
 ### 環境変数
@@ -196,48 +200,20 @@ docker-compose -f docker-compose.redis.yml up -d
 
 ---
 
-## PostgreSQLコンテナの起動・管理
-
-### 構成概要
-
-本プロジェクトではmaster 1台 + sharding 4台のPostgreSQLコンテナを使用します。
-
-| コンテナ名 | データベース名 | ホストポート |
-|-----------|--------------|-------------|
-| postgres-master | webdb_master | 5432 |
-| postgres-sharding-1 | webdb_sharding_1 | 5433 |
-| postgres-sharding-2 | webdb_sharding_2 | 5434 |
-| postgres-sharding-3 | webdb_sharding_3 | 5435 |
-| postgres-sharding-4 | webdb_sharding_4 | 5436 |
-
-### 起動・停止コマンド
-
-```bash
-# 起動
-./scripts/start-postgres.sh start
-
-# 停止
-./scripts/start-postgres.sh stop
-
-# 状態確認
-./scripts/start-postgres.sh status
-
-# ヘルスチェック
-./scripts/start-postgres.sh health
-```
-
-### マイグレーション
-
-```bash
-# PostgreSQL起動後にマイグレーションを適用
-APP_ENV=develop ./scripts/migrate.sh all
-```
-
-マイグレーションの詳細は [Atlas-Operations.md](./Atlas-Operations.md) を参照してください。
-
----
-
 ## トラブルシューティング
+
+### CGO関連エラー
+
+**症状**: `Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work`
+
+**原因**: 開発環境でSQLiteを使用する場合、CGO_ENABLED=1でビルドする必要があります。
+
+**解決策**: `Dockerfile.develop`を使用してビルドしてください。
+
+```bash
+# 正しいDockerfileを使用
+docker-compose -f docker-compose.api.develop.yml build
+```
 
 ### ネットワーク接続エラー
 

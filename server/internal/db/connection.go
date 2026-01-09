@@ -9,8 +9,10 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/taku-o/go-webdb-template/internal/config"
+	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/plugin/dbresolver"
 )
@@ -51,7 +53,7 @@ func NewConnection(cfg *config.ShardConfig) (*Connection, error) {
 
 	driver := cfg.Driver
 	if driver == "" {
-		return nil, fmt.Errorf("driver is required for shard %d", cfg.ID)
+		driver = "sqlite3"
 	}
 
 	var db *sql.DB
@@ -133,6 +135,8 @@ func createGORMConnection(cfg *config.ShardConfig, isWriter bool, sqlLogger *SQL
 	}
 
 	switch cfg.Driver {
+	case "sqlite3":
+		dialector = sqlite.Open(dsn)
 	case "postgres":
 		dialector = postgres.Open(dsn)
 	case "mysql":
@@ -203,6 +207,8 @@ func createGORMConnectionFromDSN(dsn string, driver string) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
 	switch driver {
+	case "sqlite3":
+		dialector = sqlite.Open(dsn)
 	case "postgres":
 		dialector = postgres.Open(dsn)
 	case "mysql":
@@ -247,6 +253,8 @@ func NewGORMConnection(cfg *config.ShardConfig, sqlLogger *SQLLogger) (*GORMConn
 			hasDistinctReplicas = true
 			var dialector gorm.Dialector
 			switch cfg.Driver {
+			case "sqlite3":
+				dialector = sqlite.Open(readerDSN)
 			case "postgres":
 				dialector = postgres.Open(readerDSN)
 			case "mysql":

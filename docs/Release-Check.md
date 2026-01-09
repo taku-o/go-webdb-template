@@ -192,19 +192,15 @@ echo $NEXT_PUBLIC_API_BASE_URL
 ### 4.1 マイグレーション
 
 ```bash
-# マイグレーションスクリプトを使用
-./scripts/migrate.sh all
+# 各Shardでマイグレーションを実行
+# Shard 1
+sqlite3 /path/to/production/shard1.db < db/migrations/shard1/001_init.sql
 
-# または、Atlas CLIで直接実行（PostgreSQLの場合）
-# Master
-atlas migrate apply --dir file://db/migrations/master \
-    --url "postgres://webdb:password@db-master.example.com:5432/webdb_master?sslmode=require"
+# Shard 2
+sqlite3 /path/to/production/shard2.db < db/migrations/shard2/001_init.sql
 
-# Sharding DBs
-for i in 1 2 3 4; do
-    atlas migrate apply --dir file://db/migrations/sharding \
-        --url "postgres://webdb:password@db-sharding-${i}.example.com:5432/webdb_sharding_${i}?sslmode=require"
-done
+# PostgreSQL/MySQLの場合
+# psql -h db-shard1.example.com -U app_user -d app_shard1 -f db/migrations/shard1/001_init.sql
 ```
 
 **確認項目**:

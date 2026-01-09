@@ -13,39 +13,36 @@ db/
 ├── schema/                    # スキーマ定義ファイル（HCL）
 │   ├── master.hcl            # マスターDBのスキーマ定義
 │   ├── sharding_1/           # シャード1用スキーマ（テーブル000-007）
-│   │   ├── _schema.hcl       # スキーマ定義（schema "public" {}）
-│   │   ├── dm_users.hcl      # dm_users_000 〜 dm_users_007
-│   │   └── dm_posts.hcl      # dm_posts_000 〜 dm_posts_007
+│   │   ├── _schema.hcl       # スキーマ定義（schema "main" {}）
+│   │   ├── users.hcl         # users_000 〜 users_007
+│   │   └── posts.hcl         # posts_000 〜 posts_007
 │   ├── sharding_2/           # シャード2用スキーマ（テーブル008-015）
 │   │   ├── _schema.hcl
-│   │   ├── dm_users.hcl      # dm_users_008 〜 dm_users_015
-│   │   └── dm_posts.hcl      # dm_posts_008 〜 dm_posts_015
+│   │   ├── users.hcl         # users_008 〜 users_015
+│   │   └── posts.hcl         # posts_008 〜 posts_015
 │   ├── sharding_3/           # シャード3用スキーマ（テーブル016-023）
 │   │   ├── _schema.hcl
-│   │   ├── dm_users.hcl      # dm_users_016 〜 dm_users_023
-│   │   └── dm_posts.hcl      # dm_posts_016 〜 dm_posts_023
+│   │   ├── users.hcl         # users_016 〜 users_023
+│   │   └── posts.hcl         # posts_016 〜 posts_023
 │   └── sharding_4/           # シャード4用スキーマ（テーブル024-031）
 │       ├── _schema.hcl
-│       ├── dm_users.hcl      # dm_users_024 〜 dm_users_031
-│       └── dm_posts.hcl      # dm_posts_024 〜 dm_posts_031
+│       ├── users.hcl         # users_024 〜 users_031
+│       └── posts.hcl         # posts_024 〜 posts_031
 └── migrations/               # マイグレーションファイル（初期データ含む）
     ├── master/               # マスターDB用マイグレーション
-    │   ├── YYYYMMDD_*.sql
+    │   ├── 20251226_initial.sql
     │   └── atlas.sum
-    ├── sharding_1/           # webdb_sharding_1用マイグレーション（テーブル000-007）
-    │   ├── YYYYMMDD_*.sql
+    ├── sharding_1/           # sharding_db_1.db用マイグレーション（テーブル000-007）
+    │   ├── YYYYMMDD_initial.sql
     │   └── atlas.sum
-    ├── sharding_2/           # webdb_sharding_2用マイグレーション（テーブル008-015）
-    │   ├── YYYYMMDD_*.sql
+    ├── sharding_2/           # sharding_db_2.db用マイグレーション（テーブル008-015）
+    │   ├── YYYYMMDD_initial.sql
     │   └── atlas.sum
-    ├── sharding_3/           # webdb_sharding_3用マイグレーション（テーブル016-023）
-    │   ├── YYYYMMDD_*.sql
+    ├── sharding_3/           # sharding_db_3.db用マイグレーション（テーブル016-023）
+    │   ├── YYYYMMDD_initial.sql
     │   └── atlas.sum
-    ├── sharding_4/           # webdb_sharding_4用マイグレーション（テーブル024-031）
-    │   ├── YYYYMMDD_*.sql
-    │   └── atlas.sum
-    └── view_master/          # マスターDB用ビューマイグレーション
-        ├── YYYYMMDD_*.sql
+    └── sharding_4/           # sharding_db_4.db用マイグレーション（テーブル024-031）
+        ├── YYYYMMDD_initial.sql
         └── atlas.sum
 
 config/
@@ -60,35 +57,12 @@ config/
 
 | データベース | テーブル範囲 | スキーマディレクトリ | マイグレーションディレクトリ |
 |------------|-----------|------------------|----------------------|
-| webdb_sharding_1 | dm_users_000-007, dm_posts_000-007 | db/schema/sharding_1/ | db/migrations/sharding_1/ |
-| webdb_sharding_2 | dm_users_008-015, dm_posts_008-015 | db/schema/sharding_2/ | db/migrations/sharding_2/ |
-| webdb_sharding_3 | dm_users_016-023, dm_posts_016-023 | db/schema/sharding_3/ | db/migrations/sharding_3/ |
-| webdb_sharding_4 | dm_users_024-031, dm_posts_024-031 | db/schema/sharding_4/ | db/migrations/sharding_4/ |
-
-## PostgreSQLコンテナ構成
-
-| コンテナ名 | データベース名 | ホストポート |
-|-----------|--------------|-------------|
-| postgres-master | webdb_master | 5432 |
-| postgres-sharding-1 | webdb_sharding_1 | 5433 |
-| postgres-sharding-2 | webdb_sharding_2 | 5434 |
-| postgres-sharding-3 | webdb_sharding_3 | 5435 |
-| postgres-sharding-4 | webdb_sharding_4 | 5436 |
+| sharding_db_1.db | users_000-007, posts_000-007 | db/schema/sharding_1/ | db/migrations/sharding_1/ |
+| sharding_db_2.db | users_008-015, posts_008-015 | db/schema/sharding_2/ | db/migrations/sharding_2/ |
+| sharding_db_3.db | users_016-023, posts_016-023 | db/schema/sharding_3/ | db/migrations/sharding_3/ |
+| sharding_db_4.db | users_024-031, posts_024-031 | db/schema/sharding_4/ | db/migrations/sharding_4/ |
 
 ## 基本コマンド
-
-### マイグレーションスクリプト
-
-```bash
-# すべてのマイグレーションを適用（デフォルト）
-APP_ENV=develop ./scripts/migrate.sh all
-
-# masterデータベースのみ
-APP_ENV=develop ./scripts/migrate.sh master
-
-# shardingデータベースのみ
-APP_ENV=develop ./scripts/migrate.sh sharding
-```
 
 ### マイグレーションの生成
 
@@ -99,32 +73,32 @@ APP_ENV=develop ./scripts/migrate.sh sharding
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/master \
     --to file://db/schema/master.hcl \
-    --dev-url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 
 # シャーディングDBのマイグレーション生成（各シャードごとに実行）
 # シャード1
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/sharding_1 \
     --to file://db/schema/sharding_1 \
-    --dev-url "postgres://webdb:webdb@localhost:5433/webdb_sharding_1?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 
 # シャード2
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/sharding_2 \
     --to file://db/schema/sharding_2 \
-    --dev-url "postgres://webdb:webdb@localhost:5434/webdb_sharding_2?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 
 # シャード3
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/sharding_3 \
     --to file://db/schema/sharding_3 \
-    --dev-url "postgres://webdb:webdb@localhost:5435/webdb_sharding_3?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 
 # シャード4
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/sharding_4 \
     --to file://db/schema/sharding_4 \
-    --dev-url "postgres://webdb:webdb@localhost:5436/webdb_sharding_4?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 ```
 
 ### マイグレーションの適用
@@ -133,14 +107,13 @@ atlas migrate diff <migration_name> \
 # マスターDBへのマイグレーション適用
 atlas migrate apply \
     --dir file://db/migrations/master \
-    --url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --url "sqlite://server/data/master.db"
 
 # シャーディングDBへのマイグレーション適用（各シャードごとに対応するマイグレーションディレクトリを使用）
 for i in 1 2 3 4; do
-    port=$((5432 + i))
     atlas migrate apply \
         --dir file://db/migrations/sharding_${i} \
-        --url "postgres://webdb:webdb@localhost:${port}/webdb_sharding_${i}?sslmode=disable"
+        --url "sqlite://server/data/sharding_db_${i}.db"
 done
 ```
 
@@ -150,16 +123,28 @@ done
 # マスターDBのマイグレーション状態
 atlas migrate status \
     --dir file://db/migrations/master \
-    --url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --url "sqlite://server/data/master.db"
 
 # シャーディングDBのマイグレーション状態（各シャードごとに確認）
 for i in 1 2 3 4; do
-    echo "=== webdb_sharding_${i} ==="
-    port=$((5432 + i))
+    echo "=== sharding_db_${i} ==="
     atlas migrate status \
         --dir file://db/migrations/sharding_${i} \
-        --url "postgres://webdb:webdb@localhost:${port}/webdb_sharding_${i}?sslmode=disable"
+        --url "sqlite://server/data/sharding_db_${i}.db"
 done
+```
+
+### スクリプトを使用したマイグレーション
+
+```bash
+# 全データベースにマイグレーションを適用
+./scripts/migrate.sh all
+
+# マスターDBのみ
+./scripts/migrate.sh master
+
+# シャーディングDBのみ
+./scripts/migrate.sh sharding
 ```
 
 ## 環境別適用手順
@@ -177,7 +162,7 @@ atlas migrate apply \
     --env sharding_1
 
 # または簡易スクリプト
-APP_ENV=develop ./scripts/migrate.sh all
+./scripts/migrate.sh all
 ```
 
 ### ステージング環境
@@ -215,14 +200,15 @@ atlas migrate apply \
 
 ### テーブルの追加
 
-1. スキーマファイル (`db/schema/master.hcl` または `db/schema/sharding_*/`) にテーブル定義を追加
+1. スキーマファイル (`db/schema/master.hcl` または `db/schema/sharding.hcl`) にテーブル定義を追加
 
 ```hcl
 table "new_table" {
-  schema = schema.public
+  schema = schema.main
   column "id" {
-    null = false
-    type = serial
+    null           = false
+    type           = integer
+    auto_increment = true
   }
   column "name" {
     null = false
@@ -240,7 +226,7 @@ table "new_table" {
 atlas migrate diff add_new_table \
     --dir file://db/migrations/master \
     --to file://db/schema/master.hcl \
-    --dev-url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 ```
 
 3. 生成されたSQLを確認し、適用
@@ -300,10 +286,10 @@ Atlas管理外でSQLを直接実行した場合、スキーマとマイグレー
 atlas migrate hash --dir file://db/migrations/master
 
 # atlas_schema_revisions テーブルを手動で更新
-docker exec -i postgres-master psql -U webdb -d webdb_master -c "DELETE FROM atlas_schema_revisions"
+sqlite3 server/data/master.db "DELETE FROM atlas_schema_revisions"
 atlas migrate apply \
     --dir file://db/migrations/master \
-    --url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable" \
+    --url "sqlite://server/data/master.db" \
     --baseline <version>
 ```
 
@@ -312,7 +298,7 @@ atlas migrate apply \
 ```bash
 # 現在のDBからスキーマをインスペクト
 atlas schema inspect \
-    --url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable" \
+    --url "sqlite://server/data/master.db" \
     --format hcl > db/schema/master_current.hcl
 
 # 差分を確認して master.hcl を更新
@@ -325,7 +311,7 @@ diff db/schema/master.hcl db/schema/master_current.hcl
 # マイグレーション状態を確認
 atlas migrate status \
     --dir file://db/migrations/master \
-    --url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --url "sqlite://server/data/master.db"
 
 # 部分適用されたマイグレーションがある場合は手動で修正
 # 必要に応じてロールバック用SQLを実行
@@ -334,54 +320,11 @@ atlas migrate status \
 ### データベースの初期化（ゼロから再構築）
 
 ```bash
-# PostgreSQLコンテナを停止し、データディレクトリを削除
-./scripts/start-postgres.sh stop
-rm -rf postgres/data/master postgres/data/sharding_*
-
-# PostgreSQLコンテナを再起動
-./scripts/start-postgres.sh start
+# 既存のDBを削除
+rm -f server/data/master.db server/data/sharding_db_*.db
 
 # マイグレーションを適用（初期データも含む）
-APP_ENV=develop ./scripts/migrate.sh all
-```
-
-## トラブルシューティング
-
-### 接続エラー
-
-**症状**: `connection refused` または `no such host`
-
-**解決策**:
-```bash
-# PostgreSQLコンテナの状態確認
-./scripts/start-postgres.sh status
-./scripts/start-postgres.sh health
-```
-
-### チェックサムエラー
-
-**症状**: `checksum mismatch`
-
-**解決策**:
-```bash
-atlas migrate hash --dir "file://db/migrations/master"
-atlas migrate hash --dir "file://db/migrations/sharding_1"
-atlas migrate hash --dir "file://db/migrations/sharding_2"
-atlas migrate hash --dir "file://db/migrations/sharding_3"
-atlas migrate hash --dir "file://db/migrations/sharding_4"
-```
-
-### Atlas CLIエラー
-
-**症状**: `atlas: command not found`
-
-**解決策**:
-```bash
-# macOS
-brew install ariga/tap/atlas
-
-# その他のOS
-curl -sSf https://atlasgo.sh | sh
+./scripts/migrate.sh all
 ```
 
 ## 注意事項
@@ -392,7 +335,20 @@ curl -sSf https://atlasgo.sh | sh
 - シャーディングDBは各シャードに対応するマイグレーションディレクトリを使用して適用する必要があります
 - シャーディングスキーマを変更する場合は、4つのスキーマディレクトリ（sharding_1〜4）すべてを更新してください
 
-## データ更新用マイグレーションの作成
+## 運用実験結果
+
+本プロジェクトで実施したAtlas運用実験の結果を記録します。
+
+### 実験結果サマリ
+
+| 操作 | Master | Sharding | 結果 |
+|------|--------|----------|------|
+| テーブル追加 | OK | OK | `atlas migrate diff` で自動生成 |
+| カラム追加 | OK | OK | `ALTER TABLE ADD COLUMN` が自動生成 |
+| データ更新 | OK | OK | `atlas migrate new` で空ファイル作成後、手動でSQL追加 |
+| テーブル削除 | OK | OK | `DROP TABLE` が自動生成（PRAGMA foreign_keys含む） |
+
+### データ更新用マイグレーションの作成
 
 Atlasはスキーマ変更のみを検出するため、データ更新用のマイグレーションは手動で作成する必要があります。
 
@@ -409,8 +365,74 @@ atlas migrate hash --dir file://db/migrations/master
 # マイグレーションを適用
 atlas migrate apply \
     --dir file://db/migrations/master \
-    --url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --url "sqlite://server/data/master.db"
 ```
+
+### 直接SQL実行後の同期方法
+
+Atlas管理外でSQLを直接実行した場合の対処方法：
+
+1. **現在のDBスキーマをインスペクト**
+   ```bash
+   atlas schema inspect --url "sqlite://server/data/master.db" --format hcl
+   ```
+
+2. **HCLスキーマファイルを更新**
+   インスペクト結果を参考に `db/schema/master.hcl` を更新
+
+3. **マイグレーションを生成**
+   ```bash
+   atlas migrate diff sync_changes \
+       --dir file://db/migrations/master \
+       --to file://db/schema/master.hcl \
+       --dev-url "sqlite://file?mode=memory"
+   ```
+
+4. **マイグレーション履歴を手動で更新**（DBにテーブルが既に存在する場合）
+   ```bash
+   # atlas_schema_revisionsテーブルに直接レコードを追加
+   sqlite3 server/data/master.db "INSERT INTO atlas_schema_revisions (...) VALUES (...)"
+   ```
+
+5. **ステータスを確認**
+   ```bash
+   atlas migrate status \
+       --dir file://db/migrations/master \
+       --url "sqlite://server/data/master.db"
+   ```
+
+### シャーディングDBへの一括適用
+
+シャーディングDBは各シャードに対応するマイグレーションディレクトリを使用して適用します。
+
+```bash
+# 全シャードにマイグレーションを適用（各シャードに対応するマイグレーションディレクトリを使用）
+for i in 1 2 3 4; do
+    echo "=== Applying to sharding_db_${i}.db ==="
+    atlas migrate apply \
+        --dir file://db/migrations/sharding_${i} \
+        --url "sqlite://server/data/sharding_db_${i}.db"
+done
+```
+
+### 実験で生成されたマイグレーションファイル
+
+#### Master
+- `20251226074846_initial.sql` - 初期スキーマ
+- `20251226130113_add_experiment_table.sql` - テーブル追加実験
+- `20251226130242_add_description_column.sql` - カラム追加実験
+- `20251226130340_insert_experiment_data.sql` - データ挿入実験
+- `20251226130500_drop_experiment_table.sql` - テーブル削除実験
+- `20251226131107_sync_direct_sql_table.sql` - 直接SQL同期実験
+- `20251226131150_drop_direct_sql_table.sql` - クリーンアップ
+
+#### Sharding（現在の構成）
+各シャーディングDBに対応するマイグレーションディレクトリが存在します：
+
+- `db/migrations/sharding_1/` - sharding_db_1.db用（テーブル000-007）
+- `db/migrations/sharding_2/` - sharding_db_2.db用（テーブル008-015）
+- `db/migrations/sharding_3/` - sharding_db_3.db用（テーブル016-023）
+- `db/migrations/sharding_4/` - sharding_db_4.db用（テーブル024-031）
 
 ## ビュー（VIEW）の管理
 
@@ -430,9 +452,13 @@ db/
     ├── master/                 # テーブル用マイグレーション
     │   ├── YYYYMMDD_*.sql
     │   └── atlas.sum
-    └── view_master/            # マスターDB用ビューマイグレーション
-        ├── YYYYMMDD_*.sql
-        └── atlas.sum
+    ├── view_master/            # マスターDB用ビューマイグレーション
+    │   ├── YYYYMMDD_*.sql
+    │   └── atlas.sum
+    ├── view_sharding_1/        # シャード1用ビューマイグレーション（将来用）
+    ├── view_sharding_2/        # シャード2用ビューマイグレーション（将来用）
+    ├── view_sharding_3/        # シャード3用ビューマイグレーション（将来用）
+    └── view_sharding_4/        # シャード4用ビューマイグレーション（将来用）
 ```
 
 ### ビューの作成手順
@@ -443,6 +469,7 @@ db/
 
 ```bash
 # ディレクトリと名前を指定して、空のファイルを生成
+# db/migrations/view_master/20260103030226_create_view_name.sqlが生成される
 atlas migrate new create_view_name \
     --dir "file://db/migrations/view_master"
 ```
@@ -460,7 +487,17 @@ atlas migrate hash --dir "file://db/migrations/view_master"
 
 #### 3. マイグレーションを適用
 
-ビューのマイグレーションは`scripts/migrate.sh`で自動的に適用されます。
+```bash
+# テーブル用を先に適用（ベーステーブルが必要）
+atlas migrate apply \
+    --dir "file://db/migrations/master" \
+    --url "sqlite://server/data/master.db"
+
+# ビュー用を後に適用
+atlas migrate apply \
+    --dir "file://db/migrations/view_master" \
+    --url "sqlite://server/data/master.db"
+```
 
 ### ビューの削除
 
