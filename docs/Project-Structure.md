@@ -173,11 +173,11 @@ UserとPostをJOINして、ユーザーとその投稿一覧を取得・表示�
 ### サーバー側
 
 - **言語**: Go 1.21+
-- **データベース**: SQLite（開発環境）/ PostgreSQL or MySQL（本番想定）
+- **データベース**: PostgreSQL or MySQL（全環境）
 - **ルーティング**: gorilla/mux
-- **DB接続**: database/sql + mattn/go-sqlite3
+- **DB接続**: GORM + gorm.io/driver/postgres
 - **設定管理**: spf13/viper（YAML設定ファイル読み込み）
-- **Sharding**: 自前実装（Hash-based sharding）
+- **Sharding**: 自前実装（Hash-based sharding、8論理シャード、4物理DB）
 - **テスト**:
   - testing（標準ライブラリ）
   - testify（アサーション、モック）
@@ -371,7 +371,7 @@ func TestUserService_GetUser(t *testing.T) {
 
 #### 統合テスト
 - `test/integration/` に配置
-- テスト用SQLiteDBを使用
+- テスト用PostgreSQLを使用（testutil.SetupTestGroupManager）
 - テストデータは `test/fixtures/` から読み込み
 - トランザクションでロールバック（クリーンアップ）
 
@@ -446,7 +446,7 @@ describe('UserList', () => {
 3. **型安全性**: TypeScriptによる型定義で安全性を確保
 4. **テスト駆動**: ユニット/統合/E2Eテストで品質を担保、カバレッジ80%以上を目標
 5. **ドキュメント**: Storybookとドキュメントで可視性を向上
-6. **ローカル完結**: SQLiteを使用し、環境構築を容易に
+6. **Docker環境**: PostgreSQLコンテナを使用し、環境構築を容易に
 7. **Sharding対応**: 複数DBへの水平分割を想定した設計
 8. **環境分離**: develop/staging/production環境で設定を切り替え可能に
 

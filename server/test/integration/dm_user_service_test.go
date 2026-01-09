@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,6 +11,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/model"
 	"github.com/taku-o/go-webdb-template/internal/repository"
 	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
@@ -18,21 +20,27 @@ func TestDmUserCRUDFlow(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	// Initialize repositories and services (using GORM repositories)
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	// Initialize repositories and services
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
+
+	// ユニークなメールアドレスを生成
+	uniqueID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueEmail := fmt.Sprintf("integration-%s@example.com", uniqueID)
+	updatedEmail := fmt.Sprintf("updated-%s@example.com", uniqueID)
 
 	// Test Create
 	t.Run("Create DmUser", func(t *testing.T) {
 		createReq := &model.CreateDmUserRequest{
 			Name:  "Integration Test User",
-			Email: "integration@example.com",
+			Email: uniqueEmail,
 		}
 		dmUser, err := dmUserService.CreateDmUser(context.Background(), createReq)
 		require.NoError(t, err)
 		assert.NotZero(t, dmUser.ID)
 		assert.Equal(t, "Integration Test User", dmUser.Name)
-		assert.Equal(t, "integration@example.com", dmUser.Email)
+		assert.Equal(t, uniqueEmail, dmUser.Email)
 		assert.NotZero(t, dmUser.CreatedAt)
 		assert.NotZero(t, dmUser.UpdatedAt)
 
@@ -49,13 +57,13 @@ func TestDmUserCRUDFlow(t *testing.T) {
 		t.Run("Update DmUser", func(t *testing.T) {
 			updateReq := &model.UpdateDmUserRequest{
 				Name:  "Updated Name",
-				Email: "updated@example.com",
+				Email: updatedEmail,
 			}
 			updated, err := dmUserService.UpdateDmUser(context.Background(), dmUser.ID, updateReq)
 			require.NoError(t, err)
 			assert.Equal(t, dmUser.ID, updated.ID)
 			assert.Equal(t, "Updated Name", updated.Name)
-			assert.Equal(t, "updated@example.com", updated.Email)
+			assert.Equal(t, updatedEmail, updated.Email)
 
 			// Verify update persisted
 			retrieved, err := dmUserService.GetDmUser(context.Background(), dmUser.ID)
@@ -80,28 +88,43 @@ func TestDmUserCrossShardOperations(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
+
+	// ユニークなメールアドレスを生成
+	uniqueID1, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueID2, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueID3, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
 
 	// Create multiple dm_users
 	ctx := context.Background()
 	dmUser1, err := dmUserService.CreateDmUser(ctx, &model.CreateDmUserRequest{
 		Name:  "User 1",
-		Email: "user1@example.com",
+		Email: fmt.Sprintf("user1-%s@example.com", uniqueID1),
 	})
 	require.NoError(t, err)
 
 	dmUser2, err := dmUserService.CreateDmUser(ctx, &model.CreateDmUserRequest{
 		Name:  "User 2",
-		Email: "user2@example.com",
+		Email: fmt.Sprintf("user2-%s@example.com", uniqueID2),
 	})
 	require.NoError(t, err)
 
 	dmUser3, err := dmUserService.CreateDmUser(ctx, &model.CreateDmUserRequest{
 		Name:  "User 3",
-		Email: "user3@example.com",
+		Email: fmt.Sprintf("user3-%s@example.com", uniqueID3),
 	})
 	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmUserService.DeleteDmUser(ctx, dmUser1.ID)
+		_ = dmUserService.DeleteDmUser(ctx, dmUser2.ID)
+		_ = dmUserService.DeleteDmUser(ctx, dmUser3.ID)
+	}()
 
 	// Log dm_user IDs (shard distribution is internal)
 	t.Logf("Created DmUser 1 (ID=%s)", dmUser1.ID)

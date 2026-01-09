@@ -172,8 +172,8 @@ logging:
 ### 出力形式（テキスト）
 
 ```
-[2025-01-27 10:30:45] [INFO] [master] [sqlite3] SELECT * FROM `dm_news` WHERE `dm_news`.`id` = 'abc123' LIMIT 1
-[2025-01-27 10:30:45] [INFO] [sharding] [sqlite3] INSERT INTO `dm_users_000` (`id`,`name`,`email`,`created_at`,`updated_at`) VALUES ('def456','John','john@example.com','2025-01-27 10:30:45','2025-01-27 10:30:45')
+[2025-01-27 10:30:45] [INFO] [master] [postgres] SELECT * FROM "dm_news" WHERE "dm_news"."id" = 'abc123' LIMIT 1
+[2025-01-27 10:30:45] [INFO] [sharding] [postgres] INSERT INTO "dm_users_000" ("id","name","email","created_at","updated_at") VALUES ('def456','John','john@example.com','2025-01-27 10:30:45','2025-01-27 10:30:45')
 ```
 
 **フォーマット**: `[時刻] [レベル] [グループ名] [ドライバー] SQLクエリ`

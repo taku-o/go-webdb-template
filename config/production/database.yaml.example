@@ -236,7 +236,7 @@ database:
 
       # テーブル定義: テーブル名 -> 分割数
       tables:
-        - name: users
+        - name: dm_users
           suffix_count: 32
-        - name: posts
+        - name: dm_posts
           suffix_count: 32
