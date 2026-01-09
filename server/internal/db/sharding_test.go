@@ -3,7 +3,6 @@ package db_test
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +11,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/db"
 	"github.com/taku-o/go-webdb-template/internal/model"
+	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
 func TestHashBasedSharding_GetShardID(t *testing.T) {
@@ -84,30 +84,37 @@ func TestHashBasedSharding_Distribution(t *testing.T) {
 
 // TestGORMManagerSharding tests that GORMManager correctly routes to shards
 func TestGORMManagerSharding(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	// Create 3 shards
+	// Create 3 shards using PostgreSQL
 	shards := []config.ShardConfig{
 		{
-			ID:         1,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard1.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+			ID:           1,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         2,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard2.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+			ID:           2,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5434,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_2",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         3,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard3.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard3.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard3.db")},
+			ID:           3,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5435,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_3",
+			ReaderPolicy: "random",
 		},
 	}
 
@@ -119,20 +126,30 @@ func TestGORMManagerSharding(t *testing.T) {
 	require.NoError(t, err)
 	defer manager.CloseAll()
 
-	// Initialize schema on all shards
-	for i := 1; i <= 3; i++ {
-		database, err := manager.GetGORM(i)
-		require.NoError(t, err)
-		err = database.AutoMigrate(&model.DmUser{})
-		require.NoError(t, err)
-	}
+	// 論理シャーディング: TableSelectorを使ってテーブル番号とDBIDを計算
+	tableSelector := db.NewTableSelector(32, 8)
 
 	ctx := context.Background()
 
 	// Create users with different keys to distribute across shards
 	userKeys := []int64{100, 200, 300, 400, 500}
+
+	// Cleanup any leftover test data first
 	for _, key := range userKeys {
-		database, err := manager.GetGORMByKey(key)
+		tableNumber := tableSelector.GetTableNumber(key)
+		tableName := tableSelector.GetTableName("dm_users", key)
+		dbID := tableSelector.GetDBID(tableNumber)
+		database, err := manager.GetGORM(dbID)
+		require.NoError(t, err)
+		userID := fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256)
+		database.WithContext(ctx).Table(tableName).Delete(&model.DmUser{}, "id = ?", userID)
+	}
+
+	for _, key := range userKeys {
+		tableNumber := tableSelector.GetTableNumber(key)
+		tableName := tableSelector.GetTableName("dm_users", key)
+		dbID := tableSelector.GetDBID(tableNumber)
+		database, err := manager.GetGORM(dbID)
 		require.NoError(t, err)
 
 		user := &model.DmUser{
@@ -140,48 +157,64 @@ func TestGORMManagerSharding(t *testing.T) {
 			Name:  fmt.Sprintf("User %d", key),
 			Email: fmt.Sprintf("user%d@example.com", key),
 		}
-		err = database.WithContext(ctx).Create(user).Error
+		err = database.WithContext(ctx).Table(tableName).Create(user).Error
 		require.NoError(t, err)
 	}
 
 	// Verify that users are distributed across different shards
 	shardCounts := make(map[int]int)
 	for _, key := range userKeys {
-		database, err := manager.GetGORMByKey(key)
+		tableNumber := tableSelector.GetTableNumber(key)
+		tableName := tableSelector.GetTableName("dm_users", key)
+		dbID := tableSelector.GetDBID(tableNumber)
+		database, err := manager.GetGORM(dbID)
 		require.NoError(t, err)
 
 		var user model.DmUser
 		userID := fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256)
-		err = database.WithContext(ctx).First(&user, "id = ?", userID).Error
+		err = database.WithContext(ctx).Table(tableName).First(&user, "id = ?", userID).Error
 		require.NoError(t, err)
 
-		// Determine which shard this key belongs to
-		shardID := manager.GetShardIDByKey(key)
-		shardCounts[shardID]++
+		shardCounts[dbID]++
 	}
 
 	// Verify that at least 2 different shards are used (probabilistic)
 	assert.GreaterOrEqual(t, len(shardCounts), 2, "Users should be distributed across multiple shards")
+
+	// Cleanup: delete test users
+	for _, key := range userKeys {
+		tableNumber := tableSelector.GetTableNumber(key)
+		tableName := tableSelector.GetTableName("dm_users", key)
+		dbID := tableSelector.GetDBID(tableNumber)
+		database, err := manager.GetGORM(dbID)
+		require.NoError(t, err)
+		userID := fmt.Sprintf("550e8400e29b41d4a7164466554400%02x", key%256)
+		database.WithContext(ctx).Table(tableName).Delete(&model.DmUser{}, "id = ?", userID)
+	}
 }
 
 // TestGORMManagerGetAllConnections tests retrieving all GORM connections
 func TestGORMManagerGetAllConnections(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	shards := []config.ShardConfig{
 		{
-			ID:         1,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard1.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+			ID:           1,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         2,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard2.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+			ID:           2,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5434,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_2",
+			ReaderPolicy: "random",
 		},
 	}
 
@@ -208,22 +241,26 @@ func TestGORMManagerGetAllConnections(t *testing.T) {
 
 // TestGORMManagerCrossShardQuery tests querying across multiple shards
 func TestGORMManagerCrossShardQuery(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	shards := []config.ShardConfig{
 		{
-			ID:         1,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard1.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+			ID:           1,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         2,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard2.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+			ID:           2,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5434,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_2",
+			ReaderPolicy: "random",
 		},
 	}
 
@@ -235,37 +272,32 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 	require.NoError(t, err)
 	defer manager.CloseAll()
 
-	// Initialize schema on all shards
-	for i := 1; i <= 2; i++ {
-		database, err := manager.GetGORM(i)
-		require.NoError(t, err)
-		err = database.AutoMigrate(&model.DmUser{})
-		require.NoError(t, err)
-	}
-
 	ctx := context.Background()
 
-	// Create users on specific shards
+	// Cleanup any leftover test data first
 	db1, err := manager.GetGORM(1)
 	require.NoError(t, err)
-
-	user1 := &model.DmUser{
-		ID:    "550e8400e29b41d4a716446655440001",
-		Name:  "User on Shard 1",
-		Email: "user1@example.com",
-	}
-	err = db1.WithContext(ctx).Create(user1).Error
-	require.NoError(t, err)
+	db1.WithContext(ctx).Table("dm_users_000").Delete(&model.DmUser{}, "id = ?", "550e8400e29b41d4a716446655441001")
 
 	db2, err := manager.GetGORM(2)
 	require.NoError(t, err)
+	db2.WithContext(ctx).Table("dm_users_008").Delete(&model.DmUser{}, "id = ?", "550e8400e29b41d4a716446655441002")
+
+	// Create users on specific shards using dm_users_000 table
+	user1 := &model.DmUser{
+		ID:    "550e8400e29b41d4a716446655441001",
+		Name:  "User on Shard 1",
+		Email: "user1_cross@example.com",
+	}
+	err = db1.WithContext(ctx).Table("dm_users_000").Create(user1).Error
+	require.NoError(t, err)
 
 	user2 := &model.DmUser{
-		ID:    "550e8400e29b41d4a716446655440002",
+		ID:    "550e8400e29b41d4a716446655441002",
 		Name:  "User on Shard 2",
-		Email: "user2@example.com",
+		Email: "user2_cross@example.com",
 	}
-	err = db2.WithContext(ctx).Create(user2).Error
+	err = db2.WithContext(ctx).Table("dm_users_008").Create(user2).Error
 	require.NoError(t, err)
 
 	// Query all shards
@@ -274,33 +306,46 @@ func TestGORMManagerCrossShardQuery(t *testing.T) {
 
 	for _, conn := range connections {
 		var users []*model.DmUser
-		err := conn.DB.WithContext(ctx).Find(&users).Error
+		// Query dm_users_000 from shard 1, dm_users_008 from shard 2
+		tableName := "dm_users_000"
+		if conn.ShardID == 2 {
+			tableName = "dm_users_008"
+		}
+		err := conn.DB.WithContext(ctx).Table(tableName).Where("id IN (?, ?)", "550e8400e29b41d4a716446655441001", "550e8400e29b41d4a716446655441002").Find(&users).Error
 		require.NoError(t, err)
 		allUsers = append(allUsers, users...)
 	}
 
 	// Verify we got users from both shards
 	assert.Len(t, allUsers, 2)
+
+	// Cleanup
+	db1.WithContext(ctx).Table("dm_users_000").Delete(&model.DmUser{}, "id = ?", "550e8400e29b41d4a716446655441001")
+	db2.WithContext(ctx).Table("dm_users_008").Delete(&model.DmUser{}, "id = ?", "550e8400e29b41d4a716446655441002")
 }
 
 // TestGORMManagerShardingConsistency tests that the same key always maps to the same shard
 func TestGORMManagerShardingConsistency(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	shards := []config.ShardConfig{
 		{
-			ID:         1,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard1.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+			ID:           1,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         2,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard2.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+			ID:           2,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5434,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_2",
+			ReaderPolicy: "random",
 		},
 	}
 
@@ -334,22 +379,26 @@ func TestGORMManagerShardingConsistency(t *testing.T) {
 
 // TestGORMManagerPingAll tests pinging all shard connections
 func TestGORMManagerPingAll(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	shards := []config.ShardConfig{
 		{
-			ID:         1,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard1.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+			ID:           1,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         2,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard2.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+			ID:           2,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5434,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_2",
+			ReaderPolicy: "random",
 		},
 	}
 
@@ -368,22 +417,26 @@ func TestGORMManagerPingAll(t *testing.T) {
 
 // TestGORMManagerCloseAll tests closing all shard connections
 func TestGORMManagerCloseAll(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	shards := []config.ShardConfig{
 		{
-			ID:         1,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard1.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard1.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard1.db")},
+			ID:           1,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1",
+			ReaderPolicy: "random",
 		},
 		{
-			ID:         2,
-			Driver:     "sqlite3",
-			DSN:        filepath.Join(tmpDir, "shard2.db"),
-			WriterDSN:  filepath.Join(tmpDir, "shard2.db"),
-			ReaderDSNs: []string{filepath.Join(tmpDir, "shard2.db")},
+			ID:           2,
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5434,
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_2",
+			ReaderPolicy: "random",
 		},
 	}
 

@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/taku-o/go-webdb-template/internal/model"
 	"github.com/taku-o/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
@@ -21,13 +23,23 @@ func TestDmPostCRUDFlowGORM(t *testing.T) {
 	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 
+	// ユニークなメールアドレスを生成
+	uniqueID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueEmail := fmt.Sprintf("posttest-gorm-%s@example.com", uniqueID)
+
 	// Create a test dm_user first
 	ctx := context.Background()
 	dmUser, err := dmUserRepo.Create(ctx, &model.CreateDmUserRequest{
 		Name:  "PostTestUser GORM",
-		Email: "posttest.gorm@example.com",
+		Email: uniqueEmail,
 	})
 	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmUserRepo.Delete(ctx, dmUser.ID)
+	}()
 
 	// Test Create DmPost
 	t.Run("Create DmPost", func(t *testing.T) {
@@ -86,16 +98,22 @@ func TestDmPostCrossShardJoinGORM(t *testing.T) {
 
 	ctx := context.Background()
 
+	// ユニークなメールアドレスを生成
+	uniqueID1, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueID2, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Create multiple dm_users
 	dmUser1, err := dmUserRepo.Create(ctx, &model.CreateDmUserRequest{
 		Name:  "User1 GORM",
-		Email: "user1.gorm@example.com",
+		Email: fmt.Sprintf("user1-gorm-%s@example.com", uniqueID1),
 	})
 	require.NoError(t, err)
 
 	dmUser2, err := dmUserRepo.Create(ctx, &model.CreateDmUserRequest{
 		Name:  "User2 GORM",
-		Email: "user2.gorm@example.com",
+		Email: fmt.Sprintf("user2-gorm-%s@example.com", uniqueID2),
 	})
 	require.NoError(t, err)
 
@@ -113,6 +131,14 @@ func TestDmPostCrossShardJoinGORM(t *testing.T) {
 		Content: "Content by User2",
 	})
 	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmPostRepo.Delete(ctx, dmPost1.ID, dmPost1.UserID)
+		_ = dmPostRepo.Delete(ctx, dmPost2.ID, dmPost2.UserID)
+		_ = dmUserRepo.Delete(ctx, dmUser1.ID)
+		_ = dmUserRepo.Delete(ctx, dmUser2.ID)
+	}()
 
 	t.Logf("Created DmUser1 (ID=%s)", dmUser1.ID)
 	t.Logf("Created DmUser2 (ID=%s)", dmUser2.ID)

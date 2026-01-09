@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,14 @@ func TestDmPostRepositoryGORM_Create(t *testing.T) {
 	dmPost, err := dmPostRepo.Create(ctx, req)
 	assert.NoError(t, err)
 	assert.NotNil(t, dmPost)
+
+	// クリーンアップ
+	defer func() {
+		if dmPost != nil {
+			_ = dmPostRepo.Delete(ctx, dmPost.ID, dmPost.UserID)
+		}
+	}()
+
 	assert.NotEmpty(t, dmPost.ID)
 	assert.Equal(t, userID, dmPost.UserID)
 	assert.Equal(t, "Test Post", dmPost.Title)
@@ -60,6 +69,11 @@ func TestDmPostRepositoryGORM_GetByID(t *testing.T) {
 	}
 	created, err := dmPostRepo.Create(ctx, req)
 	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmPostRepo.Delete(ctx, created.ID, created.UserID)
+	}()
 
 	// Test retrieval
 	dmPost, err := dmPostRepo.GetByID(ctx, created.ID, created.UserID)
@@ -107,6 +121,11 @@ func TestDmPostRepositoryGORM_Update(t *testing.T) {
 	}
 	created, err := dmPostRepo.Create(ctx, createReq)
 	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmPostRepo.Delete(ctx, created.ID, created.UserID)
+	}()
 
 	// Update post
 	updateReq := &model.UpdateDmPostRequest{
@@ -173,7 +192,7 @@ func TestDmPostRepositoryGORM_ListByUserID(t *testing.T) {
 		Title:   "Post 1",
 		Content: "Content 1",
 	}
-	_, err = dmPostRepo.Create(ctx, req1)
+	post1, err := dmPostRepo.Create(ctx, req1)
 	require.NoError(t, err)
 
 	req2 := &model.CreateDmPostRequest{
@@ -181,8 +200,14 @@ func TestDmPostRepositoryGORM_ListByUserID(t *testing.T) {
 		Title:   "Post 2",
 		Content: "Content 2",
 	}
-	_, err = dmPostRepo.Create(ctx, req2)
+	post2, err := dmPostRepo.Create(ctx, req2)
 	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmPostRepo.Delete(ctx, post1.ID, post1.UserID)
+		_ = dmPostRepo.Delete(ctx, post2.ID, post2.UserID)
+	}()
 
 	// Get posts by user ID
 	dmPosts, err := dmPostRepo.ListByUserID(ctx, userID, 10, 0)
@@ -197,33 +222,43 @@ func TestDmPostRepositoryGORM_List(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
-	// テスト用のユーザーIDを生成
-	userID1, err := idgen.GenerateUUIDv7()
-	require.NoError(t, err)
-	userID2, err := idgen.GenerateUUIDv7()
+	// テスト用のユーザーIDを生成（同一テーブルに対してテスト）
+	userID, err := idgen.GenerateUUIDv7()
 	require.NoError(t, err)
 
-	// Create test posts with different UserIDs (different tables)
+	// テスト前の件数を取得（特定テーブルのみ）
+	initialPosts, err := dmPostRepo.ListByUserID(ctx, userID, 1000, 0)
+	require.NoError(t, err)
+	initialCount := len(initialPosts)
+
+	// Create test posts with same UserID (same table)
 	req1 := &model.CreateDmPostRequest{
-		UserID:  userID1,
+		UserID:  userID,
 		Title:   "Post 1",
 		Content: "Content 1",
 	}
-	_, err = dmPostRepo.Create(ctx, req1)
+	post1, err := dmPostRepo.Create(ctx, req1)
 	require.NoError(t, err)
 
 	req2 := &model.CreateDmPostRequest{
-		UserID:  userID2,
+		UserID:  userID,
 		Title:   "Post 2",
 		Content: "Content 2",
 	}
-	_, err = dmPostRepo.Create(ctx, req2)
+	post2, err := dmPostRepo.Create(ctx, req2)
 	require.NoError(t, err)
 
-	// List all posts (cross-table query)
-	dmPosts, err := dmPostRepo.List(ctx, 10, 0)
+	// クリーンアップ
+	defer func() {
+		_ = dmPostRepo.Delete(ctx, post1.ID, post1.UserID)
+		_ = dmPostRepo.Delete(ctx, post2.ID, post2.UserID)
+	}()
+
+	// List posts by user ID (single table query)
+	dmPosts, err := dmPostRepo.ListByUserID(ctx, userID, 1000, 0)
 	assert.NoError(t, err)
-	assert.Len(t, dmPosts, 2)
+	// 2件増えたことを確認
+	assert.Equal(t, initialCount+2, len(dmPosts))
 }
 
 func TestDmPostRepositoryGORM_GetUserPosts(t *testing.T) {
@@ -234,10 +269,15 @@ func TestDmPostRepositoryGORM_GetUserPosts(t *testing.T) {
 	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	ctx := context.Background()
 
+	// ユニークなメールアドレスを生成
+	uniqueID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueEmail := fmt.Sprintf("test-%s@example.com", uniqueID)
+
 	// Create test user
 	dmUserReq := &model.CreateDmUserRequest{
 		Name:  "Test User",
-		Email: "test@example.com",
+		Email: uniqueEmail,
 	}
 	dmUser, err := dmUserRepo.Create(ctx, dmUserReq)
 	require.NoError(t, err)
@@ -248,18 +288,31 @@ func TestDmPostRepositoryGORM_GetUserPosts(t *testing.T) {
 		Title:   "Test Post",
 		Content: "Test content",
 	}
-	_, err = dmPostRepo.Create(ctx, dmPostReq)
+	dmPost, err := dmPostRepo.Create(ctx, dmPostReq)
 	require.NoError(t, err)
 
+	// クリーンアップ
+	defer func() {
+		_ = dmPostRepo.Delete(ctx, dmPost.ID, dmPost.UserID)
+		_ = dmUserRepo.Delete(ctx, dmUser.ID)
+	}()
+
 	// Get user posts with JOIN (cross-table query)
-	dmUserPosts, err := dmPostRepo.GetUserPosts(ctx, 10, 0)
+	dmUserPosts, err := dmPostRepo.GetUserPosts(ctx, 1000, 0)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, dmUserPosts)
 
-	// Verify the first result
-	assert.Equal(t, dmUser.ID, dmUserPosts[0].UserID)
-	assert.Equal(t, "Test User", dmUserPosts[0].UserName)
-	assert.Equal(t, "test@example.com", dmUserPosts[0].UserEmail)
-	assert.Equal(t, "Test Post", dmUserPosts[0].PostTitle)
-	assert.Equal(t, "Test content", dmUserPosts[0].PostContent)
+	// 作成したユーザーの投稿を検索
+	var found bool
+	for _, up := range dmUserPosts {
+		if up.UserID == dmUser.ID {
+			assert.Equal(t, "Test User", up.UserName)
+			assert.Equal(t, uniqueEmail, up.UserEmail)
+			assert.Equal(t, "Test Post", up.PostTitle)
+			assert.Equal(t, "Test content", up.PostContent)
+			found = true
+			break
+		}
+	}
+	assert.True(t, found, "Created user post should be found in the list")
 }

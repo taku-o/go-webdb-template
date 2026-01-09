@@ -117,16 +117,18 @@ func (m *Manager) PingAll() error {
 
 // GORMManager は複数のシャードのGORM接続を管理
 type GORMManager struct {
-	connections map[int]*GORMConnection // ShardID -> GORMConnection
-	strategy    ShardingStrategy
-	mu          sync.RWMutex
+	connections   map[int]*GORMConnection // ShardID -> GORMConnection
+	strategy      ShardingStrategy
+	tableSelector *TableSelector
+	mu            sync.RWMutex
 }
 
 // NewGORMManager は新しいGORM Managerを作成
 func NewGORMManager(cfg *config.Config) (*GORMManager, error) {
 	manager := &GORMManager{
-		connections: make(map[int]*GORMConnection),
-		strategy:    NewHashBasedSharding(len(cfg.Database.Shards)),
+		connections:   make(map[int]*GORMConnection),
+		strategy:      NewHashBasedSharding(len(cfg.Database.Shards)),
+		tableSelector: NewTableSelector(DBShardingTableCount, DBShardingTablesPerDB),
 	}
 
 	// 各シャードへの接続を確立（SQL Logger設定付き）
@@ -168,14 +170,18 @@ func (m *GORMManager) GetGORM(shardID int) (*gorm.DB, error) {
 }
 
 // GetGORMByKey はキー（user_idなど）に基づいて*gorm.DBを取得
+// 論理シャーディング: key → tableNumber → dbID
 func (m *GORMManager) GetGORMByKey(key int64) (*gorm.DB, error) {
-	shardID := m.strategy.GetShardID(key)
-	return m.GetGORM(shardID)
+	tableNumber := m.tableSelector.GetTableNumber(key)
+	dbID := m.tableSelector.GetDBID(tableNumber)
+	return m.GetGORM(dbID)
 }
 
 // GetShardIDByKey はキーに基づいてシャードIDを取得
+// 論理シャーディング: key → tableNumber → dbID
 func (m *GORMManager) GetShardIDByKey(key int64) int {
-	return m.strategy.GetShardID(key)
+	tableNumber := m.tableSelector.GetTableNumber(key)
+	return m.tableSelector.GetDBID(tableNumber)
 }
 
 // GetAllGORMConnections はすべてのシャードのGORM接続を取得（クロスシャードクエリ用）

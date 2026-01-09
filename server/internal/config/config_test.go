@@ -128,8 +128,8 @@ func TestLoad_WithBothConfigFiles(t *testing.T) {
 		if master.ID != 1 {
 			t.Errorf("expected first master ID 1, got %d", master.ID)
 		}
-		if master.Driver != "sqlite3" {
-			t.Errorf("expected first master Driver 'sqlite3', got %s", master.Driver)
+		if master.Driver != "postgres" {
+			t.Errorf("expected first master Driver 'postgres', got %s", master.Driver)
 		}
 	}
 }
@@ -190,22 +190,31 @@ func TestDatabaseGroupsConfig_Structure(t *testing.T) {
 		Master: []ShardConfig{
 			{
 				ID:     1,
-				Driver: "sqlite3",
-				DSN:    "./data/master.db",
+				Driver: "postgres",
+				Host:   "localhost",
+				Port:   5432,
+				User:   "webdb",
+				Name:   "webdb_master",
 			},
 		},
 		Sharding: ShardingGroupConfig{
 			Databases: []ShardConfig{
 				{
 					ID:         1,
-					Driver:     "sqlite3",
-					DSN:        "./data/sharding_db_1.db",
+					Driver:     "postgres",
+					Host:       "localhost",
+					Port:       5433,
+					User:       "webdb",
+					Name:       "webdb_sharding_1",
 					TableRange: [2]int{0, 7},
 				},
 				{
 					ID:         2,
-					Driver:     "sqlite3",
-					DSN:        "./data/sharding_db_2.db",
+					Driver:     "postgres",
+					Host:       "localhost",
+					Port:       5434,
+					User:       "webdb",
+					Name:       "webdb_sharding_2",
 					TableRange: [2]int{8, 15},
 				},
 			},
@@ -229,8 +238,17 @@ func TestDatabaseGroupsConfig_Structure(t *testing.T) {
 	if cfg.Master[0].ID != 1 {
 		t.Errorf("expected master ID 1, got %d", cfg.Master[0].ID)
 	}
-	if cfg.Master[0].DSN != "./data/master.db" {
-		t.Errorf("expected master DSN './data/master.db', got %s", cfg.Master[0].DSN)
+	if cfg.Master[0].Driver != "postgres" {
+		t.Errorf("expected master Driver 'postgres', got %s", cfg.Master[0].Driver)
+	}
+	if cfg.Master[0].Host != "localhost" {
+		t.Errorf("expected master Host 'localhost', got %s", cfg.Master[0].Host)
+	}
+	if cfg.Master[0].Port != 5432 {
+		t.Errorf("expected master Port 5432, got %d", cfg.Master[0].Port)
+	}
+	if cfg.Master[0].Name != "webdb_master" {
+		t.Errorf("expected master Name 'webdb_master', got %s", cfg.Master[0].Name)
 	}
 
 	// Sharding構成の確認
@@ -266,8 +284,11 @@ func TestShardConfig_TableRange(t *testing.T) {
 	// ShardConfigにTableRangeフィールドがあることを確認
 	cfg := ShardConfig{
 		ID:         1,
-		Driver:     "sqlite3",
-		DSN:        "./data/sharding_db_1.db",
+		Driver:     "postgres",
+		Host:       "localhost",
+		Port:       5433,
+		User:       "webdb",
+		Name:       "webdb_sharding_1",
 		TableRange: [2]int{0, 7},
 	}
 
@@ -283,11 +304,11 @@ func TestDatabaseConfig_Groups(t *testing.T) {
 	// DatabaseConfigにGroupsフィールドがあることを確認
 	cfg := DatabaseConfig{
 		Shards: []ShardConfig{
-			{ID: 1, Driver: "sqlite3"},
+			{ID: 1, Driver: "postgres"},
 		},
 		Groups: DatabaseGroupsConfig{
 			Master: []ShardConfig{
-				{ID: 1, Driver: "sqlite3"},
+				{ID: 1, Driver: "postgres"},
 			},
 		},
 	}
@@ -321,23 +342,29 @@ func TestLoad_GroupsConfig(t *testing.T) {
 		if master.ID != 1 {
 			t.Errorf("expected master ID 1, got %d", master.ID)
 		}
-		if master.Driver != "sqlite3" {
-			t.Errorf("expected master Driver 'sqlite3', got %s", master.Driver)
+		if master.Driver != "postgres" {
+			t.Errorf("expected master Driver 'postgres', got %s", master.Driver)
 		}
-		if master.DSN != "./data/master.db" {
-			t.Errorf("expected master DSN './data/master.db', got %s", master.DSN)
+		if master.Host != "localhost" {
+			t.Errorf("expected master Host 'localhost', got %s", master.Host)
+		}
+		if master.Port != 5432 {
+			t.Errorf("expected master Port 5432, got %d", master.Port)
+		}
+		if master.Name != "webdb_master" {
+			t.Errorf("expected master Name 'webdb_master', got %s", master.Name)
 		}
 	}
 
-	// Shardingグループの確認（4シャーディングエントリ構成）
-	if len(cfg.Database.Groups.Sharding.Databases) != 4 {
-		t.Errorf("expected 4 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
+	// Shardingグループの確認（8シャーディングエントリ構成）
+	if len(cfg.Database.Groups.Sharding.Databases) != 8 {
+		t.Errorf("expected 8 sharding databases, got %d", len(cfg.Database.Groups.Sharding.Databases))
 	}
 	if len(cfg.Database.Groups.Sharding.Databases) > 0 {
 		db1 := cfg.Database.Groups.Sharding.Databases[0]
-		// 4シャーディング構成では各エントリが8テーブルを担当
-		if db1.TableRange[0] != 0 || db1.TableRange[1] != 7 {
-			t.Errorf("expected table_range [0, 7], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
+		// 8シャーディング構成では各エントリが4テーブルを担当
+		if db1.TableRange[0] != 0 || db1.TableRange[1] != 3 {
+			t.Errorf("expected table_range [0, 3], got [%d, %d]", db1.TableRange[0], db1.TableRange[1])
 		}
 	}
 
