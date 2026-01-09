@@ -14,7 +14,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestDmPostCRUDFlowGORM(t *testing.T) {
+func TestDmPostRepository_CRUDFlow(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
@@ -87,7 +87,7 @@ func TestDmPostCRUDFlowGORM(t *testing.T) {
 	})
 }
 
-func TestDmPostCrossShardJoinGORM(t *testing.T) {
+func TestDmPostRepository_CrossShardJoin(t *testing.T) {
 	// Setup test database with GroupManager
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)

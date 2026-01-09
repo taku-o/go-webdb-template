@@ -14,7 +14,7 @@ import (
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
-func TestDmUserRepositoryGORM_Create(t *testing.T) {
+func TestDmUserRepository_Create(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -49,7 +49,7 @@ func TestDmUserRepositoryGORM_Create(t *testing.T) {
 	assert.NotZero(t, dmUser.UpdatedAt)
 }
 
-func TestDmUserRepositoryGORM_GetByID(t *testing.T) {
+func TestDmUserRepository_GetByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -83,7 +83,7 @@ func TestDmUserRepositoryGORM_GetByID(t *testing.T) {
 	assert.Equal(t, uniqueEmail, dmUser.Email)
 }
 
-func TestDmUserRepositoryGORM_GetByID_NotFound(t *testing.T) {
+func TestDmUserRepository_GetByID_NotFound(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -96,7 +96,7 @@ func TestDmUserRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	assert.Nil(t, dmUser)
 }
 
-func TestDmUserRepositoryGORM_Update(t *testing.T) {
+func TestDmUserRepository_Update(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -140,7 +140,7 @@ func TestDmUserRepositoryGORM_Update(t *testing.T) {
 	assert.Equal(t, updatedEmail, dmUser.Email)
 }
 
-func TestDmUserRepositoryGORM_Delete(t *testing.T) {
+func TestDmUserRepository_Delete(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
@@ -170,7 +170,7 @@ func TestDmUserRepositoryGORM_Delete(t *testing.T) {
 	assert.Nil(t, dmUser)
 }
 
-func TestDmUserRepositoryGORM_CreateAndRetrieve(t *testing.T) {
+func TestDmUserRepository_CreateAndRetrieve(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 

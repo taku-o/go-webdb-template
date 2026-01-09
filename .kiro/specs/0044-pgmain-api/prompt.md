@@ -221,6 +221,27 @@ think.
 > think.
 
 
+テストで条件つきでスキップを入れている箇所を全部洗い出して。
+
+
+config_test.goがLoad()で何を読みに行くかわかる？
+> config_test.go          │ 10     │ 設定ファイルなし
+
+configが無いのは異常系だから、
+もし、設定ファイルが無かったら、Skipじゃなくてエラーにしちゃおう。
+> config_test.go          │ 10     │ 設定ファイルなし
+
+APIサーバー、クライアントサーバーを起動して。
+MySQLサーバーが起動していなかったら、MySQLサーバーも起動して。
+
+PostgreSQLだったわ。
+
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/87 に対して
+pull requestを作成してください。
+
+
+
 
 
 
