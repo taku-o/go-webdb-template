@@ -240,7 +240,34 @@ PostgreSQLだったわ。
 その後、https://github.com/taku-o/go-webdb-template/issues/87 に対して
 pull requestを作成してください。
 
+/review 93
 
+
+この2点、対応してください。
+>  1. テスト関数名にGORMが残存
+>
+>  ファイル: server/internal/repository/dm_user_repository_test.go, dm_post_repository_test.go
+>
+>  func TestDmUserRepositoryGORM_Create(t *testing.T) { ... }
+>  func TestDmUserRepositoryGORM_GetByID(t *testing.T) { ... }
+>
+>  リポジトリ型名・関数名はDmUserRepository/NewDmUserRepositoryに変更済みだが、テスト関数名にはGORMサフィックスが残っている。
+>
+>  推奨: 一貫性のため、テスト関数名もTestDmUserRepository_Create等にリネームを検討。
+>
+>  2. 統合テスト関数名にもGORMが残存
+>
+>  ファイル: server/test/integration/dm_user_repository_test.go, dm_post_repository_test.go
+>
+>  func TestDmUserCRUDFlowGORM(t *testing.T) { ... }
+>  func TestDmPostCrossShardJoinGORM(t *testing.T) { ... }
+>
+>  推奨: ファイル名は整理されたので、関数名も合わせてリネームを検討。
+
+
+commitして、pull requestを更新してください。
+
+/review 93
 
 
 
