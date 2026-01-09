@@ -47,10 +47,17 @@ func TestGetGoAdminConfig(t *testing.T) {
 			},
 		},
 		Database: config.DatabaseConfig{
-			Shards: []config.ShardConfig{
-				{
-					ID:  1,
-					DSN: "test.db",
+			Groups: config.DatabaseGroupsConfig{
+				Master: []config.ShardConfig{
+					{
+						ID:       1,
+						Driver:   "postgresql",
+						Host:     "localhost",
+						Port:     5432,
+						Name:     "webdb_master",
+						User:     "webdb",
+						Password: "webdb",
+					},
 				},
 			},
 		},

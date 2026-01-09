@@ -150,6 +150,13 @@ APP_ENV=develop go run cmd/admin/main.go
 - ユーザー名: `admin`
 - パスワード: `admin123`
 
+**データベース接続**:
+GoAdminサーバーはPostgreSQLを利用します。設定ファイル（`config/{env}/database.yaml`）から接続情報を読み込み、masterデータベース（`webdb_master`）に接続します。
+
+起動前に以下を確認してください：
+1. PostgreSQLコンテナが起動していること（`./scripts/start-postgres.sh start`）
+2. マイグレーションが適用されていること（`./scripts/migrate.sh all`）
+
 詳細は [Admin.md](docs/Admin.md) を参照してください。
 
 ### 5. データベースビューア起動（CloudBeaver）
