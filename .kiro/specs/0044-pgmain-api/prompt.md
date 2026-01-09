@@ -269,6 +269,10 @@ commitして、pull requestを更新してください。
 
 /review 93
 
+ごめん。mainにマージしてしまったので、
+revert pull requestをマージした。
 
+もう一回、https://github.com/taku-o/go-webdb-template/issues/87 に対して
+pull requestを作成してください。
 
 
