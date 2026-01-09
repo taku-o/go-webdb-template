@@ -1,15 +1,95 @@
 services:
-  postgres:
+  postgres-master:
     image: postgres:15-alpine
-    container_name: postgres
+    container_name: postgres-master
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: webdb
       POSTGRES_PASSWORD: webdb
-      POSTGRES_DB: webdb
+      POSTGRES_DB: webdb_master
     volumes:
-      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/data/master:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+
+  postgres-sharding-1:
+    image: postgres:15-alpine
+    container_name: postgres-sharding-1
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: webdb
+      POSTGRES_PASSWORD: webdb
+      POSTGRES_DB: webdb_sharding_1
+    volumes:
+      - ./postgres/data/sharding_1:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+
+  postgres-sharding-2:
+    image: postgres:15-alpine
+    container_name: postgres-sharding-2
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: webdb
+      POSTGRES_PASSWORD: webdb
+      POSTGRES_DB: webdb_sharding_2
+    volumes:
+      - ./postgres/data/sharding_2:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+
+  postgres-sharding-3:
+    image: postgres:15-alpine
+    container_name: postgres-sharding-3
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: webdb
+      POSTGRES_PASSWORD: webdb
+      POSTGRES_DB: webdb_sharding_3
+    volumes:
+      - ./postgres/data/sharding_3:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+
+  postgres-sharding-4:
+    image: postgres:15-alpine
+    container_name: postgres-sharding-4
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: webdb
+      POSTGRES_PASSWORD: webdb
+      POSTGRES_DB: webdb_sharding_4
+    volumes:
+      - ./postgres/data/sharding_4:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U webdb"]

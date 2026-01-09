@@ -39,8 +39,8 @@ func main() {
 	log.Println("Database connections will be established on first query execution (lazy connection)")
 
 	// Repository層の初期化（GORM版を使用）
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 
 	// Service層の初期化
 	dmUserService := service.NewDmUserService(dmUserRepo)

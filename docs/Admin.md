@@ -19,10 +19,11 @@ GoAdminフレームワークを使用した管理画面です。メインサー�
 - GoAdmin用のマイグレーションが適用済みであること
 
 ```bash
-# データベースセットアップ（初回のみ）
-sqlite3 server/data/shard1.db < db/migrations/shard1/001_init.sql
-sqlite3 server/data/shard1.db < db/migrations/shard1/002_goadmin.sql
-sqlite3 server/data/shard2.db < db/migrations/shard2/001_init.sql
+# PostgreSQLコンテナを起動
+./scripts/start-postgres.sh start
+
+# マイグレーションを適用（初回のみ）
+./scripts/migrate.sh all
 ```
 
 ### 管理画面の起動
@@ -176,8 +177,8 @@ admin:
 3. **ブラウザキャッシュ**: Cookieをクリアしてリトライ
 
 ```bash
-# GoAdmin用テーブルの確認
-sqlite3 server/data/shard1.db "SELECT * FROM goadmin_users;"
+# GoAdmin用テーブルの確認（PostgreSQL）
+psql -h localhost -p 5432 -U webdb -d webdb_master -c "SELECT * FROM goadmin_users;"
 ```
 
 ### 管理画面が起動しない
@@ -200,11 +201,12 @@ go mod tidy
 ### データが表示されない
 
 1. **データベース接続の確認**: サーバーログでDB接続エラーがないか確認
-2. **テーブルの確認**: usersテーブル、postsテーブルにデータがあるか確認
+2. **テーブルの確認**: dm_usersテーブル、dm_postsテーブルにデータがあるか確認
 
 ```bash
-sqlite3 server/data/shard1.db "SELECT COUNT(*) FROM users;"
-sqlite3 server/data/shard1.db "SELECT COUNT(*) FROM posts;"
+# PostgreSQLで確認
+psql -h localhost -p 5433 -U webdb -d webdb_sharding_1 -c "SELECT COUNT(*) FROM dm_users_000;"
+psql -h localhost -p 5433 -U webdb -d webdb_sharding_1 -c "SELECT COUNT(*) FROM dm_posts_000;"
 ```
 
 ### セッションがすぐ切れる
