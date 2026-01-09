@@ -100,7 +100,7 @@ func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bo
 		}
 
 		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
-		query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = ?", tableName)
+		query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = $1", tableName)
 
 		var count int
 		err = sqlDB.QueryRow(query, email).Scan(&count)
@@ -149,7 +149,7 @@ func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (
 	// dm_userを挿入
 	query := fmt.Sprintf(`
 		INSERT INTO %s (id, name, email, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4, $5)
 	`, tableName)
 
 	_, err = sqlDB.Exec(query, dmUserID, name, email, now, now)

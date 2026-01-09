@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"fmt"
+
 	goadminConfig "github.com/GoAdminGroup/go-admin/modules/config"
 	"github.com/GoAdminGroup/go-admin/modules/language"
 
@@ -48,21 +50,34 @@ func (c *Config) getSessionLifetime() int {
 	return c.appConfig.Admin.Session.Lifetime
 }
 
-// getDatabaseConfig はGORM Managerを使用したデータベース設定を返す
+// getDatabaseConfig はGoAdmin用のデータベース設定を返す
 func (c *Config) getDatabaseConfig() goadminConfig.DatabaseList {
 	// masterグループのデータベースをGoAdmin用データベースとして使用
-	dsn := ""
-	if len(c.appConfig.Database.Groups.Master) > 0 {
-		dsn = c.appConfig.Database.Groups.Master[0].DSN
-	} else if len(c.appConfig.Database.Shards) > 0 {
-		// 後方互換性: 旧設定形式のフォールバック
-		dsn = c.appConfig.Database.Shards[0].DSN
+	if len(c.appConfig.Database.Groups.Master) == 0 {
+		panic("no database configuration found: master group is required")
 	}
+
+	masterDB := c.appConfig.Database.Groups.Master[0]
+
+	// 接続情報の検証
+	if masterDB.Host == "" || masterDB.Port == 0 || masterDB.User == "" || masterDB.Name == "" {
+		panic("incomplete database configuration: host, port, user, and name are required")
+	}
+
+	// PostgreSQL用のDSN形式を構築
+	// host=... port=... user=... password=... dbname=... sslmode=disable
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		masterDB.Host,
+		masterDB.Port,
+		masterDB.User,
+		masterDB.Password,
+		masterDB.Name,
+	)
 
 	return goadminConfig.DatabaseList{
 		"default": {
-			Driver: "sqlite",
-			File:   dsn,
+			Driver: "postgresql",
+			Dsn:    dsn,
 		},
 	}
 }
