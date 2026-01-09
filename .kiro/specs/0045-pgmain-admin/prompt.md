@@ -135,6 +135,7 @@ think.
 その後、https://github.com/taku-o/go-webdb-template/issues/88 に対して
 pull requestを作成してください。
 
+/review 97
 
 
 
