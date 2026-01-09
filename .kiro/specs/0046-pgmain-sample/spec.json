@@ -1,0 +1,11 @@
+{
+  "feature": "0046-pgmain-sample",
+  "description": "server/cmd/generate-sample-data コマンドでPostgreSQLを利用するように修正",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
