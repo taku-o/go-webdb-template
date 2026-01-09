@@ -11,8 +11,6 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 | 環境 | 用途 | データベース |
 |------|------|-------------|
 | develop | 開発環境 | PostgreSQL/MySQL |
-| staging | ステージング環境 | PostgreSQL/MySQL |
-| production | 本番環境 | PostgreSQL/MySQL |
 
 ### アーキテクチャ
 
@@ -69,15 +67,9 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 
 | ファイル | サービス | 環境 |
 |---------|---------|------|
-| `docker-compose.api.develop.yml` | APIサーバー | develop |
-| `docker-compose.api.staging.yml` | APIサーバー | staging |
-| `docker-compose.api.production.yml` | APIサーバー | production |
-| `docker-compose.admin.develop.yml` | Adminサーバー | develop |
-| `docker-compose.admin.staging.yml` | Adminサーバー | staging |
-| `docker-compose.admin.production.yml` | Adminサーバー | production |
-| `docker-compose.client.develop.yml` | クライアント | develop |
-| `docker-compose.client.staging.yml` | クライアント | staging |
-| `docker-compose.client.production.yml` | クライアント | production |
+| `docker-compose.api.yml` | APIサーバー | develop |
+| `docker-compose.admin.yml` | Adminサーバー | develop |
+| `docker-compose.client.yml` | クライアント | develop |
 
 ### ボリュームマウント
 
@@ -104,62 +96,24 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 
 ```bash
 # ビルド
-docker-compose -f docker-compose.api.develop.yml build
-docker-compose -f docker-compose.admin.develop.yml build
-docker-compose -f docker-compose.client.develop.yml build
+docker-compose -f docker-compose.api.yml build
+docker-compose -f docker-compose.admin.yml build
+docker-compose -f docker-compose.client.yml build
 
 # 起動
-docker-compose -f docker-compose.api.develop.yml up -d
-docker-compose -f docker-compose.admin.develop.yml up -d
-docker-compose -f docker-compose.client.develop.yml up -d
+docker-compose -f docker-compose.api.yml up -d
+docker-compose -f docker-compose.admin.yml up -d
+docker-compose -f docker-compose.client.yml up -d
 
 # 停止
-docker-compose -f docker-compose.api.develop.yml down
-docker-compose -f docker-compose.admin.develop.yml down
-docker-compose -f docker-compose.client.develop.yml down
+docker-compose -f docker-compose.api.yml down
+docker-compose -f docker-compose.admin.yml down
+docker-compose -f docker-compose.client.yml down
 
 # ログ確認
-docker-compose -f docker-compose.api.develop.yml logs -f
-docker-compose -f docker-compose.admin.develop.yml logs -f
-docker-compose -f docker-compose.client.develop.yml logs -f
-```
-
-### ステージング環境（staging）
-
-```bash
-# ビルド
-docker-compose -f docker-compose.api.staging.yml build
-docker-compose -f docker-compose.admin.staging.yml build
-docker-compose -f docker-compose.client.staging.yml build
-
-# 起動
-docker-compose -f docker-compose.api.staging.yml up -d
-docker-compose -f docker-compose.admin.staging.yml up -d
-docker-compose -f docker-compose.client.staging.yml up -d
-
-# 停止
-docker-compose -f docker-compose.api.staging.yml down
-docker-compose -f docker-compose.admin.staging.yml down
-docker-compose -f docker-compose.client.staging.yml down
-```
-
-### 本番環境（production）
-
-```bash
-# ビルド
-docker-compose -f docker-compose.api.production.yml build
-docker-compose -f docker-compose.admin.production.yml build
-docker-compose -f docker-compose.client.production.yml build
-
-# 起動
-docker-compose -f docker-compose.api.production.yml up -d
-docker-compose -f docker-compose.admin.production.yml up -d
-docker-compose -f docker-compose.client.production.yml up -d
-
-# 停止
-docker-compose -f docker-compose.api.production.yml down
-docker-compose -f docker-compose.admin.production.yml down
-docker-compose -f docker-compose.client.production.yml down
+docker-compose -f docker-compose.api.yml logs -f
+docker-compose -f docker-compose.admin.yml logs -f
+docker-compose -f docker-compose.client.yml logs -f
 ```
 
 ---
@@ -275,7 +229,7 @@ kill <PID>
 キャッシュを使用せずに再ビルドする場合：
 
 ```bash
-docker-compose -f docker-compose.api.develop.yml build --no-cache
+docker-compose -f docker-compose.api.yml build --no-cache
 ```
 
 ### 全コンテナ・イメージの削除
@@ -315,13 +269,13 @@ docker builder prune -a -f
 
 ```bash
 # APIサーバー
-docker-compose -f docker-compose.api.production.yml build
+docker-compose -f docker-compose.api.yml build
 
 # Adminサーバー
-docker-compose -f docker-compose.admin.production.yml build
+docker-compose -f docker-compose.admin.yml build
 
 # クライアントサーバー
-docker-compose -f docker-compose.client.production.yml build
+docker-compose -f docker-compose.client.yml build
 ```
 
 ### イメージのタグ付け
