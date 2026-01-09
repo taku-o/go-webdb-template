@@ -24,7 +24,20 @@ _serena_indexing
 
 /serena-initialize
 
-/kiro:spec-impl 0046-pgmain-sample
+/kiro:spec-impl 0046-pgmain-sample 1
+/kiro:spec-impl 0046-pgmain-sample 2
+/kiro:spec-impl 0046-pgmain-sample 3
+/kiro:spec-impl 0046-pgmain-sample 4
+/kiro:spec-impl 0046-pgmain-sample 5
+/kiro:spec-impl 0046-pgmain-sample 6
+
+
+author_idに入れるデータを修正してください。
+> 修正するにはgofakeit.Int64()をgofakeit.Int32()に変更する必要があります。
+
+CloudBeaverを起動してください。
+
+/kiro:spec-impl 0046-pgmain-sample 7
 
 
 

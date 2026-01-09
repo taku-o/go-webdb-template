@@ -478,6 +478,40 @@ NEXT_PUBLIC_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 バッチ処理用のCLIツールが利用できます。
 
+### サンプルデータ生成（generate-sample-data）
+
+開発用のサンプルデータを生成します。PostgreSQLを使用してmaster/shardingデータベースにデータを投入します。
+
+#### 前提条件
+
+1. PostgreSQLコンテナが起動していること
+2. マイグレーションが適用されていること
+
+```bash
+# PostgreSQL起動
+./scripts/start-postgres.sh start
+
+# マイグレーション適用
+./scripts/migrate.sh
+```
+
+#### 実行
+
+```bash
+cd server
+APP_ENV=develop go run cmd/generate-sample-data/main.go
+```
+
+#### 生成されるデータ
+
+| テーブル | データベース | 件数 |
+|---------|------------|------|
+| dm_users_000〜031 | sharding (4台に分散) | 100件 |
+| dm_posts_000〜031 | sharding (4台に分散) | 100件 |
+| dm_news | master | 100件 |
+
+詳細は [Generate-Sample-Data.md](docs/Generate-Sample-Data.md) を参照してください。
+
 ### 秘密鍵生成（generate-secret）
 
 APIキー署名用の秘密鍵を生成します。
