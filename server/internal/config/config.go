@@ -106,7 +106,7 @@ type ShardConfig struct {
 	Name                  string        `mapstructure:"name"`
 	User                  string        `mapstructure:"user"`
 	Password              string        `mapstructure:"password"`
-	DSN                   string        `mapstructure:"dsn"` // SQLite用のDSN
+	DSN                   string        `mapstructure:"dsn"` // 接続文字列（後方互換用）
 	MaxConnections        int           `mapstructure:"max_connections"`
 	MaxIdleConnections    int           `mapstructure:"max_idle_connections"`
 	ConnectionMaxLifetime time.Duration `mapstructure:"connection_max_lifetime"`
@@ -315,7 +315,7 @@ func Load() (*Config, error) {
 // GetDSN はPostgreSQL/MySQL用のDSN文字列を生成する
 func (s *ShardConfig) GetDSN() string {
 	if s.DSN != "" {
-		// SQLiteの場合はそのまま返す
+		// DSNが直接指定されている場合はそのまま返す
 		return s.DSN
 	}
 

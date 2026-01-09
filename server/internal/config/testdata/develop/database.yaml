@@ -1,114 +1,115 @@
+# PostgreSQL設定（テスト用）
 database:
   groups:
     master:
       - id: 1
-        driver: sqlite3
-        dsn: ./data/master.db
-        writer_dsn: ./data/master.db
-        reader_dsns:
-          - ./data/master.db
-        reader_policy: random
-        max_connections: 10
+        driver: postgres
+        host: localhost
+        port: 5432
+        user: webdb
+        password: webdb
+        name: webdb_master
+        max_connections: 25
         max_idle_connections: 5
-        connection_max_lifetime: 300s
+        connection_max_lifetime: 1h
 
     sharding:
       databases:
-        # sharding 1: テーブル _000-003（4テーブル）→ sharding_db_1.db
+        # 論理シャード 1: テーブル _000-003 → postgres-sharding-1
         - id: 1
-          driver: sqlite3
-          dsn: ./data/sharding_db_1.db
-          writer_dsn: ./data/sharding_db_1.db
-          reader_dsns:
-            - ./data/sharding_db_1.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5433
+          user: webdb
+          password: webdb
+          name: webdb_sharding_1
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [0, 3]
-        # sharding 2: テーブル _004-007（4テーブル）→ sharding_db_1.db
+        # 論理シャード 2: テーブル _004-007 → postgres-sharding-1
         - id: 2
-          driver: sqlite3
-          dsn: ./data/sharding_db_1.db
-          writer_dsn: ./data/sharding_db_1.db
-          reader_dsns:
-            - ./data/sharding_db_1.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5433
+          user: webdb
+          password: webdb
+          name: webdb_sharding_1
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [4, 7]
-        # sharding 3: テーブル _008-011（4テーブル）→ sharding_db_2.db
+        # 論理シャード 3: テーブル _008-011 → postgres-sharding-2
         - id: 3
-          driver: sqlite3
-          dsn: ./data/sharding_db_2.db
-          writer_dsn: ./data/sharding_db_2.db
-          reader_dsns:
-            - ./data/sharding_db_2.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5434
+          user: webdb
+          password: webdb
+          name: webdb_sharding_2
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [8, 11]
-        # sharding 4: テーブル _012-015（4テーブル）→ sharding_db_2.db
+        # 論理シャード 4: テーブル _012-015 → postgres-sharding-2
         - id: 4
-          driver: sqlite3
-          dsn: ./data/sharding_db_2.db
-          writer_dsn: ./data/sharding_db_2.db
-          reader_dsns:
-            - ./data/sharding_db_2.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5434
+          user: webdb
+          password: webdb
+          name: webdb_sharding_2
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [12, 15]
-        # sharding 5: テーブル _016-019（4テーブル）→ sharding_db_3.db
+        # 論理シャード 5: テーブル _016-019 → postgres-sharding-3
         - id: 5
-          driver: sqlite3
-          dsn: ./data/sharding_db_3.db
-          writer_dsn: ./data/sharding_db_3.db
-          reader_dsns:
-            - ./data/sharding_db_3.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5435
+          user: webdb
+          password: webdb
+          name: webdb_sharding_3
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [16, 19]
-        # sharding 6: テーブル _020-023（4テーブル）→ sharding_db_3.db
+        # 論理シャード 6: テーブル _020-023 → postgres-sharding-3
         - id: 6
-          driver: sqlite3
-          dsn: ./data/sharding_db_3.db
-          writer_dsn: ./data/sharding_db_3.db
-          reader_dsns:
-            - ./data/sharding_db_3.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5435
+          user: webdb
+          password: webdb
+          name: webdb_sharding_3
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [20, 23]
-        # sharding 7: テーブル _024-027（4テーブル）→ sharding_db_4.db
+        # 論理シャード 7: テーブル _024-027 → postgres-sharding-4
         - id: 7
-          driver: sqlite3
-          dsn: ./data/sharding_db_4.db
-          writer_dsn: ./data/sharding_db_4.db
-          reader_dsns:
-            - ./data/sharding_db_4.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5436
+          user: webdb
+          password: webdb
+          name: webdb_sharding_4
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [24, 27]
-        # sharding 8: テーブル _028-031（4テーブル）→ sharding_db_4.db
+        # 論理シャード 8: テーブル _028-031 → postgres-sharding-4
         - id: 8
-          driver: sqlite3
-          dsn: ./data/sharding_db_4.db
-          writer_dsn: ./data/sharding_db_4.db
-          reader_dsns:
-            - ./data/sharding_db_4.db
-          reader_policy: random
-          max_connections: 10
+          driver: postgres
+          host: localhost
+          port: 5436
+          user: webdb
+          password: webdb
+          name: webdb_sharding_4
+          max_connections: 25
           max_idle_connections: 5
-          connection_max_lifetime: 300s
+          connection_max_lifetime: 1h
           table_range: [28, 31]
 
       tables:

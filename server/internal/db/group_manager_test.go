@@ -1,7 +1,6 @@
 package db_test
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
 // =============================================================================
@@ -17,25 +17,22 @@ import (
 
 // TestNewMasterManager tests MasterManager creation
 func TestNewMasterManager(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Master: []config.ShardConfig{
 					{
-						ID:         1,
-						Driver:     "sqlite3",
-						DSN:        filepath.Join(tmpDir, "master.db"),
-						WriterDSN:  filepath.Join(tmpDir, "master.db"),
-						ReaderDSNs: []string{filepath.Join(tmpDir, "master.db")},
+						ID:           1,
+						Driver:       "postgres",
+						Host:         testutil.TestDBHost,
+						Port:         5432,
+						User:         testutil.TestDBUser,
+						Password:     testutil.TestDBPassword,
+						Name:         "webdb_master",
+						ReaderPolicy: "random",
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -72,44 +69,54 @@ func TestNewMasterManager_NoConfig(t *testing.T) {
 
 // TestNewShardingManager tests ShardingManager creation
 func TestNewShardingManager(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
 						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 7},
+							ID:           1,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5433,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_1",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{0, 7},
 						},
 						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 15},
+							ID:           2,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5434,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_2",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{8, 15},
 						},
 						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 23},
+							ID:           3,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5435,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_3",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{16, 23},
 						},
 						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 31},
+							ID:           4,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5436,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_4",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{24, 31},
 						},
 					},
 					Tables: []config.ShardingTableConfig{
@@ -118,10 +125,6 @@ func TestNewShardingManager(t *testing.T) {
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -137,52 +140,58 @@ func TestNewShardingManager(t *testing.T) {
 
 // TestShardingManager_GetConnectionByTableNumber tests connection by table number
 func TestShardingManager_GetConnectionByTableNumber(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
 						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 7},
+							ID:           1,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5433,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_1",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{0, 7},
 						},
 						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 15},
+							ID:           2,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5434,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_2",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{8, 15},
 						},
 						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 23},
+							ID:           3,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5435,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_3",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{16, 23},
 						},
 						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 31},
+							ID:           4,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5436,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_4",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{24, 31},
 						},
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -234,36 +243,36 @@ func TestShardingManager_GetConnectionByTableNumber(t *testing.T) {
 
 // TestShardingManager_GetAllConnections tests getting all connections
 func TestShardingManager_GetAllConnections(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
 						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 7},
+							ID:           1,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5433,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_1",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{0, 7},
 						},
 						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 15},
+							ID:           2,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5434,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_2",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{8, 15},
 						},
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -289,78 +298,24 @@ func TestShardingManager_GetAllConnections(t *testing.T) {
 
 // TestNewShardingManager_8Sharding tests ShardingManager with 8 sharding entries
 func TestNewShardingManager_8Sharding(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	// 8つのシャーディングエントリ、4つのデータベース
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
-						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 3},
-						},
-						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"), // 同じDSN（接続共有）
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{4, 7},
-						},
-						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 11},
-						},
-						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"), // 同じDSN（接続共有）
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{12, 15},
-						},
-						{
-							ID:         5,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 19},
-						},
-						{
-							ID:         6,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"), // 同じDSN（接続共有）
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{20, 23},
-						},
-						{
-							ID:         7,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 27},
-						},
-						{
-							ID:         8,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"), // 同じDSN（接続共有）
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{28, 31},
-						},
+						// Entry 1,2 -> postgres-sharding-1 (port 5433)
+						{ID: 1, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 3}},
+						{ID: 2, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{4, 7}},
+						// Entry 3,4 -> postgres-sharding-2 (port 5434)
+						{ID: 3, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 11}},
+						{ID: 4, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{12, 15}},
+						// Entry 5,6 -> postgres-sharding-3 (port 5435)
+						{ID: 5, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 19}},
+						{ID: 6, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{20, 23}},
+						// Entry 7,8 -> postgres-sharding-4 (port 5436)
+						{ID: 7, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 27}},
+						{ID: 8, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{28, 31}},
 					},
 					Tables: []config.ShardingTableConfig{
 						{Name: "dm_users", SuffixCount: 32},
@@ -368,10 +323,6 @@ func TestNewShardingManager_8Sharding(t *testing.T) {
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -385,47 +336,50 @@ func TestNewShardingManager_8Sharding(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestShardingManager_ConnectionSharing tests that entries with the same DSN share the same connection
+// TestShardingManager_ConnectionSharing tests that entries with the same connection info share the same connection
 func TestShardingManager_ConnectionSharing(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	// 2つのエントリが同じDSNを共有
+	// 2つのエントリが同じ接続情報を共有
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
 						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "shared.db"),
-							WriterDSN:  filepath.Join(tmpDir, "shared.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "shared.db")},
-							TableRange: [2]int{0, 3},
+							ID:           1,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5433,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_1",
+							ReaderPolicy: "random",
+							TableRange:   [2]int{0, 3},
 						},
 						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "shared.db"), // 同じDSN
-							WriterDSN:  filepath.Join(tmpDir, "shared.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "shared.db")},
-							TableRange: [2]int{4, 7},
+							ID:           2,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5433,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_1", // 同じ接続情報
+							ReaderPolicy: "random",
+							TableRange:   [2]int{4, 7},
 						},
 						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "other.db"), // 異なるDSN
-							WriterDSN:  filepath.Join(tmpDir, "other.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "other.db")},
-							TableRange: [2]int{8, 15},
+							ID:           3,
+							Driver:       "postgres",
+							Host:         testutil.TestDBHost,
+							Port:         5434,
+							User:         testutil.TestDBUser,
+							Password:     testutil.TestDBPassword,
+							Name:         "webdb_sharding_2", // 異なる接続情報
+							ReaderPolicy: "random",
+							TableRange:   [2]int{8, 15},
 						},
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -440,84 +394,22 @@ func TestShardingManager_ConnectionSharing(t *testing.T) {
 
 // TestShardingManager_GetConnectionByTableNumber_8Sharding tests connection by table number with 8 sharding entries
 func TestShardingManager_GetConnectionByTableNumber_8Sharding(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
-						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 3},
-						},
-						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{4, 7},
-						},
-						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 11},
-						},
-						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{12, 15},
-						},
-						{
-							ID:         5,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 19},
-						},
-						{
-							ID:         6,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{20, 23},
-						},
-						{
-							ID:         7,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 27},
-						},
-						{
-							ID:         8,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{28, 31},
-						},
+						{ID: 1, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 3}},
+						{ID: 2, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{4, 7}},
+						{ID: 3, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 11}},
+						{ID: 4, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{12, 15}},
+						{ID: 5, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 19}},
+						{ID: 6, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{20, 23}},
+						{ID: 7, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 27}},
+						{ID: 8, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{28, 31}},
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -525,7 +417,7 @@ func TestShardingManager_GetConnectionByTableNumber_8Sharding(t *testing.T) {
 	require.NoError(t, err)
 	defer manager.CloseAll()
 
-	// 接続共有により、同じDSNを持つ複数のエントリは同じ接続を共有する
+	// 接続共有により、同じ接続情報を持つ複数のエントリは同じ接続を共有する
 	// ShardIDは最初に登録されたエントリのIDになるため、
 	// テーブル番号0-7はShardID=1、テーブル番号8-15はShardID=3、
 	// テーブル番号16-23はShardID=5、テーブル番号24-31はShardID=7となる
@@ -535,22 +427,22 @@ func TestShardingManager_GetConnectionByTableNumber_8Sharding(t *testing.T) {
 		expectError  bool
 		errorMessage string
 	}{
-		// sharding_db_1.db（エントリID 1, 2が共有）: テーブル番号 0-7
+		// sharding_db_1（エントリID 1, 2が共有）: テーブル番号 0-7
 		{tableNumber: 0, wantShardID: 1, expectError: false},
 		{tableNumber: 3, wantShardID: 1, expectError: false},
 		{tableNumber: 4, wantShardID: 1, expectError: false}, // 接続共有: ShardID=1
 		{tableNumber: 7, wantShardID: 1, expectError: false}, // 接続共有: ShardID=1
-		// sharding_db_2.db（エントリID 3, 4が共有）: テーブル番号 8-15
+		// sharding_db_2（エントリID 3, 4が共有）: テーブル番号 8-15
 		{tableNumber: 8, wantShardID: 3, expectError: false},
 		{tableNumber: 11, wantShardID: 3, expectError: false},
 		{tableNumber: 12, wantShardID: 3, expectError: false}, // 接続共有: ShardID=3
 		{tableNumber: 15, wantShardID: 3, expectError: false}, // 接続共有: ShardID=3
-		// sharding_db_3.db（エントリID 5, 6が共有）: テーブル番号 16-23
+		// sharding_db_3（エントリID 5, 6が共有）: テーブル番号 16-23
 		{tableNumber: 16, wantShardID: 5, expectError: false},
 		{tableNumber: 19, wantShardID: 5, expectError: false},
 		{tableNumber: 20, wantShardID: 5, expectError: false}, // 接続共有: ShardID=5
 		{tableNumber: 23, wantShardID: 5, expectError: false}, // 接続共有: ShardID=5
-		// sharding_db_4.db（エントリID 7, 8が共有）: テーブル番号 24-31
+		// sharding_db_4（エントリID 7, 8が共有）: テーブル番号 24-31
 		{tableNumber: 24, wantShardID: 7, expectError: false},
 		{tableNumber: 27, wantShardID: 7, expectError: false},
 		{tableNumber: 28, wantShardID: 7, expectError: false}, // 接続共有: ShardID=7
@@ -581,84 +473,22 @@ func TestShardingManager_GetConnectionByTableNumber_8Sharding(t *testing.T) {
 
 // TestShardingManager_GetAllConnections_8Sharding tests GetAllConnections returns unique connections with 8 sharding entries
 func TestShardingManager_GetAllConnections_8Sharding(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
-						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 3},
-						},
-						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{4, 7},
-						},
-						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 11},
-						},
-						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{12, 15},
-						},
-						{
-							ID:         5,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 19},
-						},
-						{
-							ID:         6,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{20, 23},
-						},
-						{
-							ID:         7,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 27},
-						},
-						{
-							ID:         8,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{28, 31},
-						},
+						{ID: 1, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 3}},
+						{ID: 2, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{4, 7}},
+						{ID: 3, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 11}},
+						{ID: 4, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{12, 15}},
+						{ID: 5, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 19}},
+						{ID: 6, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{20, 23}},
+						{ID: 7, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 27}},
+						{ID: 8, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{28, 31}},
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -673,54 +503,27 @@ func TestShardingManager_GetAllConnections_8Sharding(t *testing.T) {
 
 // TestNewGroupManager tests GroupManager creation
 func TestNewGroupManager(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Master: []config.ShardConfig{
 					{
-						ID:         1,
-						Driver:     "sqlite3",
-						DSN:        filepath.Join(tmpDir, "master.db"),
-						WriterDSN:  filepath.Join(tmpDir, "master.db"),
-						ReaderDSNs: []string{filepath.Join(tmpDir, "master.db")},
+						ID:           1,
+						Driver:       "postgres",
+						Host:         testutil.TestDBHost,
+						Port:         5432,
+						User:         testutil.TestDBUser,
+						Password:     testutil.TestDBPassword,
+						Name:         "webdb_master",
+						ReaderPolicy: "random",
 					},
 				},
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
-						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 7},
-						},
-						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 15},
-						},
-						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 23},
-						},
-						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 31},
-						},
+						{ID: 1, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 7}},
+						{ID: 2, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 15}},
+						{ID: 3, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 23}},
+						{ID: 4, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 31}},
 					},
 					Tables: []config.ShardingTableConfig{
 						{Name: "dm_users", SuffixCount: 32},
@@ -728,10 +531,6 @@ func TestNewGroupManager(t *testing.T) {
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -757,61 +556,30 @@ func TestNewGroupManager(t *testing.T) {
 
 // TestGroupManager_GetShardingConnectionByID tests connection by user ID
 func TestGroupManager_GetShardingConnectionByID(t *testing.T) {
-	tmpDir := t.TempDir()
-
 	cfg := &config.Config{
 		Database: config.DatabaseConfig{
 			Groups: config.DatabaseGroupsConfig{
 				Master: []config.ShardConfig{
 					{
-						ID:         1,
-						Driver:     "sqlite3",
-						DSN:        filepath.Join(tmpDir, "master.db"),
-						WriterDSN:  filepath.Join(tmpDir, "master.db"),
-						ReaderDSNs: []string{filepath.Join(tmpDir, "master.db")},
+						ID:           1,
+						Driver:       "postgres",
+						Host:         testutil.TestDBHost,
+						Port:         5432,
+						User:         testutil.TestDBUser,
+						Password:     testutil.TestDBPassword,
+						Name:         "webdb_master",
+						ReaderPolicy: "random",
 					},
 				},
 				Sharding: config.ShardingGroupConfig{
 					Databases: []config.ShardConfig{
-						{
-							ID:         1,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding1.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding1.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding1.db")},
-							TableRange: [2]int{0, 7},
-						},
-						{
-							ID:         2,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding2.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding2.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding2.db")},
-							TableRange: [2]int{8, 15},
-						},
-						{
-							ID:         3,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding3.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding3.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding3.db")},
-							TableRange: [2]int{16, 23},
-						},
-						{
-							ID:         4,
-							Driver:     "sqlite3",
-							DSN:        filepath.Join(tmpDir, "sharding4.db"),
-							WriterDSN:  filepath.Join(tmpDir, "sharding4.db"),
-							ReaderDSNs: []string{filepath.Join(tmpDir, "sharding4.db")},
-							TableRange: [2]int{24, 31},
-						},
+						{ID: 1, Driver: "postgres", Host: testutil.TestDBHost, Port: 5433, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 7}},
+						{ID: 2, Driver: "postgres", Host: testutil.TestDBHost, Port: 5434, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 15}},
+						{ID: 3, Driver: "postgres", Host: testutil.TestDBHost, Port: 5435, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 23}},
+						{ID: 4, Driver: "postgres", Host: testutil.TestDBHost, Port: 5436, User: testutil.TestDBUser, Password: testutil.TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 31}},
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -847,26 +615,37 @@ func TestGroupManager_GetShardingConnectionByID(t *testing.T) {
 }
 
 // =============================================================================
-// 異なるDB構成のテスト（8台DB、1台DB）
+// 異なるDB構成のテスト（4台DB、1台DB）
 // =============================================================================
 
-// TestShardingManager_8Databases tests 8 sharding entries with 8 separate databases
-// Each entry has its own database (no connection sharing)
-func TestShardingManager_8Databases(t *testing.T) {
-	tmpDir := t.TempDir()
+// TestShardingManager_4Databases tests 8 sharding entries with 4 physical databases
+// This matches the actual production environment: 8 logical shards distributed across 4 PostgreSQL containers
+func TestShardingManager_4Databases(t *testing.T) {
+	// 4つの物理データベースに8つの論理シャードを分散
+	// Entry 1-2: port 5433 (webdb_sharding_1)
+	// Entry 3-4: port 5434 (webdb_sharding_2)
+	// Entry 5-6: port 5435 (webdb_sharding_3)
+	// Entry 7-8: port 5436 (webdb_sharding_4)
+	ports := []int{5433, 5433, 5434, 5434, 5435, 5435, 5436, 5436}
+	dbNames := []string{
+		"webdb_sharding_1", "webdb_sharding_1",
+		"webdb_sharding_2", "webdb_sharding_2",
+		"webdb_sharding_3", "webdb_sharding_3",
+		"webdb_sharding_4", "webdb_sharding_4",
+	}
 
-	// 8つの別々のデータベースファイルを使用
 	shardingDBs := make([]config.ShardConfig, 8)
 	for i := 0; i < 8; i++ {
-		dbPath := filepath.Join(tmpDir, "sharding_db_"+string(rune('1'+i))+".db")
 		startTable := i * 4
 		endTable := startTable + 3
 		shardingDBs[i] = config.ShardConfig{
 			ID:           i + 1,
-			Driver:       "sqlite3",
-			DSN:          dbPath,
-			WriterDSN:    dbPath,
-			ReaderDSNs:   []string{dbPath},
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         ports[i],
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         dbNames[i],
 			ReaderPolicy: "random",
 			TableRange:   [2]int{startTable, endTable},
 		}
@@ -877,11 +656,14 @@ func TestShardingManager_8Databases(t *testing.T) {
 			Groups: config.DatabaseGroupsConfig{
 				Master: []config.ShardConfig{
 					{
-						ID:         1,
-						Driver:     "sqlite3",
-						DSN:        filepath.Join(tmpDir, "master.db"),
-						WriterDSN:  filepath.Join(tmpDir, "master.db"),
-						ReaderDSNs: []string{filepath.Join(tmpDir, "master.db")},
+						ID:           1,
+						Driver:       "postgres",
+						Host:         testutil.TestDBHost,
+						Port:         5432,
+						User:         testutil.TestDBUser,
+						Password:     testutil.TestDBPassword,
+						Name:         "webdb_master",
+						ReaderPolicy: "random",
 					},
 				},
 				Sharding: config.ShardingGroupConfig{
@@ -891,10 +673,6 @@ func TestShardingManager_8Databases(t *testing.T) {
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 
@@ -903,49 +681,56 @@ func TestShardingManager_8Databases(t *testing.T) {
 	require.NotNil(t, manager)
 	defer manager.CloseAll()
 
-	// 8つのユニークな接続が作成されることを確認
+	// 4つのユニークな接続が作成されることを確認
 	connections := manager.GetAllShardingConnections()
-	assert.Len(t, connections, 8, "Should have 8 unique connections for 8 separate databases")
+	assert.Len(t, connections, 4, "Should have 4 unique connections for 4 physical databases")
 
-	// 各テーブル番号が正しい接続を返すことを確認
-	testCases := []struct {
-		tableNumber int
-		expectDBID  int
-	}{
-		{0, 1}, {3, 1},   // Entry 1: tables 0-3
-		{4, 2}, {7, 2},   // Entry 2: tables 4-7
-		{8, 3}, {11, 3},  // Entry 3: tables 8-11
-		{12, 4}, {15, 4}, // Entry 4: tables 12-15
-		{16, 5}, {19, 5}, // Entry 5: tables 16-19
-		{20, 6}, {23, 6}, // Entry 6: tables 20-23
-		{24, 7}, {27, 7}, // Entry 7: tables 24-27
-		{28, 8}, {31, 8}, // Entry 8: tables 28-31
+	// テーブル番号と期待されるShardIDの対応を確認
+	// tables 0-7 → ShardID 1 (port 5433)
+	// tables 8-15 → ShardID 3 (port 5434)
+	// tables 16-23 → ShardID 5 (port 5435)
+	// tables 24-31 → ShardID 7 (port 5436)
+	expectedShardIDs := map[int]int{
+		0: 1, 4: 1, 7: 1,      // port 5433
+		8: 3, 12: 3, 15: 3,    // port 5434
+		16: 5, 20: 5, 23: 5,   // port 5435
+		24: 7, 28: 7, 31: 7,   // port 5436
 	}
 
-	for _, tc := range testCases {
-		conn, err := manager.GetShardingConnection(tc.tableNumber)
+	for tableNumber, expectedShardID := range expectedShardIDs {
+		conn, err := manager.GetShardingConnection(tableNumber)
 		require.NoError(t, err)
-		assert.Equal(t, tc.expectDBID, conn.ShardID, "Table %d should return connection with ShardID %d", tc.tableNumber, tc.expectDBID)
+		assert.Equal(t, expectedShardID, conn.ShardID, "Table %d should return connection with ShardID %d", tableNumber, expectedShardID)
 	}
+
+	// 同じ物理DBを使うテーブルが同じ接続オブジェクトを共有することを確認
+	conn0, _ := manager.GetShardingConnection(0)
+	conn4, _ := manager.GetShardingConnection(4)
+	assert.Same(t, conn0, conn4, "Tables 0 and 4 should share the same connection (port 5433)")
+
+	conn8, _ := manager.GetShardingConnection(8)
+	conn12, _ := manager.GetShardingConnection(12)
+	assert.Same(t, conn8, conn12, "Tables 8 and 12 should share the same connection (port 5434)")
+
+	// 異なる物理DBのテーブルは異なる接続オブジェクトを使うことを確認
+	assert.NotSame(t, conn0, conn8, "Tables 0 and 8 should use different connections")
 }
 
 // TestShardingManager_1Database tests 8 sharding entries with 1 shared database
-// All entries share the same database connection
 func TestShardingManager_1Database(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	// 1つのデータベースファイルを全エントリで共有
-	sharedDBPath := filepath.Join(tmpDir, "sharding_shared.db")
+	// 1つのデータベースを全エントリで共有
 	shardingDBs := make([]config.ShardConfig, 8)
 	for i := 0; i < 8; i++ {
 		startTable := i * 4
 		endTable := startTable + 3
 		shardingDBs[i] = config.ShardConfig{
 			ID:           i + 1,
-			Driver:       "sqlite3",
-			DSN:          sharedDBPath, // 全エントリで同じDSN
-			WriterDSN:    sharedDBPath,
-			ReaderDSNs:   []string{sharedDBPath},
+			Driver:       "postgres",
+			Host:         testutil.TestDBHost,
+			Port:         5433, // 全エントリで同じポート
+			User:         testutil.TestDBUser,
+			Password:     testutil.TestDBPassword,
+			Name:         "webdb_sharding_1", // 全エントリで同じDB名
 			ReaderPolicy: "random",
 			TableRange:   [2]int{startTable, endTable},
 		}
@@ -956,11 +741,14 @@ func TestShardingManager_1Database(t *testing.T) {
 			Groups: config.DatabaseGroupsConfig{
 				Master: []config.ShardConfig{
 					{
-						ID:         1,
-						Driver:     "sqlite3",
-						DSN:        filepath.Join(tmpDir, "master.db"),
-						WriterDSN:  filepath.Join(tmpDir, "master.db"),
-						ReaderDSNs: []string{filepath.Join(tmpDir, "master.db")},
+						ID:           1,
+						Driver:       "postgres",
+						Host:         testutil.TestDBHost,
+						Port:         5432,
+						User:         testutil.TestDBUser,
+						Password:     testutil.TestDBPassword,
+						Name:         "webdb_master",
+						ReaderPolicy: "random",
 					},
 				},
 				Sharding: config.ShardingGroupConfig{
@@ -970,10 +758,6 @@ func TestShardingManager_1Database(t *testing.T) {
 					},
 				},
 			},
-		},
-		Logging: config.LoggingConfig{
-			SQLLogEnabled:   false,
-			SQLLogOutputDir: tmpDir,
 		},
 	}
 

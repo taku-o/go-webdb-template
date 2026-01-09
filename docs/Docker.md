@@ -10,7 +10,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 
 | 環境 | 用途 | データベース |
 |------|------|-------------|
-| develop | 開発環境 | SQLite |
+| develop | 開発環境 | PostgreSQL/MySQL |
 | staging | ステージング環境 | PostgreSQL/MySQL |
 | production | 本番環境 | PostgreSQL/MySQL |
 
@@ -52,11 +52,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 | ファイル | 用途 | CGO | ベースイメージ |
 |---------|------|-----|---------------|
 | `server/Dockerfile` | staging/production | 0 | golang:1.24-bookworm → debian:bookworm-slim |
-| `server/Dockerfile.develop` | develop | 1 | golang:1.24-bookworm → debian:bookworm-slim |
 | `server/Dockerfile.admin` | staging/production | 0 | golang:1.24-bookworm → debian:bookworm-slim |
-| `server/Dockerfile.admin.develop` | develop | 1 | golang:1.24-bookworm → debian:bookworm-slim |
-
-**注意**: 開発環境（develop）ではSQLiteを使用するため、CGO_ENABLED=1でビルドする必要があります。
 
 ### クライアント側（Next.js）
 
@@ -88,7 +84,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 | パス | 用途 | モード |
 |------|------|--------|
 | `./config/{env}:/app/config/{env}` | 設定ファイル | 読み取り専用 |
-| `./server/data:/app/server/data` | SQLiteデータベース | 読み書き可 |
+| `./server/data:/app/server/data` | データディレクトリ | 読み書き可 |
 | `./logs:/app/logs` | ログファイル | 読み書き可 |
 
 ### 環境変数
@@ -242,19 +238,6 @@ APP_ENV=develop ./scripts/migrate.sh all
 ---
 
 ## トラブルシューティング
-
-### CGO関連エラー
-
-**症状**: `Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work`
-
-**原因**: 開発環境でSQLiteを使用する場合、CGO_ENABLED=1でビルドする必要があります。
-
-**解決策**: `Dockerfile.develop`を使用してビルドしてください。
-
-```bash
-# 正しいDockerfileを使用
-docker-compose -f docker-compose.api.develop.yml build
-```
 
 ### ネットワーク接続エラー
 

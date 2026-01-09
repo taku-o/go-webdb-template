@@ -27,11 +27,11 @@ func setupJobqueueTestServer(t *testing.T, withJobqueueHandler bool) *httptest.S
 	})
 
 	// Initialize layers (using GORM repositories)
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
 	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 
