@@ -1,5 +1,5 @@
 # ビルドステージ
-FROM golang:1.24-bookworm AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /build
 
@@ -11,16 +11,17 @@ RUN go mod download
 COPY . .
 
 # ビルド
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o admin ./cmd/admin/main.go
+RUN CGO_ENABLED=0 go build -o admin ./cmd/admin/main.go
 
 # 実行ステージ
-FROM debian:bookworm-slim
+FROM alpine:latest
 
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
+# 必要なパッケージをインストール
+RUN apk add --no-cache ca-certificates tzdata
 
-# 非rootユーザーを作成
-RUN groupadd -g 1000 appuser && \
-    useradd -u 1000 -g appuser -m appuser
+# 非rootユーザーを作成（Alpine用コマンド）
+RUN addgroup -g 1000 appuser && \
+    adduser -u 1000 -G appuser -D appuser
 
 # ディレクトリ構造を作成（server/から起動される想定）
 # /app/server/ - バイナリ配置・作業ディレクトリ

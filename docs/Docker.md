@@ -51,8 +51,8 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 
 | ファイル | 用途 | CGO | ベースイメージ |
 |---------|------|-----|---------------|
-| `server/Dockerfile` | staging/production | 0 | golang:1.24-bookworm → debian:bookworm-slim |
-| `server/Dockerfile.admin` | staging/production | 0 | golang:1.24-bookworm → debian:bookworm-slim |
+| `server/Dockerfile` | 全環境（develop/staging/production） | 0 | golang:1.24-alpine → alpine:latest |
+| `server/Dockerfile.admin` | 全環境（develop/staging/production） | 0 | golang:1.24-alpine → alpine:latest |
 
 ### クライアント側（Next.js）
 
