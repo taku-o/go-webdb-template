@@ -185,6 +185,42 @@ think.
 いったんcommitしてください。
 
 
+例えば、
+server/internal/repository/dm_post_repository.go を消して、
+server/internal/repository/dm_post_repository_gorm.go を残したじゃない？
+
+_gormとついているファイルを、
+server/internal/repository/dm_post_repository.go とファイル名を変更して。
+think.
+
+この辺り、コード被ってない？
+	server/test/integration/dm_post_flow_gorm_test.go
+	server/test/integration/dm_user_flow_gorm_test.go
+	server/test/integration/dm_user_flow_test.go
+	server/test/integration/dm_post_flow_test.go
+think.
+
+リネームして
+server/test/integration/dm_post_flow_gorm_test.go -> server/test/integration/dm_post_repository_test.go
+server/test/integration/dm_user_flow_gorm_test.go -> server/test/integration/dm_user_repository_test.go
+server/test/integration/dm_user_flow_test.go -> server/test/integration/dm_user_service_test.go
+server/test/integration/dm_post_flow_test.go -> server/test/integration/dm_post_service_test.go
+
+
+GORMManagerはもう使われていないコードなのはあってる？
+GroupManagerを使っている。
+think.
+
+
+この作業の続きお願いします。
+大変かもだけど。
+> GORMManagerを使っているコードはGroupManagerを使う実装に置き換える。
+> 
+> 使われないコードは除去する。
+> > admin/sharding.go の関数群も呼び出されていない
+> think.
+
+
 
 
 

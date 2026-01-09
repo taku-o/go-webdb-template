@@ -19,9 +19,9 @@ func TestDmPostCRUDFlowGORM(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	// Initialize GORM repositories
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	// Initialize repositories
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 
 	// ユニークなメールアドレスを生成
 	uniqueID, err := idgen.GenerateUUIDv7()
@@ -92,9 +92,9 @@ func TestDmPostCrossShardJoinGORM(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	// Initialize GORM repositories
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	// Initialize repositories
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 
 	ctx := context.Background()
 

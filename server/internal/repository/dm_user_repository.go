@@ -12,22 +12,22 @@ import (
 	"gorm.io/gorm"
 )
 
-// DmUserRepositoryGORM はユーザーのデータアクセスを担当（GORM版）
-type DmUserRepositoryGORM struct {
+// DmUserRepository はユーザーのデータアクセスを担当
+type DmUserRepository struct {
 	groupManager  *db.GroupManager
 	tableSelector *db.TableSelector
 }
 
-// NewDmUserRepositoryGORM は新しいDmUserRepositoryGORMを作成
-func NewDmUserRepositoryGORM(groupManager *db.GroupManager) *DmUserRepositoryGORM {
-	return &DmUserRepositoryGORM{
+// NewDmUserRepository は新しいDmUserRepositoryを作成
+func NewDmUserRepository(groupManager *db.GroupManager) *DmUserRepository {
+	return &DmUserRepository{
 		groupManager:  groupManager,
 		tableSelector: db.NewTableSelector(db.DBShardingTableCount, db.DBShardingTablesPerDB),
 	}
 }
 
 // Create はユーザーを作成
-func (r *DmUserRepositoryGORM) Create(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error) {
+func (r *DmUserRepository) Create(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error) {
 	// ID生成（UUIDv7）
 	id, err := idgen.GenerateUUIDv7()
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *DmUserRepositoryGORM) Create(ctx context.Context, req *model.CreateDmUs
 }
 
 // GetByID はIDでユーザーを取得
-func (r *DmUserRepositoryGORM) GetByID(ctx context.Context, id string) (*model.DmUser, error) {
+func (r *DmUserRepository) GetByID(ctx context.Context, id string) (*model.DmUser, error) {
 	// テーブル名の生成
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", id)
 	if err != nil {
@@ -93,7 +93,7 @@ func (r *DmUserRepositoryGORM) GetByID(ctx context.Context, id string) (*model.D
 }
 
 // List はすべてのユーザーを取得（クロステーブルクエリ）
-func (r *DmUserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.DmUser, error) {
+func (r *DmUserRepository) List(ctx context.Context, limit, offset int) ([]*model.DmUser, error) {
 	users := make([]*model.DmUser, 0)
 
 	// テーブル数分ループして各テーブルからデータを取得
@@ -127,7 +127,7 @@ func (r *DmUserRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*
 }
 
 // Update はユーザーを更新
-func (r *DmUserRepositoryGORM) Update(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
+func (r *DmUserRepository) Update(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error) {
 	// テーブル名の生成
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", id)
 	if err != nil {
@@ -166,7 +166,7 @@ func (r *DmUserRepositoryGORM) Update(ctx context.Context, id string, req *model
 }
 
 // Delete はユーザーを削除
-func (r *DmUserRepositoryGORM) Delete(ctx context.Context, id string) error {
+func (r *DmUserRepository) Delete(ctx context.Context, id string) error {
 	// テーブル名の生成
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_users", id)
 	if err != nil {

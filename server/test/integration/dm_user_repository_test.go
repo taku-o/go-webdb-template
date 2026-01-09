@@ -19,8 +19,8 @@ func TestDmUserCRUDFlowGORM(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	// Initialize GORM repository
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	// Initialize repository
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成
@@ -87,7 +87,7 @@ func TestDmUserCrossShardOperationsGORM(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 
 	// ユニークなメールアドレスを生成
 	uniqueID1, err := idgen.GenerateUUIDv7()

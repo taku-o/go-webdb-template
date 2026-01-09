@@ -20,9 +20,9 @@ func TestDmPostCRUDFlow(t *testing.T) {
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	// Initialize services (using GORM repositories)
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 
 	// Create a test dm_user first
@@ -81,9 +81,9 @@ func TestDmPostCrossShardJoin(t *testing.T) {
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	// Initialize services (using GORM repositories)
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 
 	// Create multiple dm_users

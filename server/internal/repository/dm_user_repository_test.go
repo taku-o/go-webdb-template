@@ -18,7 +18,7 @@ func TestDmUserRepositoryGORM_Create(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成
@@ -53,7 +53,7 @@ func TestDmUserRepositoryGORM_GetByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成
@@ -87,7 +87,7 @@ func TestDmUserRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// Test retrieval of non-existent user
@@ -100,7 +100,7 @@ func TestDmUserRepositoryGORM_Update(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成
@@ -144,7 +144,7 @@ func TestDmUserRepositoryGORM_Delete(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成
@@ -174,7 +174,7 @@ func TestDmUserRepositoryGORM_CreateAndRetrieve(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成

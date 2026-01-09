@@ -85,7 +85,7 @@ func TestLoad_AdminConfig(t *testing.T) {
 	viper.Reset()
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config file not found, skipping: %v", err)
+		t.Fatalf("config file not found: %v", err)
 	}
 
 	// Admin設定が読み込まれることを確認
@@ -105,7 +105,7 @@ func TestLoad_WithBothConfigFiles(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// メイン設定の確認
@@ -144,7 +144,7 @@ func TestLoad_DefaultEnv(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// develop環境の設定が読み込まれることを確認
@@ -172,7 +172,7 @@ func TestLoad_PasswordOverrideFromEnv(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// 環境変数でパスワードが上書きされることを確認
@@ -331,7 +331,7 @@ func TestLoad_GroupsConfig(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// Masterグループの確認
@@ -537,7 +537,7 @@ func TestLoad_RateLimitConfig(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// レートリミット設定が読み込まれることを確認
@@ -562,7 +562,7 @@ func TestLoad_CacheServerConfig(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// ジョブキュー用Redis設定の確認
@@ -796,7 +796,7 @@ func TestLoad_MailLogOutputDirDefault(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// MailLogOutputDirが設定されていない場合はOutputDirをデフォルトとして使用
@@ -820,7 +820,7 @@ func TestLoad_UploadConfig(t *testing.T) {
 
 	cfg, err := Load()
 	if err != nil {
-		t.Skipf("config files not found, skipping: %v", err)
+		t.Fatalf("config files not found: %v", err)
 	}
 
 	// アップロード設定が読み込まれることを確認

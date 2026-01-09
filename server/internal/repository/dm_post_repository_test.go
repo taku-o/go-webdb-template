@@ -18,7 +18,7 @@ func TestDmPostRepositoryGORM_Create(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成
@@ -54,7 +54,7 @@ func TestDmPostRepositoryGORM_GetByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成
@@ -89,7 +89,7 @@ func TestDmPostRepositoryGORM_GetByID_NotFound(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成
@@ -106,7 +106,7 @@ func TestDmPostRepositoryGORM_Update(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成
@@ -149,7 +149,7 @@ func TestDmPostRepositoryGORM_Delete(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成
@@ -179,7 +179,7 @@ func TestDmPostRepositoryGORM_ListByUserID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成
@@ -219,7 +219,7 @@ func TestDmPostRepositoryGORM_List(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// テスト用のユーザーIDを生成（同一テーブルに対してテスト）
@@ -265,8 +265,8 @@ func TestDmPostRepositoryGORM_GetUserPosts(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	ctx := context.Background()
 
 	// ユニークなメールアドレスを生成

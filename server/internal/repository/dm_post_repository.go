@@ -12,22 +12,22 @@ import (
 	"gorm.io/gorm"
 )
 
-// DmPostRepositoryGORM は投稿のデータアクセスを担当（GORM版）
-type DmPostRepositoryGORM struct {
+// DmPostRepository は投稿のデータアクセスを担当
+type DmPostRepository struct {
 	groupManager  *db.GroupManager
 	tableSelector *db.TableSelector
 }
 
-// NewDmPostRepositoryGORM は新しいDmPostRepositoryGORMを作成
-func NewDmPostRepositoryGORM(groupManager *db.GroupManager) *DmPostRepositoryGORM {
-	return &DmPostRepositoryGORM{
+// NewDmPostRepository は新しいDmPostRepositoryを作成
+func NewDmPostRepository(groupManager *db.GroupManager) *DmPostRepository {
+	return &DmPostRepository{
 		groupManager:  groupManager,
 		tableSelector: db.NewTableSelector(db.DBShardingTableCount, db.DBShardingTablesPerDB),
 	}
 }
 
 // Create は投稿を作成
-func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error) {
+func (r *DmPostRepository) Create(ctx context.Context, req *model.CreateDmPostRequest) (*model.DmPost, error) {
 	// ID生成（UUIDv7）
 	id, err := idgen.GenerateUUIDv7()
 	if err != nil {
@@ -65,7 +65,7 @@ func (r *DmPostRepositoryGORM) Create(ctx context.Context, req *model.CreateDmPo
 }
 
 // GetByID はIDで投稿を取得
-func (r *DmPostRepositoryGORM) GetByID(ctx context.Context, id string, userID string) (*model.DmPost, error) {
+func (r *DmPostRepository) GetByID(ctx context.Context, id string, userID string) (*model.DmPost, error) {
 	// UserIDをキーとしてテーブル/DBを決定
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *DmPostRepositoryGORM) GetByID(ctx context.Context, id string, userID st
 }
 
 // ListByUserID はユーザーIDで投稿一覧を取得
-func (r *DmPostRepositoryGORM) ListByUserID(ctx context.Context, userID string, limit, offset int) ([]*model.DmPost, error) {
+func (r *DmPostRepository) ListByUserID(ctx context.Context, userID string, limit, offset int) ([]*model.DmPost, error) {
 	// UserIDをキーとしてテーブル/DBを決定
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
 	if err != nil {
@@ -126,7 +126,7 @@ func (r *DmPostRepositoryGORM) ListByUserID(ctx context.Context, userID string, 
 }
 
 // List はすべての投稿を取得（クロステーブルクエリ）
-func (r *DmPostRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*model.DmPost, error) {
+func (r *DmPostRepository) List(ctx context.Context, limit, offset int) ([]*model.DmPost, error) {
 	posts := make([]*model.DmPost, 0)
 
 	// テーブル数分ループして各テーブルからデータを取得
@@ -160,7 +160,7 @@ func (r *DmPostRepositoryGORM) List(ctx context.Context, limit, offset int) ([]*
 }
 
 // GetUserPosts はユーザーと投稿をJOINして取得（クロステーブルクエリ）
-func (r *DmPostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset int) ([]*model.DmUserPost, error) {
+func (r *DmPostRepository) GetUserPosts(ctx context.Context, limit, offset int) ([]*model.DmUserPost, error) {
 	userPosts := make([]*model.DmUserPost, 0)
 
 	// テーブル数分ループして各テーブルからデータを取得
@@ -205,7 +205,7 @@ func (r *DmPostRepositoryGORM) GetUserPosts(ctx context.Context, limit, offset i
 }
 
 // Update は投稿を更新
-func (r *DmPostRepositoryGORM) Update(ctx context.Context, id string, userID string, req *model.UpdateDmPostRequest) (*model.DmPost, error) {
+func (r *DmPostRepository) Update(ctx context.Context, id string, userID string, req *model.UpdateDmPostRequest) (*model.DmPost, error) {
 	// UserIDをキーとしてテーブル/DBを決定
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
 	if err != nil {
@@ -247,7 +247,7 @@ func (r *DmPostRepositoryGORM) Update(ctx context.Context, id string, userID str
 }
 
 // Delete は投稿を削除
-func (r *DmPostRepositoryGORM) Delete(ctx context.Context, id string, userID string) error {
+func (r *DmPostRepository) Delete(ctx context.Context, id string, userID string) error {
 	// UserIDをキーとしてテーブル/DBを決定
 	tableName, err := r.tableSelector.GetTableNameFromUUID("dm_posts", userID)
 	if err != nil {
