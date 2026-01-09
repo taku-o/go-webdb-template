@@ -39,5 +39,29 @@ CloudBeaverを起動してください。
 
 /kiro:spec-impl 0046-pgmain-sample 7
 
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/89 に対して
+pull requestを作成してください。
+
+/review 98
+
+これは対応する必要がある
+>  1. ⚠️ 負の値の可能性
+>
+>  現在の実装:
+>  authorID := int64(gofakeit.Int32())
+>
+>  gofakeit.Int32()は負の値も生成する可能性があります。author_idが負の値でも問題ないか確認が必要です。
+>
+>  対応案（必要な場合）:
+>  authorID := int64(gofakeit.Int32()) & 0x7FFFFFFF // 正の値のみ
+
+/review 98
+
+commitして、pull requestを更新してください。
+
+/review 98
+
+
 
 
