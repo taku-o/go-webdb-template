@@ -30,7 +30,10 @@ _serena_indexing
 
 /kiro:spec-impl 0048-pgmain-docs
 
+作業無しでOK？
 
+https://github.com/taku-o/go-webdb-template/issues/91 に対して
+pull requestを作成してください。
 
 
 
