@@ -177,7 +177,12 @@ pull requestを作成してください。
 /review 99
 
 
-
+これに対応してください。
+>  2. docker-compose環境変数の重複
+>
+>  DB_MASTER_HOSTとDB_MASTER_PORTはAdminサーバー用docker-composeのみに必要だが、APIサーバー用にも追加されている。
+>  - 影響: 軽微（使用されないだけ）
+>  - 推奨: 統一性のため現状維持でもOK
 
 
 
