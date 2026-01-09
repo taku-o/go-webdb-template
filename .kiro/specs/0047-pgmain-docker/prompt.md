@@ -170,6 +170,14 @@ stagingされている修正をcommitしてください。
 その後、https://github.com/taku-o/go-webdb-template/issues/90 に対して
 pull requestを作成してください。
 
+**stagingされている** 修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/90 に対して
+pull requestを作成してください。
+
+/review 99
+
+
+
 
 
 
