@@ -1,0 +1,11 @@
+{
+  "feature": "0048-pgmain-docs",
+  "description": "ドキュメントの修正（SQLite関連記述の削除、PostgreSQL関連記述の追加）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
