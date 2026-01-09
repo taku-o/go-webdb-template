@@ -1,0 +1,11 @@
+{
+  "feature": "0049-fitcompose",
+  "description": "docker-compose.admin、api、clientの整理（production/staging環境用ファイルの削除、develop環境用ファイルのリネーム）",
+  "language": "ja",
+  "createdAt": "2026-01-10",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
