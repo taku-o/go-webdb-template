@@ -22,6 +22,10 @@ _serena_indexing
 
 /kiro:spec-impl 0049-fitcompose
 
+ここまでの修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/101 に対して
+pull requestを作成してください。
+
 
 
 

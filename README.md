@@ -262,16 +262,16 @@ docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.redis.yml up -d
 
 # APIサーバーのビルドと起動
-docker-compose -f docker-compose.api.develop.yml build
-docker-compose -f docker-compose.api.develop.yml up -d
+docker-compose -f docker-compose.api.yml build
+docker-compose -f docker-compose.api.yml up -d
 
 # Adminサーバーのビルドと起動
-docker-compose -f docker-compose.admin.develop.yml build
-docker-compose -f docker-compose.admin.develop.yml up -d
+docker-compose -f docker-compose.admin.yml build
+docker-compose -f docker-compose.admin.yml up -d
 
 # クライアントサーバーのビルドと起動
-docker-compose -f docker-compose.client.develop.yml build
-docker-compose -f docker-compose.client.develop.yml up -d
+docker-compose -f docker-compose.client.yml build
+docker-compose -f docker-compose.client.yml up -d
 ```
 
 **起動後のアクセス先**:
