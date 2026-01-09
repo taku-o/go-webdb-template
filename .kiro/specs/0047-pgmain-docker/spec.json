@@ -1,0 +1,11 @@
+{
+  "feature": "0047-pgmain-docker",
+  "description": "server/Dockerfile* の更新（SQLite依存削除、Alpineベースへの移行）",
+  "language": "ja",
+  "createdAt": "2025-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

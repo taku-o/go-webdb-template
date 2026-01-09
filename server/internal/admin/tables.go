@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"time"
+
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
@@ -13,7 +15,7 @@ import (
 // dm_users/dm_postsテーブル（shardingグループ）はGoAdminで管理できません
 func GetDmNewsTable(ctx *context.Context) table.Table {
 	newsTable := table.NewDefaultTable(ctx, table.Config{
-		Driver:     db.DriverSqlite,
+		Driver:     db.DriverPostgresql,
 		CanAdd:     true,
 		Editable:   true,
 		Deletable:  true,
@@ -51,15 +53,26 @@ func GetDmNewsTable(ctx *context.Context) table.Table {
 			}
 			return value.Value.Value()
 		})
-	formList.AddField("公開日時", "published_at", db.Datetime, form.Datetime)
+	formList.AddField("公開日時", "published_at", db.Datetime, form.Datetime).
+		FieldPostFilterFn(func(value types.PostFieldModel) interface{} {
+			if value.Value.Value() == "" {
+				return nil
+			}
+			return value.Value.Value()
+		})
 	formList.AddField("作成日時", "created_at", db.Datetime, form.Datetime).
 		FieldHide().
-		FieldNowWhenInsert().
-		FieldDisableWhenUpdate()
+		FieldPostFilterFn(func(value types.PostFieldModel) interface{} {
+			if value.Value.Value() == "" {
+				return time.Now().Format("2006-01-02 15:04:05")
+			}
+			return value.Value.Value()
+		})
 	formList.AddField("更新日時", "updated_at", db.Datetime, form.Datetime).
 		FieldHide().
-		FieldNowWhenInsert().
-		FieldNowWhenUpdate()
+		FieldPostFilterFn(func(value types.PostFieldModel) interface{} {
+			return time.Now().Format("2006-01-02 15:04:05")
+		})
 
 	formList.SetTable("dm_news").SetTitle("ニュース").SetDescription("ニュース情報")
 

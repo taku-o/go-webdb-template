@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
@@ -106,7 +108,7 @@ type ShardConfig struct {
 	Name                  string        `mapstructure:"name"`
 	User                  string        `mapstructure:"user"`
 	Password              string        `mapstructure:"password"`
-	DSN                   string        `mapstructure:"dsn"` // SQLite用のDSN
+	DSN                   string        `mapstructure:"dsn"` // 接続文字列（後方互換用）
 	MaxConnections        int           `mapstructure:"max_connections"`
 	MaxIdleConnections    int           `mapstructure:"max_idle_connections"`
 	ConnectionMaxLifetime time.Duration `mapstructure:"connection_max_lifetime"`
@@ -280,6 +282,39 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	// Docker環境用: 環境変数でデータベースDSNを上書き
+	// Master
+	if len(cfg.Database.Groups.Master) > 0 {
+		if writerDSN := os.Getenv("DB_MASTER_WRITER_DSN"); writerDSN != "" {
+			cfg.Database.Groups.Master[0].WriterDSN = writerDSN
+		}
+		if readerDSN := os.Getenv("DB_MASTER_READER_DSN"); readerDSN != "" {
+			cfg.Database.Groups.Master[0].ReaderDSNs = []string{readerDSN}
+		}
+		// GoAdmin用: Host/Portの上書き
+		if host := os.Getenv("DB_MASTER_HOST"); host != "" {
+			cfg.Database.Groups.Master[0].Host = host
+		}
+		if portStr := os.Getenv("DB_MASTER_PORT"); portStr != "" {
+			if port, err := strconv.Atoi(portStr); err != nil {
+				log.Printf("Warning: DB_MASTER_PORT '%s' is not a valid integer, using default value", portStr)
+			} else {
+				cfg.Database.Groups.Master[0].Port = port
+			}
+		}
+	}
+	// Sharding databases
+	for i := range cfg.Database.Groups.Sharding.Databases {
+		envKeyWriter := fmt.Sprintf("DB_SHARD%d_WRITER_DSN", i+1)
+		envKeyReader := fmt.Sprintf("DB_SHARD%d_READER_DSN", i+1)
+		if writerDSN := os.Getenv(envKeyWriter); writerDSN != "" {
+			cfg.Database.Groups.Sharding.Databases[i].WriterDSN = writerDSN
+		}
+		if readerDSN := os.Getenv(envKeyReader); readerDSN != "" {
+			cfg.Database.Groups.Sharding.Databases[i].ReaderDSNs = []string{readerDSN}
+		}
+	}
+
 	// 環境変数でパスワードを上書き（セキュリティ向上）
 	for i := range cfg.Database.Shards {
 		shard := &cfg.Database.Shards[i]
@@ -315,7 +350,7 @@ func Load() (*Config, error) {
 // GetDSN はPostgreSQL/MySQL用のDSN文字列を生成する
 func (s *ShardConfig) GetDSN() string {
 	if s.DSN != "" {
-		// SQLiteの場合はそのまま返す
+		// DSNが直接指定されている場合はそのまま返す
 		return s.DSN
 	}
 

@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/repository"
 	"github.com/taku-o/go-webdb-template/internal/service"
 	"github.com/taku-o/go-webdb-template/internal/service/email"
+	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
@@ -26,12 +28,12 @@ func setupEmailE2EServer(t *testing.T) *httptest.Server {
 		testutil.CleanupTestGroupManager(groupManager)
 	})
 
-	// Initialize layers (using GORM repositories)
-	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
+	// Initialize layers
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
 	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 
@@ -59,10 +61,15 @@ func TestEmailE2E_SendWelcomeEmail(t *testing.T) {
 	server := setupEmailE2EServer(t)
 	defer server.Close()
 
+	// ユニークなメールアドレスを生成
+	uniqueID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueEmail := fmt.Sprintf("e2e-email-%s@example.com", uniqueID)
+
 	// Step 1: ユーザーを作成
 	createUserReq := map[string]string{
 		"name":  "E2E Email Test User",
-		"email": "e2e-email@example.com",
+		"email": uniqueEmail,
 	}
 	userBody, _ := json.Marshal(createUserReq)
 
@@ -74,6 +81,12 @@ func TestEmailE2E_SendWelcomeEmail(t *testing.T) {
 	var createdUser map[string]interface{}
 	err = json.NewDecoder(userResp.Body).Decode(&createdUser)
 	require.NoError(t, err)
+
+	// クリーンアップ: 作成したユーザーを削除
+	createdUserID := createdUser["id"].(string)
+	t.Cleanup(func() {
+		_, _ = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%s", createdUserID), nil)
+	})
 
 	// Step 2: ウェルカムメールを送信
 	emailReq := map[string]interface{}{
@@ -180,11 +193,19 @@ func TestEmailE2E_FullWorkflow(t *testing.T) {
 	server := setupEmailE2EServer(t)
 	defer server.Close()
 
+	// ユニークなメールアドレスを生成
+	uniqueID1, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueID2, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	uniqueID3, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
 	// Step 1: 複数のユーザーを作成
 	users := []map[string]string{
-		{"name": "User One", "email": "user1@example.com"},
-		{"name": "User Two", "email": "user2@example.com"},
-		{"name": "User Three", "email": "user3@example.com"},
+		{"name": "User One", "email": fmt.Sprintf("user1-%s@example.com", uniqueID1)},
+		{"name": "User Two", "email": fmt.Sprintf("user2-%s@example.com", uniqueID2)},
+		{"name": "User Three", "email": fmt.Sprintf("user3-%s@example.com", uniqueID3)},
 	}
 
 	var createdUsers []map[string]interface{}
@@ -201,6 +222,14 @@ func TestEmailE2E_FullWorkflow(t *testing.T) {
 
 		createdUsers = append(createdUsers, created)
 	}
+
+	// クリーンアップ: 作成したユーザーを削除
+	t.Cleanup(func() {
+		for _, user := range createdUsers {
+			userID := user["id"].(string)
+			_, _ = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%s", userID), nil)
+		}
+	})
 
 	// Step 2: 全ユーザーにウェルカムメールを送信
 	var emails []string

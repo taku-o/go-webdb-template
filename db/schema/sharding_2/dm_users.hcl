@@ -1,12 +1,10 @@
 // dm_users テーブル（sharding_db_2.db用: dm_users_008 〜 dm_users_015）
 
 table "dm_users_008" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -18,11 +16,11 @@ table "dm_users_008" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -34,12 +32,10 @@ table "dm_users_008" {
 }
 
 table "dm_users_009" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -51,11 +47,11 @@ table "dm_users_009" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -67,12 +63,10 @@ table "dm_users_009" {
 }
 
 table "dm_users_010" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -84,11 +78,11 @@ table "dm_users_010" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -100,12 +94,10 @@ table "dm_users_010" {
 }
 
 table "dm_users_011" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -117,11 +109,11 @@ table "dm_users_011" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -133,12 +125,10 @@ table "dm_users_011" {
 }
 
 table "dm_users_012" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -150,11 +140,11 @@ table "dm_users_012" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -166,12 +156,10 @@ table "dm_users_012" {
 }
 
 table "dm_users_013" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -183,11 +171,11 @@ table "dm_users_013" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -199,12 +187,10 @@ table "dm_users_013" {
 }
 
 table "dm_users_014" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -216,11 +202,11 @@ table "dm_users_014" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]
@@ -232,12 +218,10 @@ table "dm_users_014" {
 }
 
 table "dm_users_015" {
-  schema = schema.main
+  schema = schema.public
   column "id" {
-    null           = false
-    type           = bigint
-    unsigned       = true
-    auto_increment = false
+    null = false
+    type = varchar(32)
   }
   column "name" {
     null = false
@@ -249,11 +233,11 @@ table "dm_users_015" {
   }
   column "created_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   column "updated_at" {
     null = false
-    type = datetime
+    type = timestamp
   }
   primary_key {
     columns = [column.id]

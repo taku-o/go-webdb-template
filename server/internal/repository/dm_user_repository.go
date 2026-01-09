@@ -2,13 +2,14 @@ package repository
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/taku-o/go-webdb-template/internal/db"
 	"github.com/taku-o/go-webdb-template/internal/model"
 	"github.com/taku-o/go-webdb-template/internal/util/idgen"
+	"gorm.io/gorm"
 )
 
 // DmUserRepository はユーザーのデータアクセスを担当
@@ -33,13 +34,10 @@ func (r *DmUserRepository) Create(ctx context.Context, req *model.CreateDmUserRe
 		return nil, fmt.Errorf("failed to generate ID: %w", err)
 	}
 
-	now := time.Now()
 	user := &model.DmUser{
-		ID:        id,
-		Name:      req.Name,
-		Email:     req.Email,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:    id,
+		Name:  req.Name,
+		Email: req.Email,
 	}
 
 	// テーブル名の生成
@@ -54,18 +52,10 @@ func (r *DmUserRepository) Create(ctx context.Context, req *model.CreateDmUserRe
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// sql.DBを取得
-	sqlDB, err := conn.DB.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	query := fmt.Sprintf(`
-		INSERT INTO %s (id, name, email, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-	`, tableName)
-
-	_, err = sqlDB.ExecContext(ctx, query, user.ID, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
+	// リトライ機能付きでGORM APIで作成（動的テーブル名を使用）
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).Table(tableName).Create(user).Error
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -87,30 +77,15 @@ func (r *DmUserRepository) GetByID(ctx context.Context, id string) (*model.DmUse
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// sql.DBを取得
-	sqlDB, err := conn.DB.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	query := fmt.Sprintf(`
-		SELECT id, name, email, created_at, updated_at
-		FROM %s
-		WHERE id = ?
-	`, tableName)
-
 	var user model.DmUser
-	err = sqlDB.QueryRowContext(ctx, query, id).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Email,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("user not found: %s", id)
-	}
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		return conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).First(&user).Error
+	})
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("user not found: %s", id)
+		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
@@ -130,39 +105,22 @@ func (r *DmUserRepository) List(ctx context.Context, limit, offset int) ([]*mode
 			return nil, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
 		}
 
-		sqlDB, err := conn.DB.DB()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get sql.DB for table %d: %w", tableNum, err)
-		}
-
 		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
 
-		query := fmt.Sprintf(`
-			SELECT id, name, email, created_at, updated_at
-			FROM %s
-			ORDER BY id
-			LIMIT ? OFFSET ?
-		`, tableName)
-
-		rows, err := sqlDB.QueryContext(ctx, query, limit, offset)
+		var tableUsers []*model.DmUser
+		// リトライ機能付きでクエリ実行
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).
+				Table(tableName).
+				Order("id").
+				Limit(limit).
+				Offset(offset).
+				Find(&tableUsers).Error
+		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to query table %s: %w", tableName, err)
 		}
-
-		for rows.Next() {
-			var user model.DmUser
-			if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
-				rows.Close()
-				return nil, fmt.Errorf("failed to scan user: %w", err)
-			}
-			users = append(users, &user)
-		}
-
-		if err := rows.Err(); err != nil {
-			rows.Close()
-			return nil, fmt.Errorf("rows error: %w", err)
-		}
-		rows.Close()
+		users = append(users, tableUsers...)
 	}
 
 	return users, nil
@@ -182,42 +140,28 @@ func (r *DmUserRepository) Update(ctx context.Context, id string, req *model.Upd
 		return nil, fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// sql.DBを取得
-	sqlDB, err := conn.DB.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	// 更新するフィールドを動的に構築
-	query := fmt.Sprintf("UPDATE %s SET updated_at = ?", tableName)
-	args := []interface{}{time.Now()}
-
+	updates := make(map[string]interface{})
 	if req.Name != "" {
-		query += ", name = ?"
-		args = append(args, req.Name)
+		updates["name"] = req.Name
 	}
 	if req.Email != "" {
-		query += ", email = ?"
-		args = append(args, req.Email)
+		updates["email"] = req.Email
 	}
+	updates["updated_at"] = time.Now()
 
-	query += " WHERE id = ?"
-	args = append(args, id)
-
-	result, err := sqlDB.ExecContext(ctx, query, args...)
+	var result *gorm.DB
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		result = conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(updates)
+		return result.Error
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get rows affected: %w", err)
-	}
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return nil, fmt.Errorf("user not found: %s", id)
 	}
 
-	// 更新後のユーザーを取得
 	return r.GetByID(ctx, id)
 }
 
@@ -235,23 +179,16 @@ func (r *DmUserRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// sql.DBを取得
-	sqlDB, err := conn.DB.DB()
-	if err != nil {
-		return fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	query := fmt.Sprintf("DELETE FROM %s WHERE id = ?", tableName)
-	result, err := sqlDB.ExecContext(ctx, query, id)
+	var result *gorm.DB
+	// リトライ機能付きでクエリ実行
+	err = db.ExecuteWithRetry(func() error {
+		result = conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Delete(&model.DmUser{})
+		return result.Error
+	})
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-	if rowsAffected == 0 {
+	if result.RowsAffected == 0 {
 		return fmt.Errorf("user not found: %s", id)
 	}
 

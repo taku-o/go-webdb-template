@@ -199,7 +199,7 @@ func generateDmNews(groupManager *db.GroupManager, totalCount int) error {
 	// バッチでデータ生成
 	var dmNews []*model.DmNews
 	for i := 0; i < totalCount; i++ {
-		authorID := gofakeit.Int64()
+		authorID := int64(gofakeit.Int32()) & 0x7FFFFFFF
 		publishedAt := gofakeit.Date()
 
 		n := &model.DmNews{
