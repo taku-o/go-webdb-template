@@ -2,13 +2,34 @@ services:
   admin:
     build:
       context: ./server
-      dockerfile: Dockerfile.admin.develop
+      dockerfile: Dockerfile.admin
     container_name: admin-develop
     ports:
       - "8081:8081"
     environment:
       - APP_ENV=develop
       - REDIS_JOBQUEUE_ADDR=redis:6379
+      # Database DSNs for Docker environment
+      - DB_MASTER_HOST=postgres-master
+      - DB_MASTER_PORT=5432
+      - DB_MASTER_WRITER_DSN=postgres://webdb:webdb@postgres-master:5432/webdb_master?sslmode=disable
+      - DB_MASTER_READER_DSN=postgres://webdb:webdb@postgres-master:5432/webdb_master?sslmode=disable
+      - DB_SHARD1_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-1:5432/webdb_sharding_1?sslmode=disable
+      - DB_SHARD1_READER_DSN=postgres://webdb:webdb@postgres-sharding-1:5432/webdb_sharding_1?sslmode=disable
+      - DB_SHARD2_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-1:5432/webdb_sharding_1?sslmode=disable
+      - DB_SHARD2_READER_DSN=postgres://webdb:webdb@postgres-sharding-1:5432/webdb_sharding_1?sslmode=disable
+      - DB_SHARD3_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-2:5432/webdb_sharding_2?sslmode=disable
+      - DB_SHARD3_READER_DSN=postgres://webdb:webdb@postgres-sharding-2:5432/webdb_sharding_2?sslmode=disable
+      - DB_SHARD4_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-2:5432/webdb_sharding_2?sslmode=disable
+      - DB_SHARD4_READER_DSN=postgres://webdb:webdb@postgres-sharding-2:5432/webdb_sharding_2?sslmode=disable
+      - DB_SHARD5_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-3:5432/webdb_sharding_3?sslmode=disable
+      - DB_SHARD5_READER_DSN=postgres://webdb:webdb@postgres-sharding-3:5432/webdb_sharding_3?sslmode=disable
+      - DB_SHARD6_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-3:5432/webdb_sharding_3?sslmode=disable
+      - DB_SHARD6_READER_DSN=postgres://webdb:webdb@postgres-sharding-3:5432/webdb_sharding_3?sslmode=disable
+      - DB_SHARD7_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-4:5432/webdb_sharding_4?sslmode=disable
+      - DB_SHARD7_READER_DSN=postgres://webdb:webdb@postgres-sharding-4:5432/webdb_sharding_4?sslmode=disable
+      - DB_SHARD8_WRITER_DSN=postgres://webdb:webdb@postgres-sharding-4:5432/webdb_sharding_4?sslmode=disable
+      - DB_SHARD8_READER_DSN=postgres://webdb:webdb@postgres-sharding-4:5432/webdb_sharding_4?sslmode=disable
     volumes:
       - ./config/develop:/app/config/develop:ro
       - ./server/data:/app/server/data

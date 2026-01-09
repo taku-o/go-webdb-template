@@ -2,7 +2,9 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
@@ -278,6 +280,39 @@ func Load() (*Config, error) {
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	// Docker環境用: 環境変数でデータベースDSNを上書き
+	// Master
+	if len(cfg.Database.Groups.Master) > 0 {
+		if writerDSN := os.Getenv("DB_MASTER_WRITER_DSN"); writerDSN != "" {
+			cfg.Database.Groups.Master[0].WriterDSN = writerDSN
+		}
+		if readerDSN := os.Getenv("DB_MASTER_READER_DSN"); readerDSN != "" {
+			cfg.Database.Groups.Master[0].ReaderDSNs = []string{readerDSN}
+		}
+		// GoAdmin用: Host/Portの上書き
+		if host := os.Getenv("DB_MASTER_HOST"); host != "" {
+			cfg.Database.Groups.Master[0].Host = host
+		}
+		if portStr := os.Getenv("DB_MASTER_PORT"); portStr != "" {
+			if port, err := strconv.Atoi(portStr); err != nil {
+				log.Printf("Warning: DB_MASTER_PORT '%s' is not a valid integer, using default value", portStr)
+			} else {
+				cfg.Database.Groups.Master[0].Port = port
+			}
+		}
+	}
+	// Sharding databases
+	for i := range cfg.Database.Groups.Sharding.Databases {
+		envKeyWriter := fmt.Sprintf("DB_SHARD%d_WRITER_DSN", i+1)
+		envKeyReader := fmt.Sprintf("DB_SHARD%d_READER_DSN", i+1)
+		if writerDSN := os.Getenv(envKeyWriter); writerDSN != "" {
+			cfg.Database.Groups.Sharding.Databases[i].WriterDSN = writerDSN
+		}
+		if readerDSN := os.Getenv(envKeyReader); readerDSN != "" {
+			cfg.Database.Groups.Sharding.Databases[i].ReaderDSNs = []string{readerDSN}
+		}
 	}
 
 	// 環境変数でパスワードを上書き（セキュリティ向上）
