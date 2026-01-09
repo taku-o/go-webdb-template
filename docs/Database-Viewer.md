@@ -94,7 +94,15 @@ CloudBeaver初回起動時には、管理者アカウントの設定とドライ
    - **パスワード**: `Admin123`
 4. 「Next」→「Finish」をクリックして設定を終える
 
-#### 2. PostgreSQL接続の設定
+#### 2. SQLiteドライバーの有効化
+
+初期状態ではSQLiteドライバーが無効化されています。以下の手順で有効化してください。
+
+1. 管理者アカウントでログイン
+2. 左上のメニュー（≡）→「Administration」→「Server Configuration」を開く
+3. 「DISABLED DRIVERS」セクションを確認
+4. SQLiteが含まれている場合、SQLiteを選択して削除（有効化）
+5. 「Save」をクリックして設定を保存
 
 設定が終わったら、Web UIから手動でデータベース接続を設定します。
 
@@ -102,14 +110,10 @@ CloudBeaver初回起動時には、管理者アカウントの設定とドライ
 
 1. CloudBeaver Web UI（http://localhost:8978）にアクセス
 2. 「接続を追加」または「New Connection」をクリック
-3. データベースタイプで「PostgreSQL」を選択
+3. データベースタイプで「SQLite」を選択
 4. 接続情報を入力：
    - **接続名**: `master` または `Master Database`
-   - **ホスト**: `postgres-master`（Docker内）または `localhost`
-   - **ポート**: `5432`
-   - **データベース名**: `webdb_master`
-   - **ユーザー名**: `webdb`
-   - **パスワード**: `webdb`
+   - **データベースファイル**: `/data/master.db`
 5. 「接続をテスト」をクリックして接続を確認
 6. 「保存」をクリックして接続設定を保存
 
@@ -117,12 +121,12 @@ CloudBeaver初回起動時には、管理者アカウントの設定とドライ
 
 同様の手順で、以下の4つのシャーディングデータベースに接続を追加します：
 
-| 接続名 | ホスト | ポート | データベース名 |
-|--------|--------|--------|--------------|
-| `sharding_db_1` | `postgres-sharding-1` | 5433 | `webdb_sharding_1` |
-| `sharding_db_2` | `postgres-sharding-2` | 5434 | `webdb_sharding_2` |
-| `sharding_db_3` | `postgres-sharding-3` | 5435 | `webdb_sharding_3` |
-| `sharding_db_4` | `postgres-sharding-4` | 5436 | `webdb_sharding_4` |
+| 接続名 | データベースファイル |
+|--------|---------------------|
+| `sharding_db_1` | `/data/sharding_db_1.db` |
+| `sharding_db_2` | `/data/sharding_db_2.db` |
+| `sharding_db_3` | `/data/sharding_db_3.db` |
+| `sharding_db_4` | `/data/sharding_db_4.db` |
 
 ### 接続設定の保存場所
 
@@ -363,7 +367,7 @@ CloudBeaverの設定ファイルはGitで管理可能です：
 
 - **CloudBeaver**: https://cloudbeaver.io/
 - **Docker**: Docker Composeを使用
-- **データベース**: PostgreSQL
+- **データベース**: SQLite（開発環境）
 
 ### 参考リンク
 

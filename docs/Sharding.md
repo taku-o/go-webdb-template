@@ -119,85 +119,53 @@ database:
   groups:
     master:
       - id: 1
-        driver: postgres
-        host: localhost
-        port: 5432
-        user: webdb
-        password: webdb
-        name: webdb_master
-        max_connections: 25
+        driver: sqlite3
+        dsn: ./data/master.db
+        writer_dsn: ./data/master.db
+        reader_dsns:
+          - ./data/master.db
+        reader_policy: random
+        max_connections: 10
         max_idle_connections: 5
-        connection_max_lifetime: 1h
+        connection_max_lifetime: 300s
 
     sharding:
       databases:
-        # Entry 1,2 → postgres-sharding-1 (port 5433, tables _000-007)
+        # Entry 1,2 → sharding_db_1.db (tables _000-007)
         - id: 1
-          driver: postgres
-          host: localhost
-          port: 5433
-          user: webdb
-          password: webdb
-          name: webdb_sharding_1
+          driver: sqlite3
+          dsn: ./data/sharding_db_1.db
           table_range: [0, 3]
         - id: 2
-          driver: postgres
-          host: localhost
-          port: 5433
-          user: webdb
-          password: webdb
-          name: webdb_sharding_1  # Same host/port/name = shared connection
+          driver: sqlite3
+          dsn: ./data/sharding_db_1.db  # Same DSN = shared connection
           table_range: [4, 7]
-        # Entry 3,4 → postgres-sharding-2 (port 5434, tables _008-015)
+        # Entry 3,4 → sharding_db_2.db (tables _008-015)
         - id: 3
-          driver: postgres
-          host: localhost
-          port: 5434
-          user: webdb
-          password: webdb
-          name: webdb_sharding_2
+          driver: sqlite3
+          dsn: ./data/sharding_db_2.db
           table_range: [8, 11]
         - id: 4
-          driver: postgres
-          host: localhost
-          port: 5434
-          user: webdb
-          password: webdb
-          name: webdb_sharding_2  # Same host/port/name = shared connection
+          driver: sqlite3
+          dsn: ./data/sharding_db_2.db  # Same DSN = shared connection
           table_range: [12, 15]
-        # Entry 5,6 → postgres-sharding-3 (port 5435, tables _016-023)
+        # Entry 5,6 → sharding_db_3.db (tables _016-023)
         - id: 5
-          driver: postgres
-          host: localhost
-          port: 5435
-          user: webdb
-          password: webdb
-          name: webdb_sharding_3
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db
           table_range: [16, 19]
         - id: 6
-          driver: postgres
-          host: localhost
-          port: 5435
-          user: webdb
-          password: webdb
-          name: webdb_sharding_3  # Same host/port/name = shared connection
+          driver: sqlite3
+          dsn: ./data/sharding_db_3.db  # Same DSN = shared connection
           table_range: [20, 23]
-        # Entry 7,8 → postgres-sharding-4 (port 5436, tables _024-031)
+        # Entry 7,8 → sharding_db_4.db (tables _024-031)
         - id: 7
-          driver: postgres
-          host: localhost
-          port: 5436
-          user: webdb
-          password: webdb
-          name: webdb_sharding_4
+          driver: sqlite3
+          dsn: ./data/sharding_db_4.db
           table_range: [24, 27]
         - id: 8
-          driver: postgres
-          host: localhost
-          port: 5436
-          user: webdb
-          password: webdb
-          name: webdb_sharding_4  # Same host/port/name = shared connection
+          driver: sqlite3
+          dsn: ./data/sharding_db_4.db  # Same DSN = shared connection
           table_range: [28, 31]
 
       tables:
@@ -491,11 +459,19 @@ go run cmd/migrate-gen/main.go \
 Apply migrations using the script:
 
 ```bash
-# Start PostgreSQL containers first
-./scripts/start-postgres.sh start
-
 # Apply all migrations
-./scripts/migrate.sh all
+./scripts/migrate.sh
+
+# Or apply manually:
+
+# Master database
+sqlite3 server/data/master.db < db/migrations/master/001_init.sql
+
+# Sharding databases (example for DB 1, tables _000-007)
+for i in {0..7}; do
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/dm_users_$(printf "%03d" $i).sql
+    sqlite3 server/data/sharding_db_1.db < db/migrations/sharding/generated/dm_posts_$(printf "%03d" $i).sql
+done
 ```
 
 ## Connection Management

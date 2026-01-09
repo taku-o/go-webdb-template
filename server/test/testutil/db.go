@@ -2,10 +2,12 @@ package testutil
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	_ "github.com/mattn/go-sqlite3"
 	"gorm.io/gorm"
 
 	"github.com/taku-o/go-webdb-template/internal/auth"
@@ -18,13 +20,6 @@ const TestSecretKey = "test-secret-key-for-jwt-signing"
 
 // TestEnv はテスト用の環境
 const TestEnv = "develop"
-
-// PostgreSQL接続設定（テスト用）
-const (
-	TestDBHost     = "localhost"
-	TestDBUser     = "webdb"
-	TestDBPassword = "webdb"
-)
 
 // GetTestAPIToken はテスト用のAPIトークンを生成
 func GetTestAPIToken() (string, error) {
@@ -51,19 +46,21 @@ func GetTestConfig() *config.Config {
 	}
 }
 
-// SetupTestGroupManager creates a GroupManager with PostgreSQL databases for testing
+// SetupTestGroupManager creates a GroupManager with temporary file-based databases for testing
 // dbCount: number of sharding databases (typically 4)
 // tablesPerDB: number of tables per database (typically 8, total 32 tables)
 func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.GroupManager {
-	// Create master database config (PostgreSQL)
+	// Create temporary directory for test databases
+	tmpDir := t.TempDir()
+
+	// Create master database config
+	masterDBPath := filepath.Join(tmpDir, "test_master.db")
 	masterDB := config.ShardConfig{
 		ID:           1,
-		Driver:       "postgres",
-		Host:         TestDBHost,
-		Port:         5432,
-		User:         TestDBUser,
-		Password:     TestDBPassword,
-		Name:         "webdb_master",
+		Driver:       "sqlite3",
+		DSN:          masterDBPath,
+		WriterDSN:    masterDBPath,
+		ReaderDSNs:   []string{masterDBPath},
 		ReaderPolicy: "random",
 	}
 
@@ -71,6 +68,7 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 	totalTables := dbCount * tablesPerDB
 	shardingDBs := make([]config.ShardConfig, dbCount)
 	for i := 0; i < dbCount; i++ {
+		dbPath := filepath.Join(tmpDir, fmt.Sprintf("test_sharding_%d.db", i+1))
 		startTable := i * tablesPerDB
 		endTable := startTable + tablesPerDB - 1
 		if endTable >= totalTables {
@@ -78,12 +76,10 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 		}
 		shardingDBs[i] = config.ShardConfig{
 			ID:           i + 1,
-			Driver:       "postgres",
-			Host:         TestDBHost,
-			Port:         5433 + i, // 5433, 5434, 5435, 5436
-			User:         TestDBUser,
-			Password:     TestDBPassword,
-			Name:         fmt.Sprintf("webdb_sharding_%d", i+1),
+			Driver:       "sqlite3",
+			DSN:          dbPath,
+			WriterDSN:    dbPath,
+			ReaderDSNs:   []string{dbPath},
 			ReaderPolicy: "random",
 			TableRange:   [2]int{startTable, endTable},
 		}
@@ -134,13 +130,13 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 func InitMasterSchema(t *testing.T, database *gorm.DB) {
 	schema := `
 		CREATE TABLE IF NOT EXISTS dm_news (
-			id SERIAL PRIMARY KEY,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			title TEXT NOT NULL,
 			content TEXT NOT NULL,
 			author_id INTEGER,
-			published_at TIMESTAMP,
-			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+			published_at DATETIME,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);
 	`
 	err := database.Exec(schema).Error
@@ -184,37 +180,44 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 // This simulates the production 8-sharding configuration with connection sharing
 // - 8 sharding entries, each handling 4 tables
 // - 4 actual database files (entries with same DB share connections)
-// - Entries 1,2 -> postgres-sharding-1 (port 5433, tables 0-7)
-// - Entries 3,4 -> postgres-sharding-2 (port 5434, tables 8-15)
-// - Entries 5,6 -> postgres-sharding-3 (port 5435, tables 16-23)
-// - Entries 7,8 -> postgres-sharding-4 (port 5436, tables 24-31)
+// - Entries 1,2 -> sharding_db_1.db (tables 0-7)
+// - Entries 3,4 -> sharding_db_2.db (tables 8-15)
+// - Entries 5,6 -> sharding_db_3.db (tables 16-23)
+// - Entries 7,8 -> sharding_db_4.db (tables 24-31)
 func SetupTestGroupManager8Sharding(t *testing.T) *db.GroupManager {
-	// Create master database config (PostgreSQL)
+	// Create temporary directory for test databases
+	tmpDir := t.TempDir()
+
+	// Create master database config
+	masterDBPath := filepath.Join(tmpDir, "test_master.db")
 	masterDB := config.ShardConfig{
 		ID:           1,
-		Driver:       "postgres",
-		Host:         TestDBHost,
-		Port:         5432,
-		User:         TestDBUser,
-		Password:     TestDBPassword,
-		Name:         "webdb_master",
+		Driver:       "sqlite3",
+		DSN:          masterDBPath,
+		WriterDSN:    masterDBPath,
+		ReaderDSNs:   []string{masterDBPath},
 		ReaderPolicy: "random",
 	}
 
 	// Create 8 sharding entries with connection sharing (4 actual databases)
+	dbPaths := make([]string, 4)
+	for i := 0; i < 4; i++ {
+		dbPaths[i] = filepath.Join(tmpDir, fmt.Sprintf("test_sharding_%d.db", i+1))
+	}
+
 	shardingDBs := []config.ShardConfig{
-		// Entries 1,2 -> postgres-sharding-1 (port 5433)
-		{ID: 1, Driver: "postgres", Host: TestDBHost, Port: 5433, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 3}},
-		{ID: 2, Driver: "postgres", Host: TestDBHost, Port: 5433, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{4, 7}},
-		// Entries 3,4 -> postgres-sharding-2 (port 5434)
-		{ID: 3, Driver: "postgres", Host: TestDBHost, Port: 5434, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 11}},
-		{ID: 4, Driver: "postgres", Host: TestDBHost, Port: 5434, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{12, 15}},
-		// Entries 5,6 -> postgres-sharding-3 (port 5435)
-		{ID: 5, Driver: "postgres", Host: TestDBHost, Port: 5435, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 19}},
-		{ID: 6, Driver: "postgres", Host: TestDBHost, Port: 5435, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{20, 23}},
-		// Entries 7,8 -> postgres-sharding-4 (port 5436)
-		{ID: 7, Driver: "postgres", Host: TestDBHost, Port: 5436, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 27}},
-		{ID: 8, Driver: "postgres", Host: TestDBHost, Port: 5436, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{28, 31}},
+		// Entries 1,2 -> sharding_db_1.db
+		{ID: 1, Driver: "sqlite3", DSN: dbPaths[0], WriterDSN: dbPaths[0], ReaderDSNs: []string{dbPaths[0]}, ReaderPolicy: "random", TableRange: [2]int{0, 3}},
+		{ID: 2, Driver: "sqlite3", DSN: dbPaths[0], WriterDSN: dbPaths[0], ReaderDSNs: []string{dbPaths[0]}, ReaderPolicy: "random", TableRange: [2]int{4, 7}},
+		// Entries 3,4 -> sharding_db_2.db
+		{ID: 3, Driver: "sqlite3", DSN: dbPaths[1], WriterDSN: dbPaths[1], ReaderDSNs: []string{dbPaths[1]}, ReaderPolicy: "random", TableRange: [2]int{8, 11}},
+		{ID: 4, Driver: "sqlite3", DSN: dbPaths[1], WriterDSN: dbPaths[1], ReaderDSNs: []string{dbPaths[1]}, ReaderPolicy: "random", TableRange: [2]int{12, 15}},
+		// Entries 5,6 -> sharding_db_3.db
+		{ID: 5, Driver: "sqlite3", DSN: dbPaths[2], WriterDSN: dbPaths[2], ReaderDSNs: []string{dbPaths[2]}, ReaderPolicy: "random", TableRange: [2]int{16, 19}},
+		{ID: 6, Driver: "sqlite3", DSN: dbPaths[2], WriterDSN: dbPaths[2], ReaderDSNs: []string{dbPaths[2]}, ReaderPolicy: "random", TableRange: [2]int{20, 23}},
+		// Entries 7,8 -> sharding_db_4.db
+		{ID: 7, Driver: "sqlite3", DSN: dbPaths[3], WriterDSN: dbPaths[3], ReaderDSNs: []string{dbPaths[3]}, ReaderPolicy: "random", TableRange: [2]int{24, 27}},
+		{ID: 8, Driver: "sqlite3", DSN: dbPaths[3], WriterDSN: dbPaths[3], ReaderDSNs: []string{dbPaths[3]}, ReaderPolicy: "random", TableRange: [2]int{28, 31}},
 	}
 
 	// Create table configs

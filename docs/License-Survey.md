@@ -30,9 +30,10 @@
 | ライブラリ | バージョン | ライセンス | 商用利用可否 | 注意事項 |
 |-----------|----------|----------|------------|---------|
 | `gorm.io/gorm` | v1.25.12 | MIT | ✅ 可 | 制限なし |
+| `gorm.io/driver/sqlite` | v1.5.6 | MIT | ✅ 可 | 制限なし |
 | `gorm.io/driver/postgres` | v1.5.9 | MIT | ✅ 可 | 制限なし |
 | `gorm.io/driver/mysql` | v1.5.7 | MIT | ✅ 可 | 制限なし |
-| `github.com/lib/pq` | v1.10.9 | MIT | ✅ 可 | PostgreSQLドライバー |
+| `github.com/mattn/go-sqlite3` | v2.0.3+incompatible | MIT | ✅ 可 | SQLiteはパブリックドメイン |
 
 ### 認証・セキュリティ
 

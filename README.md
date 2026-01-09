@@ -6,7 +6,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 
 - **サーバー**: Go言語、レイヤードアーキテクチャ、Database Sharding対応
 - **クライアント**: Next.js 14 (App Router)、TypeScript
-- **データベース**: PostgreSQL/MySQL（全環境）
+- **データベース**: SQLite (開発環境)、PostgreSQL/MySQL (本番想定)
 - **テスト**: Go testing、Jest、Playwright
 
 ## 特徴
@@ -31,7 +31,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 
 - Go 1.21+
 - Node.js 18+
-- Docker（PostgreSQLコンテナ用）
+- SQLite3
 - Atlas CLI（データベースマイグレーション管理用）
   - インストール方法: `brew install ariga/tap/atlas`（macOS）
   - インストール確認: `atlas version`
@@ -55,52 +55,32 @@ npm install
 
 ### 2. データベースのセットアップ
 
-本プロジェクトではPostgreSQLを使用し、[Atlas](https://atlasgo.io/) でマイグレーションを管理しています。
+本プロジェクトでは [Atlas](https://atlasgo.io/) を使用してデータベースマイグレーションを管理しています。
 
-#### PostgreSQLの起動
-
-```bash
-# PostgreSQLコンテナを起動（master + sharding 4台）
-./scripts/start-postgres.sh start
-```
-
-**接続情報**（開発環境）:
-
-| データベース | ホスト | ポート | ユーザー | パスワード | データベース名 |
-|------------|--------|--------|---------|-----------|--------------|
-| Master | localhost | 5432 | webdb | webdb | webdb_master |
-| Sharding 1 | localhost | 5433 | webdb | webdb | webdb_sharding_1 |
-| Sharding 2 | localhost | 5434 | webdb | webdb | webdb_sharding_2 |
-| Sharding 3 | localhost | 5435 | webdb | webdb | webdb_sharding_3 |
-| Sharding 4 | localhost | 5436 | webdb | webdb | webdb_sharding_4 |
-
-#### マイグレーションの適用
+#### マイグレーションスクリプトを使用
 
 ```bash
 # 全データベースにマイグレーションを適用（初期データも含む）
 ./scripts/migrate.sh all
 ```
 
-#### PostgreSQLの停止
+#### 手動でAtlasコマンドを使用
 
 ```bash
-./scripts/start-postgres.sh stop
+mkdir -p server/data
+
+# マスターDBにマイグレーションを適用（初期データも含む）
+atlas migrate apply \
+    --dir file://db/migrations/master \
+    --url "sqlite://server/data/master.db"
+
+# シャーディングDBにマイグレーションを適用
+for i in 1 2 3 4; do
+    atlas migrate apply \
+        --dir file://db/migrations/sharding \
+        --url "sqlite://server/data/sharding_db_${i}.db"
+done
 ```
-
-#### シャーディング構成
-
-本プロジェクトでは**8つの論理シャード**を**4つの物理データベース**に分散配置しています：
-
-| 論理シャードID | テーブル範囲 | 物理データベース |
-|--------------|-------------|----------------|
-| 1 | _000 〜 _003 | webdb_sharding_1 (port 5433) |
-| 2 | _004 〜 _007 | webdb_sharding_1 (port 5433) |
-| 3 | _008 〜 _011 | webdb_sharding_2 (port 5434) |
-| 4 | _012 〜 _015 | webdb_sharding_2 (port 5434) |
-| 5 | _016 〜 _019 | webdb_sharding_3 (port 5435) |
-| 6 | _020 〜 _023 | webdb_sharding_3 (port 5435) |
-| 7 | _024 〜 _027 | webdb_sharding_4 (port 5436) |
-| 8 | _028 〜 _031 | webdb_sharding_4 (port 5436) |
 
 #### スキーマ変更時のマイグレーション生成
 
@@ -109,16 +89,66 @@ npm install
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/master \
     --to file://db/schema/master.hcl \
-    --dev-url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 
 # sharding.hclを変更した後
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/sharding \
     --to file://db/schema/sharding.hcl \
-    --dev-url "postgres://webdb:webdb@localhost:5433/webdb_sharding_1?sslmode=disable"
+    --dev-url "sqlite://file?mode=memory"
 ```
 
 詳細は [docs/Atlas-Operations.md](docs/Atlas-Operations.md) を参照してください。
+
+### PostgreSQL環境（動作確認用）
+
+開発環境でPostgreSQLを使用して遅延接続・自動再接続機能を確認できます。
+
+#### PostgreSQLの起動・停止
+
+```bash
+# PostgreSQLを起動
+./scripts/start-postgres.sh start
+
+# PostgreSQLを停止
+./scripts/start-postgres.sh stop
+```
+
+PostgreSQLは http://localhost:5432 で起動します。
+
+**接続情報**（開発環境）:
+- ホスト: `localhost`
+- ポート: `5432`
+- ユーザー名: `webdb`
+- パスワード: `webdb`
+- データベース: `webdb`
+
+#### 設定ファイルの切り替え
+
+`config/develop/database.yaml`でデータベースドライバを切り替えます：
+
+```yaml
+# PostgreSQL設定
+database:
+  groups:
+    master:
+      - id: 1
+        driver: postgres
+        host: localhost
+        port: 5432
+        user: webdb
+        password: webdb
+        name: webdb
+        max_connections: 25
+        max_idle_connections: 5
+        connection_max_lifetime: 1h
+```
+
+#### SQLite環境との併用
+
+- **開発時（通常）**: SQLite設定を使用（設定不要）
+- **動作確認時**: PostgreSQL設定に切り替えて使用
+- 設定ファイル内でSQLite/PostgreSQLの設定をコメントアウトで切り替え可能
 
 #### 遅延接続・自動再接続機能
 
@@ -127,6 +157,8 @@ atlas migrate diff <migration_name> \
 - **遅延接続**: サーバー起動時にDB接続を行わず、最初のクエリ実行時に接続を確立
 - **自動再接続**: データベースが復旧した際に自動的に再接続
 - **リトライ機能**: 接続エラー時に最大3回、1秒間隔でリトライ
+
+これらの機能はPostgreSQL環境で動作確認できます。
 
 ### 3. サーバー起動
 
@@ -520,28 +552,24 @@ TSV（タブ区切り）形式で、以下の項目を出力します：
 
 ## Sharding戦略
 
-テーブルベースシャーディング（32分割、8論理シャード）を採用しています。
+テーブルベースシャーディング（32分割）を採用しています。
 
 ```
 table_number = id % 32      # 0-31
-table_name = "dm_users_" + sprintf("%03d", table_number)  # dm_users_000 ~ dm_users_031
-logical_shard_id = (table_number / 4) + 1  # 1-8
+table_name = "users_" + sprintf("%03d", table_number)  # users_000 ~ users_031
+db_id = (table_number / 8) + 1  # 1-4
 ```
 
 **データベースグループ**:
-- **Master グループ**: 共有テーブル（dm_news）を格納（PostgreSQL、port 5432）
-- **Sharding グループ**: 32分割されたテーブル（dm_users_000〜031, dm_posts_000〜031）を8論理シャード→4物理DBに分散
+- **Master グループ**: 共有テーブル（news）を格納
+- **Sharding グループ**: 32分割されたテーブル（users_000〜031, posts_000〜031）を4つのDBに分散
 
-| 論理シャード | テーブル範囲 | 物理DB（PostgreSQL） |
-|------------|------------|---------------------|
-| 1 | _000 〜 _003 | webdb_sharding_1 (port 5433) |
-| 2 | _004 〜 _007 | webdb_sharding_1 (port 5433) |
-| 3 | _008 〜 _011 | webdb_sharding_2 (port 5434) |
-| 4 | _012 〜 _015 | webdb_sharding_2 (port 5434) |
-| 5 | _016 〜 _019 | webdb_sharding_3 (port 5435) |
-| 6 | _020 〜 _023 | webdb_sharding_3 (port 5435) |
-| 7 | _024 〜 _027 | webdb_sharding_4 (port 5436) |
-| 8 | _028 〜 _031 | webdb_sharding_4 (port 5436) |
+| DB | テーブル範囲 |
+|----|------------|
+| DB1 | _000 〜 _007 |
+| DB2 | _008 〜 _015 |
+| DB3 | _016 〜 _023 |
+| DB4 | _024 〜 _031 |
 
 詳細は [Sharding.md](docs/Sharding.md) を参照してください。
 
@@ -617,6 +645,7 @@ database:
 ### 主要な依存パッケージ
 
 - `gorm.io/gorm` v1.25.12
+- `gorm.io/driver/sqlite`
 - `gorm.io/driver/postgres`
 - `gorm.io/plugin/dbresolver` (Writer/Reader分離)
 - `gorm.io/sharding` (将来使用予定)

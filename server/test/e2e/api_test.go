@@ -16,7 +16,6 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/api/router"
 	"github.com/taku-o/go-webdb-template/internal/repository"
 	"github.com/taku-o/go-webdb-template/internal/service"
-	"github.com/taku-o/go-webdb-template/internal/util/idgen"
 	"github.com/taku-o/go-webdb-template/test/testutil"
 )
 
@@ -53,12 +52,12 @@ func setupTestServer(t *testing.T) *httptest.Server {
 		testutil.CleanupTestGroupManager(groupManager)
 	})
 
-	// Initialize layers
-	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	// Initialize layers (using GORM repositories)
+	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
 	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	dmPostRepo := repository.NewDmPostRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 
@@ -76,15 +75,10 @@ func TestDmUserAPI_CreateAndRetrieve(t *testing.T) {
 	server := setupTestServer(t)
 	defer server.Close()
 
-	// ユニークなメールアドレスを生成
-	uniqueID, err := idgen.GenerateUUIDv7()
-	require.NoError(t, err)
-	uniqueEmail := fmt.Sprintf("e2e-%s@example.com", uniqueID)
-
 	// Create dm_user
 	createReq := map[string]string{
 		"name":  "E2E Test User",
-		"email": uniqueEmail,
+		"email": "e2e@example.com",
 	}
 	body, _ := json.Marshal(createReq)
 
@@ -97,16 +91,11 @@ func TestDmUserAPI_CreateAndRetrieve(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&dmUser)
 	require.NoError(t, err)
 	assert.Equal(t, "E2E Test User", dmUser["name"])
-	assert.Equal(t, uniqueEmail, dmUser["email"])
+	assert.Equal(t, "e2e@example.com", dmUser["email"])
 
 	// IDはUUIDv7形式のstring (32文字)
 	dmUserID := dmUser["id"].(string)
 	assert.Len(t, dmUserID, 32, "ID should be 32 characters (UUIDv7 format)")
-
-	// クリーンアップ: 作成したユーザーを削除
-	t.Cleanup(func() {
-		_, _ = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), nil)
-	})
 
 	// Retrieve dm_user
 	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), nil)
@@ -127,23 +116,17 @@ func TestDmUserAPI_CreateAndRetrieve(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&retrieved)
 	require.NoError(t, err)
 	assert.Equal(t, "E2E Test User", retrieved["name"])
-	assert.Equal(t, uniqueEmail, retrieved["email"])
+	assert.Equal(t, "e2e@example.com", retrieved["email"])
 }
 
 func TestDmUserAPI_UpdateAndDelete(t *testing.T) {
 	server := setupTestServer(t)
 	defer server.Close()
 
-	// ユニークなメールアドレスを生成
-	uniqueID, err := idgen.GenerateUUIDv7()
-	require.NoError(t, err)
-	originalEmail := fmt.Sprintf("original-%s@example.com", uniqueID)
-	updatedEmail := fmt.Sprintf("updated-%s@example.com", uniqueID)
-
 	// Create dm_user
 	createReq := map[string]string{
 		"name":  "Original Name",
-		"email": originalEmail,
+		"email": "original@example.com",
 	}
 	body, _ := json.Marshal(createReq)
 	resp, err := doRequestWithAuth("POST", server.URL+"/api/dm-users", body)
@@ -157,7 +140,7 @@ func TestDmUserAPI_UpdateAndDelete(t *testing.T) {
 	// Update dm_user
 	updateReq := map[string]string{
 		"name":  "Updated Name",
-		"email": updatedEmail,
+		"email": "updated@example.com",
 	}
 	body, _ = json.Marshal(updateReq)
 	resp, err = doRequestWithAuth("PUT", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), body)
@@ -186,15 +169,10 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 	server := setupTestServer(t)
 	defer server.Close()
 
-	// ユニークなメールアドレスを生成
-	uniqueID, err := idgen.GenerateUUIDv7()
-	require.NoError(t, err)
-	uniqueEmail := fmt.Sprintf("posttest-%s@example.com", uniqueID)
-
 	// Create dm_user first
 	dmUserReq := map[string]string{
 		"name":  "Post Test User",
-		"email": uniqueEmail,
+		"email": "posttest@example.com",
 	}
 	body, _ := json.Marshal(dmUserReq)
 	resp, err := doRequestWithAuth("POST", server.URL+"/api/dm-users", body)
@@ -204,11 +182,6 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 	var dmUser map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&dmUser)
 	dmUserID := dmUser["id"].(string)
-
-	// クリーンアップ: 作成したユーザーを削除（ポストより後に削除）
-	t.Cleanup(func() {
-		_, _ = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-users/%s", dmUserID), nil)
-	})
 
 	// Create dm_post
 	dmPostReq := map[string]interface{}{
@@ -226,11 +199,6 @@ func TestDmPostAPI_CompleteFlow(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&dmPost)
 	dmPostID := dmPost["id"].(string)
 	assert.Equal(t, "Test Post", dmPost["title"])
-
-	// クリーンアップ: 作成したポストを削除（ユーザーより先に削除）
-	t.Cleanup(func() {
-		_, _ = doRequestWithAuth("DELETE", server.URL+fmt.Sprintf("/api/dm-posts/%s?user_id=%s", dmPostID, dmUserID), nil)
-	})
 
 	// Get dm_post
 	resp, err = doRequestWithAuth("GET", server.URL+fmt.Sprintf("/api/dm-posts/%s?user_id=%s", dmPostID, dmUserID), nil)

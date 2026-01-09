@@ -48,19 +48,34 @@ package repository_test
 
 import (
     "testing"
+    "database/sql"
+    "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/require"
-    "github.com/taku-o/go-webdb-template/test/testutil"
+    _ "github.com/mattn/go-sqlite3"
 )
 
-func setupTestDB(t *testing.T) *db.GroupManager {
-    // PostgreSQLテスト用のGroupManagerをセットアップ
-    manager := testutil.SetupTestGroupManager(t, 4, 8)
-    return manager
+func setupTestDB(t *testing.T) *sql.DB {
+    db, err := sql.Open("sqlite3", ":memory:")
+    require.NoError(t, err)
+
+    // Create schema
+    _, err = db.Exec(`
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `)
+    require.NoError(t, err)
+
+    return db
 }
 
 func TestUserRepository_Create(t *testing.T) {
-    manager := setupTestDB(t)
-    defer testutil.CleanupTestGroupManager(manager)
+    db := setupTestDB(t)
+    defer db.Close()
 
     repo := repository.NewUserRepository(nil)
 
@@ -167,9 +182,22 @@ import (
 )
 
 func TestUserCRUDFlow(t *testing.T) {
-    // Setup test database with PostgreSQL sharding
-    manager := testutil.SetupTestGroupManager(t, 4, 8)
-    defer testutil.CleanupTestGroupManager(manager)
+    // Setup test database with sharding
+    cfg := &config.Config{
+        Database: config.DatabaseConfig{
+            Shards: []config.ShardConfig{
+                {ID: 1, Driver: "sqlite3", Host: ":memory:"},
+                {ID: 2, Driver: "sqlite3", Host: ":memory:"},
+            },
+        },
+    }
+
+    dbManager, err := db.NewManager(cfg)
+    require.NoError(t, err)
+    defer dbManager.CloseAll()
+
+    // Initialize schema on all shards
+    // ... (schema setup)
 
     repo := repository.NewUserRepository(dbManager)
     service := service.NewUserService(repo, dbManager)
@@ -323,49 +351,39 @@ Shared test utilities and helpers.
 ```go
 package testutil
 
-// SetupTestGroupManager creates a GroupManager with PostgreSQL databases for testing
-// dbCount: number of sharding databases (typically 4)
-// tablesPerDB: number of tables per database (typically 8, total 32 tables)
-func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.GroupManager {
-    // PostgreSQL connection settings
-    masterDB := config.ShardConfig{
-        ID:       1,
-        Driver:   "postgres",
-        Host:     "localhost",
-        Port:     5432,
-        User:     "webdb",
-        Password: "webdb",
-        Name:     "webdb_master",
-    }
-
-    // Create sharding databases config (8 logical shards, 4 physical DBs)
-    shardingDBs := make([]config.ShardConfig, dbCount*2)
-    for i := 0; i < len(shardingDBs); i++ {
-        dbIndex := i / 2
-        shardingDBs[i] = config.ShardConfig{
-            ID:       i + 1,
-            Driver:   "postgres",
-            Host:     "localhost",
-            Port:     5433 + dbIndex,
-            User:     "webdb",
-            Password: "webdb",
-            Name:     fmt.Sprintf("webdb_sharding_%d", dbIndex+1),
-            TableRange: [2]int{i * 4, (i+1)*4 - 1},
+func SetupTestShards(t *testing.T, shardCount int) *db.Manager {
+    shards := make([]config.ShardConfig, shardCount)
+    for i := 0; i < shardCount; i++ {
+        shards[i] = config.ShardConfig{
+            ID:     i + 1,
+            Driver: "sqlite3",
+            Host:   ":memory:",
         }
     }
 
     cfg := &config.Config{
-        Database: config.DatabaseConfig{
-            Groups: config.DatabaseGroupsConfig{
-                Master:   []config.ShardConfig{masterDB},
-                Sharding: config.ShardingGroupConfig{Databases: shardingDBs},
-            },
-        },
+        Database: config.DatabaseConfig{Shards: shards},
     }
 
-    manager, err := db.NewGroupManager(cfg)
+    manager, err := db.NewManager(cfg)
     require.NoError(t, err)
+
+    // Initialize schema on all shards
+    for i := 1; i <= shardCount; i++ {
+        conn, _ := manager.GetConnection(i)
+        InitSchema(t, conn.DB())
+    }
+
     return manager
+}
+
+func InitSchema(t *testing.T, db *sql.DB) {
+    schema := `
+        CREATE TABLE IF NOT EXISTS users (...);
+        CREATE TABLE IF NOT EXISTS posts (...);
+    `
+    _, err := db.Exec(schema)
+    require.NoError(t, err)
 }
 ```
 

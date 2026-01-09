@@ -26,12 +26,12 @@ func setupJobqueueE2EServer(t *testing.T, withJobqueueHandler bool) *httptest.Se
 		testutil.CleanupTestGroupManager(groupManager)
 	})
 
-	// Initialize layers
-	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	// Initialize layers (using GORM repositories)
+	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
 	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	dmPostRepo := repository.NewDmPostRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 

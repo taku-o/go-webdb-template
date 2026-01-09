@@ -174,9 +174,9 @@ This project implements a database-sharded web application using Go for the back
 
 The application uses environment-based configuration with YAML files:
 
-- `config/develop/`: Development environment (PostgreSQL/MySQL)
-- `config/staging/`: Staging environment (PostgreSQL/MySQL)
-- `config/production/`: Production environment (PostgreSQL/MySQL)
+- `config/develop.yaml`: Development environment (SQLite)
+- `config/staging.yaml`: Staging environment (PostgreSQL)
+- `config/production.yaml`: Production environment (PostgreSQL/MySQL)
 
 Environment selection is controlled by the `APP_ENV` environment variable:
 
@@ -431,9 +431,11 @@ APP_ENV=develop go run cmd/admin/main.go
 ### Server Dependencies
 - `github.com/spf13/viper`: Configuration management
 - `github.com/gorilla/mux`: HTTP routing
-- `github.com/lib/pq`: PostgreSQL driver
+- `github.com/mattn/go-sqlite3`: SQLite driver (development)
+- `github.com/lib/pq`: PostgreSQL driver (production)
 - `github.com/rs/cors`: CORS middleware
 - `gorm.io/gorm`: GORM ORM library (v1.25.12)
+- `gorm.io/driver/sqlite`: GORM SQLite driver
 - `gorm.io/driver/postgres`: GORM PostgreSQL driver
 - `gorm.io/plugin/dbresolver`: GORM Writer/Reader分離プラグイン
 - `gorm.io/sharding`: GORM sharding plugin (将来使用予定)

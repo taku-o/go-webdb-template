@@ -1,16 +1,13 @@
 {
 	"folders": {},
 	"connections": {
-		"postgres-jdbc-19b9e334f84-62af628b2a317af7": {
-			"provider": "postgresql",
-			"driver": "postgres-jdbc",
-			"name": "postgres-master",
-			"save-password": true,
+		"sqlite_jdbc-19b5b71bbf6-e88aa88183cea96": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Master Database",
 			"configuration": {
-				"host": "postgres-master",
-				"port": "5432",
-				"database": "webdb_master",
-				"url": "jdbc:postgresql://postgres-master:5432/webdb_master",
+				"database": "/data/master.db",
+				"url": "jdbc:sqlite:/data/master.db",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,
@@ -20,16 +17,13 @@
 				}
 			}
 		},
-		"postgres-jdbc-19b9e33cdb5-b8afa86e7c6ee7": {
-			"provider": "postgresql",
-			"driver": "postgres-jdbc",
-			"name": "postgres-sharding-1",
-			"save-password": true,
+		"sqlite_jdbc-19b5b728c78-2677f59706bc31a6": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 1",
 			"configuration": {
-				"host": "postgres-sharding-1",
-				"port": "5432",
-				"database": "webdb_sharding_1",
-				"url": "jdbc:postgresql://postgres-sharding-1:5432/webdb_sharding_1",
+				"database": "/data/sharding_db_1.db",
+				"url": "jdbc:sqlite:/data/sharding_db_1.db",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,
@@ -39,16 +33,13 @@
 				}
 			}
 		},
-		"postgres-jdbc-19b9e34520d-353eaab903548aad": {
-			"provider": "postgresql",
-			"driver": "postgres-jdbc",
-			"name": "postgres-sharding-2",
-			"save-password": true,
+		"sqlite_jdbc-19b5b72e985-f1559709eadbeed": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 2",
 			"configuration": {
-				"host": "postgres-sharding-2",
-				"port": "5432",
-				"database": "webdb_sharding_2",
-				"url": "jdbc:postgresql://postgres-sharding-2:5432/webdb_sharding_2",
+				"database": "/data/sharding_db_2.db",
+				"url": "jdbc:sqlite:/data/sharding_db_2.db",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,
@@ -58,16 +49,13 @@
 				}
 			}
 		},
-		"postgres-jdbc-19b9e34cf7e-3e4d4968431484e9": {
-			"provider": "postgresql",
-			"driver": "postgres-jdbc",
-			"name": "postgres-sharding-3",
-			"save-password": true,
+		"sqlite_jdbc-19b5b73314a-98da1885fbe176d": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 3",
 			"configuration": {
-				"host": "postgres-sharding-3",
-				"port": "5432",
-				"database": "webdb_sharding_3",
-				"url": "jdbc:postgresql://postgres-sharding-3:5432/webdb_sharding_3",
+				"database": "/data/sharding_db_3.db",
+				"url": "jdbc:sqlite:/data/sharding_db_3.db",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,
@@ -77,16 +65,13 @@
 				}
 			}
 		},
-		"postgres-jdbc-19b9e3541ba-99f50c9778904d3": {
-			"provider": "postgresql",
-			"driver": "postgres-jdbc",
-			"name": "postgres-sharding-4",
-			"save-password": true,
+		"sqlite_jdbc-19b5b7382c0-3f47909ccf9ad977": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "Sharding DB 4",
 			"configuration": {
-				"host": "postgres-sharding-4",
-				"port": "5432",
-				"database": "webdb_sharding_4",
-				"url": "jdbc:postgresql://postgres-sharding-4:5432/webdb_sharding_4",
+				"database": "/data/sharding_db_4.db",
+				"url": "jdbc:sqlite:/data/sharding_db_4.db",
 				"configurationType": "MANUAL",
 				"type": "dev",
 				"closeIdleConnection": true,

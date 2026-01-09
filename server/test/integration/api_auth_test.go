@@ -25,11 +25,11 @@ func setupAuthTestServer(t *testing.T) *httptest.Server {
 	})
 
 	// Initialize layers (using GORM repositories)
-	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	dmUserRepo := repository.NewDmUserRepositoryGORM(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
 	dmUserHandler := handler.NewDmUserHandler(dmUserService)
 
-	dmPostRepo := repository.NewDmPostRepository(groupManager)
+	dmPostRepo := repository.NewDmPostRepositoryGORM(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
 	dmPostHandler := handler.NewDmPostHandler(dmPostService)
 
