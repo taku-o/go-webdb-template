@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -31,6 +32,25 @@ func GetTestAPIToken() (string, error) {
 	return auth.GeneratePublicAPIKey(TestSecretKey, "v2", TestEnv, time.Now().Unix())
 }
 
+// LoadTestConfig はテスト環境の設定を読み込む
+func LoadTestConfig() (*config.Config, error) {
+	// 既存のAPP_ENVを保存
+	oldEnv := os.Getenv("APP_ENV")
+	defer func() {
+		if oldEnv != "" {
+			os.Setenv("APP_ENV", oldEnv)
+		} else {
+			os.Unsetenv("APP_ENV")
+		}
+	}()
+
+	// テスト環境を設定
+	os.Setenv("APP_ENV", "test")
+
+	// 設定を読み込む
+	return config.Load()
+}
+
 // GetTestConfig returns a test configuration
 func GetTestConfig() *config.Config {
 	return &config.Config{
@@ -52,63 +72,19 @@ func GetTestConfig() *config.Config {
 }
 
 // SetupTestGroupManager creates a GroupManager with PostgreSQL databases for testing
-// dbCount: number of sharding databases (typically 4)
-// tablesPerDB: number of tables per database (typically 8, total 32 tables)
+// dbCount: number of sharding databases (typically 4) - パラメータは互換性のため維持、設定ファイルの値を使用
+// tablesPerDB: number of tables per database (typically 8, total 32 tables) - パラメータは互換性のため維持、設定ファイルの値を使用
 func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.GroupManager {
-	// Create master database config (PostgreSQL)
-	masterDB := config.ShardConfig{
-		ID:           1,
-		Driver:       "postgres",
-		Host:         TestDBHost,
-		Port:         5432,
-		User:         TestDBUser,
-		Password:     TestDBPassword,
-		Name:         "webdb_master",
-		ReaderPolicy: "random",
-	}
+	// 設定ファイルから読み込む
+	cfg, err := LoadTestConfig()
+	require.NoError(t, err)
 
-	// Create sharding databases config
-	totalTables := dbCount * tablesPerDB
-	shardingDBs := make([]config.ShardConfig, dbCount)
-	for i := 0; i < dbCount; i++ {
-		startTable := i * tablesPerDB
-		endTable := startTable + tablesPerDB - 1
-		if endTable >= totalTables {
-			endTable = totalTables - 1
-		}
-		shardingDBs[i] = config.ShardConfig{
-			ID:           i + 1,
-			Driver:       "postgres",
-			Host:         TestDBHost,
-			Port:         5433 + i, // 5433, 5434, 5435, 5436
-			User:         TestDBUser,
-			Password:     TestDBPassword,
-			Name:         fmt.Sprintf("webdb_sharding_%d", i+1),
-			ReaderPolicy: "random",
-			TableRange:   [2]int{startTable, endTable},
-		}
-	}
-
-	// Create table configs
-	tables := []config.ShardingTableConfig{
-		{Name: "dm_users", SuffixCount: totalTables},
-		{Name: "dm_posts", SuffixCount: totalTables},
-	}
-
-	cfg := &config.Config{
-		Database: config.DatabaseConfig{
-			Groups: config.DatabaseGroupsConfig{
-				Master: []config.ShardConfig{masterDB},
-				Sharding: config.ShardingGroupConfig{
-					Databases: shardingDBs,
-					Tables:    tables,
-				},
-			},
-		},
-	}
-
+	// 設定からGroupManagerを作成
 	manager, err := db.NewGroupManager(cfg)
 	require.NoError(t, err)
+
+	// データベースをクリア
+	ClearTestDatabase(t, manager)
 
 	// Initialize master database schema (news table)
 	masterConn, err := manager.GetMasterConnection()
@@ -116,15 +92,20 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 	InitMasterSchema(t, masterConn.DB)
 
 	// Initialize sharding database schemas (users_XXX and posts_XXX tables)
+	// 設定ファイルのテーブル範囲を使用
+	tableRanges := map[int][2]int{
+		1: {0, 7},   // Entries 1,2 -> tables 0-7
+		3: {8, 15},  // Entries 3,4 -> tables 8-15
+		5: {16, 23}, // Entries 5,6 -> tables 16-23
+		7: {24, 31}, // Entries 7,8 -> tables 24-31
+	}
+
 	connections := manager.GetAllShardingConnections()
 	for _, conn := range connections {
-		// Calculate table range for this database
-		startTable := (conn.ShardID - 1) * tablesPerDB
-		endTable := startTable + tablesPerDB - 1
-		if endTable >= totalTables {
-			endTable = totalTables - 1
+		tableRange, ok := tableRanges[conn.ShardID]
+		if ok {
+			InitShardingSchema(t, conn.DB, tableRange[0], tableRange[1])
 		}
-		InitShardingSchema(t, conn.DB, startTable, endTable)
 	}
 
 	return manager
@@ -189,54 +170,16 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 // - Entries 5,6 -> postgres-sharding-3 (port 5435, tables 16-23)
 // - Entries 7,8 -> postgres-sharding-4 (port 5436, tables 24-31)
 func SetupTestGroupManager8Sharding(t *testing.T) *db.GroupManager {
-	// Create master database config (PostgreSQL)
-	masterDB := config.ShardConfig{
-		ID:           1,
-		Driver:       "postgres",
-		Host:         TestDBHost,
-		Port:         5432,
-		User:         TestDBUser,
-		Password:     TestDBPassword,
-		Name:         "webdb_master",
-		ReaderPolicy: "random",
-	}
+	// 設定ファイルから読み込む
+	cfg, err := LoadTestConfig()
+	require.NoError(t, err)
 
-	// Create 8 sharding entries with connection sharing (4 actual databases)
-	shardingDBs := []config.ShardConfig{
-		// Entries 1,2 -> postgres-sharding-1 (port 5433)
-		{ID: 1, Driver: "postgres", Host: TestDBHost, Port: 5433, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{0, 3}},
-		{ID: 2, Driver: "postgres", Host: TestDBHost, Port: 5433, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_1", ReaderPolicy: "random", TableRange: [2]int{4, 7}},
-		// Entries 3,4 -> postgres-sharding-2 (port 5434)
-		{ID: 3, Driver: "postgres", Host: TestDBHost, Port: 5434, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{8, 11}},
-		{ID: 4, Driver: "postgres", Host: TestDBHost, Port: 5434, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_2", ReaderPolicy: "random", TableRange: [2]int{12, 15}},
-		// Entries 5,6 -> postgres-sharding-3 (port 5435)
-		{ID: 5, Driver: "postgres", Host: TestDBHost, Port: 5435, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{16, 19}},
-		{ID: 6, Driver: "postgres", Host: TestDBHost, Port: 5435, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_3", ReaderPolicy: "random", TableRange: [2]int{20, 23}},
-		// Entries 7,8 -> postgres-sharding-4 (port 5436)
-		{ID: 7, Driver: "postgres", Host: TestDBHost, Port: 5436, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{24, 27}},
-		{ID: 8, Driver: "postgres", Host: TestDBHost, Port: 5436, User: TestDBUser, Password: TestDBPassword, Name: "webdb_sharding_4", ReaderPolicy: "random", TableRange: [2]int{28, 31}},
-	}
-
-	// Create table configs
-	tables := []config.ShardingTableConfig{
-		{Name: "dm_users", SuffixCount: 32},
-		{Name: "dm_posts", SuffixCount: 32},
-	}
-
-	cfg := &config.Config{
-		Database: config.DatabaseConfig{
-			Groups: config.DatabaseGroupsConfig{
-				Master: []config.ShardConfig{masterDB},
-				Sharding: config.ShardingGroupConfig{
-					Databases: shardingDBs,
-					Tables:    tables,
-				},
-			},
-		},
-	}
-
+	// 設定からGroupManagerを作成
 	manager, err := db.NewGroupManager(cfg)
 	require.NoError(t, err)
+
+	// データベースをクリア
+	ClearTestDatabase(t, manager)
 
 	// Initialize master database schema (news table)
 	masterConn, err := manager.GetMasterConnection()
@@ -271,5 +214,37 @@ func SetupTestGroupManager8Sharding(t *testing.T) *db.GroupManager {
 func CleanupTestGroupManager(manager *db.GroupManager) {
 	if manager != nil {
 		manager.CloseAll()
+	}
+}
+
+// clearDatabaseTables は指定されたデータベースの全テーブルのデータをクリアする
+func clearDatabaseTables(t *testing.T, database *gorm.DB) {
+	// テーブル一覧を取得
+	var tables []string
+	err := database.Raw(`
+		SELECT tablename
+		FROM pg_tables
+		WHERE schemaname = 'public'
+	`).Scan(&tables).Error
+	require.NoError(t, err)
+
+	// 各テーブルをTRUNCATE
+	for _, tableName := range tables {
+		err := database.Exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", tableName)).Error
+		require.NoError(t, err)
+	}
+}
+
+// ClearTestDatabase はテスト用データベースの全テーブルのデータをクリアする
+func ClearTestDatabase(t *testing.T, manager *db.GroupManager) {
+	// マスターデータベースのクリア
+	masterConn, err := manager.GetMasterConnection()
+	require.NoError(t, err)
+	clearDatabaseTables(t, masterConn.DB)
+
+	// シャーディングデータベースのクリア
+	connections := manager.GetAllShardingConnections()
+	for _, conn := range connections {
+		clearDatabaseTables(t, conn.DB)
 	}
 }

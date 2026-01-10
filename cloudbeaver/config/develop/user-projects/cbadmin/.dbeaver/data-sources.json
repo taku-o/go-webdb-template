@@ -95,6 +95,44 @@
 					"autocommit": true
 				}
 			}
+		},
+		"postgres-jdbc-19ba59d0144-7cd549a8261c359a": {
+			"provider": "postgresql",
+			"driver": "postgres-jdbc",
+			"name": "test-postgres-master",
+			"save-password": true,
+			"configuration": {
+				"host": "postgres-master",
+				"port": "5432",
+				"database": "webdb_master_test",
+				"url": "jdbc:postgresql://postgres-master:5432/webdb_master_test",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"postgres-jdbc-19ba59e3b83-b399d74defdc5db": {
+			"provider": "postgresql",
+			"driver": "postgres-jdbc",
+			"name": "test-postgres-sharding-1",
+			"save-password": true,
+			"configuration": {
+				"host": "postgres-sharding-1",
+				"port": "5432",
+				"database": "webdb_sharding_1_test",
+				"url": "jdbc:postgresql://postgres-sharding-1:5432/webdb_sharding_1_test",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
 		}
 	},
 	"connection-types": {
