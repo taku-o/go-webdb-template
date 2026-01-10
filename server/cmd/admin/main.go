@@ -71,6 +71,13 @@ func main() {
 	// データベース接続を取得
 	conn := db.GetConnection(eng.Services)
 
+	// Health check endpoint (認証不要)
+	app.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}).Methods("GET")
+
 	// 管理者ユーザーの初期化（設定ファイルの認証情報を使用）
 	if cfg.Admin.Auth.Username != "" && cfg.Admin.Auth.Password != "" {
 		if err := adminAuth.UpdateAdminPassword(conn, cfg.Admin.Auth.Username, cfg.Admin.Auth.Password); err != nil {

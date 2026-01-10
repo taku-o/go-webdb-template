@@ -22,9 +22,27 @@ _serena_indexing
 
 /kiro:spec-impl 0050-admin-health
 
+これユーザーでなくても確認できる作業でしょう。
+> ローカル環境での動作確認
+> Docker環境での動作確認
+
+PostgreSQLを起動して。
+それから確認して。
+
+Docker版は確認したけど、こっちの方は確認してないよね？
+データベースに繋がりません、で確認をスルーしたよね？
+> ローカル環境での動作確認
+
 ここまでの修正をcommitしてください。
-その後、https://github.com/taku-o/go-webdb-template/issues/101 に対して
+その後、https://github.com/taku-o/go-webdb-template/issues/103 に対して
 pull requestを作成してください。
+
+**stagingに上がっている** 修正をcommitしてください。
+その後、https://github.com/taku-o/go-webdb-template/issues/103 に対して
+pull requestを作成してください。
+
+
+
 
 /review 102
 
