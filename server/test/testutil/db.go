@@ -22,7 +22,7 @@ import (
 const TestSecretKey = "test-secret-key-for-jwt-signing"
 
 // TestEnv はテスト用の環境
-const TestEnv = "develop"
+const TestEnv = "test"
 
 // PostgreSQL接続設定（テスト用）
 const (
@@ -104,7 +104,15 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 	// Initialize master database schema (news table)
 	masterConn, err := manager.GetMasterConnection()
 	require.NoError(t, err)
-	InitMasterSchema(t, masterConn.DB)
+
+	// データベースドライバーを判定
+	driver := masterConn.Driver
+
+	if driver == "mysql" {
+		InitMySQLMasterSchema(t, masterConn.DB)
+	} else {
+		InitMasterSchema(t, masterConn.DB)
+	}
 
 	// Initialize sharding database schemas (users_XXX and posts_XXX tables)
 	// 設定ファイルのテーブル範囲を使用
@@ -119,7 +127,11 @@ func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.Group
 	for _, conn := range connections {
 		tableRange, ok := tableRanges[conn.ShardID]
 		if ok {
-			InitShardingSchema(t, conn.DB, tableRange[0], tableRange[1])
+			if driver == "mysql" {
+				InitMySQLShardingSchema(t, conn.DB, tableRange[0], tableRange[1])
+			} else {
+				InitShardingSchema(t, conn.DB, tableRange[0], tableRange[1])
+			}
 		}
 	}
 
@@ -165,6 +177,56 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 			CREATE TABLE IF NOT EXISTS dm_posts_%s (
 				id TEXT PRIMARY KEY,
 				user_id TEXT NOT NULL,
+				title TEXT NOT NULL,
+				content TEXT NOT NULL,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			);
+		`, suffix)
+		err = database.Exec(postsSchema).Error
+		require.NoError(t, err)
+	}
+}
+
+
+// InitMySQLMasterSchema はMySQLのマスターデータベーススキーマを初期化する
+func InitMySQLMasterSchema(t *testing.T, database *gorm.DB) {
+	schema := `
+		CREATE TABLE IF NOT EXISTS dm_news (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			title TEXT NOT NULL,
+			content TEXT NOT NULL,
+			author_id INT,
+			published_at TIMESTAMP NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	err := database.Exec(schema).Error
+	require.NoError(t, err)
+}
+
+// InitMySQLShardingSchema はMySQLのシャーディングデータベーススキーマを初期化する
+func InitMySQLShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable int) {
+	for i := startTable; i <= endTable; i++ {
+		suffix := fmt.Sprintf("%03d", i)
+
+		usersSchema := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS dm_users_%s (
+				id VARCHAR(32) PRIMARY KEY,
+				name TEXT NOT NULL,
+				email VARCHAR(191) NOT NULL UNIQUE,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			);
+		`, suffix)
+		err := database.Exec(usersSchema).Error
+		require.NoError(t, err)
+
+		postsSchema := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS dm_posts_%s (
+				id VARCHAR(32) PRIMARY KEY,
+				user_id VARCHAR(32) NOT NULL,
 				title TEXT NOT NULL,
 				content TEXT NOT NULL,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -261,17 +323,58 @@ func clearDatabaseTables(t *testing.T, database *gorm.DB) {
 	}
 }
 
+
+// clearMySQLDatabaseTables はMySQLデータベースの全テーブルのデータをクリアする
+func clearMySQLDatabaseTables(t *testing.T, database *gorm.DB) {
+	// テーブル一覧を取得（atlas_schema_revisionsとVIEWは除外）
+	var tables []string
+	err := database.Raw(`
+		SELECT table_name
+		FROM INFORMATION_SCHEMA.TABLES
+		WHERE table_schema = DATABASE()
+		AND table_name != 'atlas_schema_revisions'
+		AND table_type = 'BASE TABLE'
+	`).Scan(&tables).Error
+	require.NoError(t, err)
+
+	// 外部キー制約を一時的に無効化
+	err = database.Exec("SET FOREIGN_KEY_CHECKS = 0").Error
+	require.NoError(t, err)
+
+	// 各テーブルをTRUNCATE
+	for _, tableName := range tables {
+		err := database.Exec(fmt.Sprintf("TRUNCATE TABLE `%s`", tableName)).Error
+		require.NoError(t, err)
+	}
+
+	// 外部キー制約を再度有効化
+	err = database.Exec("SET FOREIGN_KEY_CHECKS = 1").Error
+	require.NoError(t, err)
+}
+
 // ClearTestDatabase はテスト用データベースの全テーブルのデータをクリアする
 func ClearTestDatabase(t *testing.T, manager *db.GroupManager) {
 	// マスターデータベースのクリア
 	masterConn, err := manager.GetMasterConnection()
 	require.NoError(t, err)
-	clearDatabaseTables(t, masterConn.DB)
+
+	// データベースドライバーを判定
+	driver := masterConn.Driver
+
+	if driver == "mysql" {
+		clearMySQLDatabaseTables(t, masterConn.DB)
+	} else {
+		clearDatabaseTables(t, masterConn.DB)
+	}
 
 	// シャーディングデータベースのクリア
 	connections := manager.GetAllShardingConnections()
 	for _, conn := range connections {
-		clearDatabaseTables(t, conn.DB)
+		if driver == "mysql" {
+			clearMySQLDatabaseTables(t, conn.DB)
+		} else {
+			clearDatabaseTables(t, conn.DB)
+		}
 	}
 }
 

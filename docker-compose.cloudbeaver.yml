@@ -20,7 +20,10 @@ services:
       start_period: 40s
     networks:
       - postgres-network
+      - mysql-network
 
 networks:
   postgres-network:
+    external: true
+  mysql-network:
     external: true

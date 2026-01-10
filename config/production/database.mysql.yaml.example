@@ -1,0 +1,242 @@
+# =============================================================================
+# Production Database Configuration (MySQL)
+# =============================================================================
+# このファイルをdatabase.mysql.yamlにコピーして、実際の値に置き換えてください。
+# 環境変数でパスワードを設定することを推奨します。
+# =============================================================================
+
+database:
+  # 後方互換性のため残す（非推奨）
+  shards:
+    - id: 1
+      driver: mysql
+      host: prod-db-shard1.example.com
+      port: 3306
+      name: app_db_shard1
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD1}  # 環境変数から読み込み
+      writer_dsn: prod_user:${DB_PASSWORD_SHARD1}@tcp(prod-db-shard1-writer.example.com:3306)/app_db_shard1?charset=utf8mb4&parseTime=true&loc=Local
+      reader_dsns:
+        - prod_user:${DB_PASSWORD_SHARD1}@tcp(prod-db-shard1-reader1.example.com:3306)/app_db_shard1?charset=utf8mb4&parseTime=true&loc=Local
+        - prod_user:${DB_PASSWORD_SHARD1}@tcp(prod-db-shard1-reader2.example.com:3306)/app_db_shard1?charset=utf8mb4&parseTime=true&loc=Local
+      reader_policy: round_robin
+      max_connections: 50
+      max_idle_connections: 20
+      connection_max_lifetime: 600s
+    - id: 2
+      driver: mysql
+      host: prod-db-shard2.example.com
+      port: 3306
+      name: app_db_shard2
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD2}  # 環境変数から読み込み
+      writer_dsn: prod_user:${DB_PASSWORD_SHARD2}@tcp(prod-db-shard2-writer.example.com:3306)/app_db_shard2?charset=utf8mb4&parseTime=true&loc=Local
+      reader_dsns:
+        - prod_user:${DB_PASSWORD_SHARD2}@tcp(prod-db-shard2-reader1.example.com:3306)/app_db_shard2?charset=utf8mb4&parseTime=true&loc=Local
+        - prod_user:${DB_PASSWORD_SHARD2}@tcp(prod-db-shard2-reader2.example.com:3306)/app_db_shard2?charset=utf8mb4&parseTime=true&loc=Local
+      reader_policy: round_robin
+      max_connections: 50
+      max_idle_connections: 20
+      connection_max_lifetime: 600s
+    - id: 3
+      driver: mysql
+      host: prod-db-shard3.example.com
+      port: 3306
+      name: app_db_shard3
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD3}  # 環境変数から読み込み
+      writer_dsn: prod_user:${DB_PASSWORD_SHARD3}@tcp(prod-db-shard3-writer.example.com:3306)/app_db_shard3?charset=utf8mb4&parseTime=true&loc=Local
+      reader_dsns:
+        - prod_user:${DB_PASSWORD_SHARD3}@tcp(prod-db-shard3-reader1.example.com:3306)/app_db_shard3?charset=utf8mb4&parseTime=true&loc=Local
+        - prod_user:${DB_PASSWORD_SHARD3}@tcp(prod-db-shard3-reader2.example.com:3306)/app_db_shard3?charset=utf8mb4&parseTime=true&loc=Local
+      reader_policy: round_robin
+      max_connections: 50
+      max_idle_connections: 20
+      connection_max_lifetime: 600s
+    - id: 4
+      driver: mysql
+      host: prod-db-shard4.example.com
+      port: 3306
+      name: app_db_shard4
+      user: prod_user
+      password: ${DB_PASSWORD_SHARD4}  # 環境変数から読み込み
+      writer_dsn: prod_user:${DB_PASSWORD_SHARD4}@tcp(prod-db-shard4-writer.example.com:3306)/app_db_shard4?charset=utf8mb4&parseTime=true&loc=Local
+      reader_dsns:
+        - prod_user:${DB_PASSWORD_SHARD4}@tcp(prod-db-shard4-reader1.example.com:3306)/app_db_shard4?charset=utf8mb4&parseTime=true&loc=Local
+        - prod_user:${DB_PASSWORD_SHARD4}@tcp(prod-db-shard4-reader2.example.com:3306)/app_db_shard4?charset=utf8mb4&parseTime=true&loc=Local
+      reader_policy: round_robin
+      max_connections: 50
+      max_idle_connections: 20
+      connection_max_lifetime: 600s
+
+  # =============================================================================
+  # 新規: データベースグループ
+  # =============================================================================
+  # masterグループ: シャーディング不要なデータ（newsテーブルなど）
+  # shardingグループ: 32分割されたテーブル（users, posts）
+  # =============================================================================
+  groups:
+    # masterグループ: 1つのデータベース、通常のテーブル構造
+    master:
+      - id: 1
+        driver: mysql
+        host: prod-db-master.example.com
+        port: 3306
+        name: app_db_master
+        user: prod_user
+        password: ${DB_PASSWORD_MASTER}  # 環境変数から読み込み
+        writer_dsn: prod_user:${DB_PASSWORD_MASTER}@tcp(prod-db-master-writer.example.com:3306)/app_db_master?charset=utf8mb4&parseTime=true&loc=Local
+        reader_dsns:
+          - prod_user:${DB_PASSWORD_MASTER}@tcp(prod-db-master-reader1.example.com:3306)/app_db_master?charset=utf8mb4&parseTime=true&loc=Local
+          - prod_user:${DB_PASSWORD_MASTER}@tcp(prod-db-master-reader2.example.com:3306)/app_db_master?charset=utf8mb4&parseTime=true&loc=Local
+        reader_policy: round_robin
+        max_connections: 50
+        max_idle_connections: 20
+        connection_max_lifetime: 600s
+
+    # shardingグループ: 8つのシャーディングエントリ、4つのデータベース、32分割されたテーブル
+    sharding:
+      databases:
+        # sharding 1: テーブル _000-003（4テーブル）→ sharding1
+        - id: 1
+          driver: mysql
+          host: prod-db-sharding1.example.com
+          port: 3306
+          name: app_db_sharding1
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING1}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING1}@tcp(prod-db-sharding1-writer.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING1}@tcp(prod-db-sharding1-reader1.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING1}@tcp(prod-db-sharding1-reader2.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [0, 3]
+        # sharding 2: テーブル _004-007（4テーブル）→ sharding1
+        - id: 2
+          driver: mysql
+          host: prod-db-sharding1.example.com
+          port: 3306
+          name: app_db_sharding1
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING1}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING1}@tcp(prod-db-sharding1-writer.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING1}@tcp(prod-db-sharding1-reader1.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING1}@tcp(prod-db-sharding1-reader2.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [4, 7]
+        # sharding 3: テーブル _008-011（4テーブル）→ sharding2
+        - id: 3
+          driver: mysql
+          host: prod-db-sharding2.example.com
+          port: 3306
+          name: app_db_sharding2
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING2}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING2}@tcp(prod-db-sharding2-writer.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING2}@tcp(prod-db-sharding2-reader1.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING2}@tcp(prod-db-sharding2-reader2.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [8, 11]
+        # sharding 4: テーブル _012-015（4テーブル）→ sharding2
+        - id: 4
+          driver: mysql
+          host: prod-db-sharding2.example.com
+          port: 3306
+          name: app_db_sharding2
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING2}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING2}@tcp(prod-db-sharding2-writer.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING2}@tcp(prod-db-sharding2-reader1.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING2}@tcp(prod-db-sharding2-reader2.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [12, 15]
+        # sharding 5: テーブル _016-019（4テーブル）→ sharding3
+        - id: 5
+          driver: mysql
+          host: prod-db-sharding3.example.com
+          port: 3306
+          name: app_db_sharding3
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING3}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING3}@tcp(prod-db-sharding3-writer.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING3}@tcp(prod-db-sharding3-reader1.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING3}@tcp(prod-db-sharding3-reader2.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [16, 19]
+        # sharding 6: テーブル _020-023（4テーブル）→ sharding3
+        - id: 6
+          driver: mysql
+          host: prod-db-sharding3.example.com
+          port: 3306
+          name: app_db_sharding3
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING3}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING3}@tcp(prod-db-sharding3-writer.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING3}@tcp(prod-db-sharding3-reader1.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING3}@tcp(prod-db-sharding3-reader2.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [20, 23]
+        # sharding 7: テーブル _024-027（4テーブル）→ sharding4
+        - id: 7
+          driver: mysql
+          host: prod-db-sharding4.example.com
+          port: 3306
+          name: app_db_sharding4
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING4}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING4}@tcp(prod-db-sharding4-writer.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING4}@tcp(prod-db-sharding4-reader1.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING4}@tcp(prod-db-sharding4-reader2.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [24, 27]
+        # sharding 8: テーブル _028-031（4テーブル）→ sharding4
+        - id: 8
+          driver: mysql
+          host: prod-db-sharding4.example.com
+          port: 3306
+          name: app_db_sharding4
+          user: prod_user
+          password: ${DB_PASSWORD_SHARDING4}  # 環境変数から読み込み
+          writer_dsn: prod_user:${DB_PASSWORD_SHARDING4}@tcp(prod-db-sharding4-writer.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - prod_user:${DB_PASSWORD_SHARDING4}@tcp(prod-db-sharding4-reader1.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+            - prod_user:${DB_PASSWORD_SHARDING4}@tcp(prod-db-sharding4-reader2.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: round_robin
+          max_connections: 50
+          max_idle_connections: 20
+          connection_max_lifetime: 600s
+          table_range: [28, 31]
+
+      # テーブル定義: テーブル名 -> 分割数
+      tables:
+        - name: dm_users
+          suffix_count: 32
+        - name: dm_posts
+          suffix_count: 32

@@ -843,3 +843,89 @@ func TestLoad_UploadConfig(t *testing.T) {
 		t.Errorf("expected Storage.Local.Path './uploads', got %s", cfg.Upload.Storage.Local.Path)
 	}
 }
+
+// タスク1.1: GetDSN()メソッドのテスト - PostgreSQL用DSN生成
+func TestShardConfig_GetDSN_Postgres(t *testing.T) {
+	cfg := ShardConfig{
+		Driver:   "postgres",
+		Host:     "localhost",
+		Port:     5432,
+		User:     "webdb",
+		Password: "webdb",
+		Name:     "webdb_master",
+	}
+
+	dsn := cfg.GetDSN()
+	expected := "host=localhost port=5432 user=webdb password=webdb dbname=webdb_master sslmode=disable"
+	if dsn != expected {
+		t.Errorf("expected DSN '%s', got '%s'", expected, dsn)
+	}
+}
+
+// タスク1.1: GetDSN()メソッドのテスト - MySQL用DSN生成（charset=utf8mb4&loc=Local追加）
+func TestShardConfig_GetDSN_MySQL(t *testing.T) {
+	cfg := ShardConfig{
+		Driver:   "mysql",
+		Host:     "localhost",
+		Port:     3306,
+		User:     "webdb",
+		Password: "webdb",
+		Name:     "webdb_master",
+	}
+
+	dsn := cfg.GetDSN()
+	// MySQLのDSNには charset=utf8mb4、parseTime=true、loc=Local が含まれる必要がある
+	expected := "webdb:webdb@tcp(localhost:3306)/webdb_master?charset=utf8mb4&parseTime=true&loc=Local"
+	if dsn != expected {
+		t.Errorf("expected DSN '%s', got '%s'", expected, dsn)
+	}
+}
+
+// タスク1.1: GetDSN()メソッドのテスト - DSNが直接指定されている場合
+func TestShardConfig_GetDSN_DirectDSN(t *testing.T) {
+	cfg := ShardConfig{
+		DSN: "custom-dsn-string",
+	}
+
+	dsn := cfg.GetDSN()
+	if dsn != "custom-dsn-string" {
+		t.Errorf("expected DSN 'custom-dsn-string', got '%s'", dsn)
+	}
+}
+
+// タスク1.1: GetDSN()メソッドのテスト - 不明なドライバー
+func TestShardConfig_GetDSN_UnknownDriver(t *testing.T) {
+	cfg := ShardConfig{
+		Driver: "unknown",
+		Host:   "localhost",
+		Port:   5432,
+	}
+
+	dsn := cfg.GetDSN()
+	if dsn != "" {
+		t.Errorf("expected empty DSN for unknown driver, got '%s'", dsn)
+	}
+}
+
+// タスク3.1: Load()関数でDB_TYPEがpostgresqlの場合、database.yamlが読み込まれる
+func TestLoad_DBType_PostgreSQL(t *testing.T) {
+	originalEnv := os.Getenv("APP_ENV")
+	os.Setenv("APP_ENV", "develop")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	viper.Reset()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("config files not found: %v", err)
+	}
+
+	// DB_TYPE: postgresqlの場合、database.yamlが読み込まれる
+	// masterのドライバーがpostgresであることを確認
+	if len(cfg.Database.Groups.Master) == 0 {
+		t.Fatal("expected at least one master database")
+	}
+	if cfg.Database.Groups.Master[0].Driver != "postgres" {
+		t.Errorf("expected driver 'postgres', got '%s'", cfg.Database.Groups.Master[0].Driver)
+	}
+}

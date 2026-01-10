@@ -1,6 +1,11 @@
 # テスト環境用設定
 # テスト実行時に使用する設定ファイル
 
+# データベースタイプの指定
+# postgresql: PostgreSQLを使用（デフォルト）
+# mysql: MySQLを使用
+DB_TYPE: postgresql
+
 server:
   port: 8080
   read_timeout: 30s
