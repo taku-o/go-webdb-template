@@ -45,7 +45,8 @@ defer fileLock.Unlock()  ← ロック解放
 server/
 ├── go.mod                    # gofrs/flockを追加
 ├── go.sum                    # 依存関係（自動生成）
-├── test-db.lock             # ロックファイル（git管理対象外）
+├── .test-lock/              # ロックファイル用ディレクトリ（.gitignoreに追加）
+│   └── test-db.lock         # ロックファイル
 └── test/
     └── testutil/
         ├── db.go            # SetupTestGroupManager()を修正
@@ -121,14 +122,16 @@ func AcquireTestLock(t *testing.T) (*flock.Flock, error)
 
 **処理フロー**:
 1. プロジェクトルートを取得
-2. ロックファイルのパスを構築（`{projectRoot}/test-db.lock`）
-3. `flock.New(lockPath)`でロックオブジェクトを作成
-4. `context.WithTimeout(context.Background(), 30*time.Second)`でタイムアウト付きコンテキストを作成
-5. `TryLockContext(ctx)`でロック取得を試行
-6. エラーハンドリング:
+2. ロックディレクトリのパスを構築（`{projectRoot}/.test-lock`）
+3. ディレクトリが存在しない場合は作成（`os.MkdirAll`）
+4. ロックファイルのパスを構築（`{projectRoot}/.test-lock/test-db.lock`）
+5. `flock.New(lockPath)`でロックオブジェクトを作成
+6. `context.WithTimeout(context.Background(), 30*time.Second)`でタイムアウト付きコンテキストを作成
+7. `TryLockContext(ctx)`でロック取得を試行
+8. エラーハンドリング:
    - タイムアウト: `"{ロックファイルPATH}のロックが取れなかったのでタイムアウトしました"`
    - その他のエラー: `"ロックファイルの取得に失敗しました ({ロックファイルPATH}): {エラー詳細}"`
-7. 成功したら`flock.Flock`オブジェクトを返す
+9. 成功したら`flock.Flock`オブジェクトを返す
 
 **実装コード**:
 ```go
@@ -140,19 +143,27 @@ func AcquireTestLock(t *testing.T) (*flock.Flock, error) {
     if err != nil {
         return nil, fmt.Errorf("failed to get project root: %w", err)
     }
-    
+
+    // ロックディレクトリのパスを構築
+    lockDir := filepath.Join(projectRoot, ".test-lock")
+
+    // ディレクトリが存在しない場合は作成
+    if err := os.MkdirAll(lockDir, 0755); err != nil {
+        return nil, fmt.Errorf("ロックディレクトリの作成に失敗しました (%s): %w", lockDir, err)
+    }
+
     // ロックファイルのパスを構築
-    lockPath := filepath.Join(projectRoot, "test-db.lock")
-    
+    lockPath := filepath.Join(lockDir, "test-db.lock")
+
     // ロックオブジェクトを作成
     fileLock := flock.New(lockPath)
-    
+
     // タイムアウト付きコンテキストを作成
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
-    
+
     // ロック取得を試行
-    err = fileLock.TryLockContext(ctx)
+    locked, err := fileLock.TryLockContext(ctx, 100*time.Millisecond)
     if err != nil {
         // エラーハンドリング
         if err == context.DeadlineExceeded {
@@ -160,7 +171,11 @@ func AcquireTestLock(t *testing.T) (*flock.Flock, error) {
         }
         return nil, fmt.Errorf("ロックファイルの取得に失敗しました (%s): %w", lockPath, err)
     }
-    
+
+    if !locked {
+        return nil, fmt.Errorf("%sのロックが取れなかったのでタイムアウトしました", lockPath)
+    }
+
     return fileLock, nil
 }
 ```
@@ -352,9 +367,10 @@ func TestAcquireTestLock_Timeout(t *testing.T) {
 
 ### 8.1 ロックファイルの管理
 
-- **作成場所**: プロジェクトルート直下（`server/test-db.lock`）
-- **Git管理**: `.gitignore`に追加しない（消し忘れに気づけるようにする）
-- **削除**: テスト終了時に`defer fileLock.Unlock()`で自動削除
+- **作成場所**: プロジェクトルート直下の`.test-lock/`ディレクトリ内（`server/.test-lock/test-db.lock`）
+- **Git管理**: `.test-lock/`ディレクトリは`.gitignore`に追加する
+- **ファイル削除**: ロックファイルは削除しない（OSレベルのファイルロックで制御されるため）
+- **ロック解放**: テスト終了時に`defer fileLock.Unlock()`でロックを解放（ファイルは残る）
 
 ### 8.2 並列実行時の動作
 

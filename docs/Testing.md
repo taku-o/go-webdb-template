@@ -318,6 +318,23 @@ func TestUserAPI_CreateAndRetrieve(t *testing.T) {
 
 Shared test utilities and helpers.
 
+#### Lock File Mechanism for Parallel Tests
+
+並列実行（`go test -parallel 4`）時にデータベーステストの競合を防ぐため、ファイルロック機構を使用しています。`SetupTestGroupManager()`関数は自動的にロックを取得してからデータベースをセットアップします。
+
+**ロックファイルの場所**: `server/.test-lock/test-db.lock`
+
+**動作の仕組み**:
+1. データベースセットアップ前に、`SetupTestGroupManager()`がファイルロックを取得
+2. 他のテストが実行中の場合、最大30秒間ロック解放を待機
+3. テスト終了後、ロックは自動的に解放される（ファイル自体は残る）
+
+**エラーメッセージ**:
+- タイムアウト時: `"{ロックファイルパス}のロックが取れなかったのでタイムアウトしました"`
+- その他のエラー: `"ロックファイルの取得に失敗しました ({ロックファイルパス}): {エラー詳細}"`
+
+**注意**: ロックファイルは`.gitignore`に追加されており、gitからは見えません。ロックはファイルの存在ではなく、OSレベルのファイルロック（flock）で制御されています。
+
 **File**: `server/test/testutil/db.go`
 
 ```go

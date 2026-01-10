@@ -61,3 +61,43 @@ _serena_indexing
 
 /kiro:spec-impl 0053-parallel-dbtest
 
+監視してるから、並列テストを3回ほど実行してくれますか？
+
+server/test-db.lockってファイルが残ってる。
+
+削除しないけど、ロックは取れてたの？
+
+ファイルのあるなしじゃなくて、ファイルを握るかどうかで制御してるのか。
+
+とすると、ファイルを消すのは都合が悪い？
+ロスが大きい？たいしたことない？
+
+
+ロックファイルを残すように変更した場合は、
+ドキュメントの記述が違ってしまうのと、
+目立たない場所にロックファイルを置きたい、というのがある。
+
+ロックファイルの位置は
+.test-lock/test-db.lock
+にする。
+
+修正計画を建てて
+
+think.
+
+ロックファイルを消さない方針にしたから、
+.test-lock/test-db.lock は
+.gitignoreに追加して、gitから見えないようにしよう。
+
+修正作業お願いします。
+think.
+
+commitした後、
+https://github.com/taku-o/go-webdb-template/issues/109
+に対してpull requestを発行してください。
+
+
+
+
+
+

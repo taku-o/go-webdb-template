@@ -73,6 +73,7 @@ client/coverage/
 client/.nyc_output/
 client/playwright-report/
 client/test-results/
+server/.test-lock/
 
 # Serena
 .serena/cache/
