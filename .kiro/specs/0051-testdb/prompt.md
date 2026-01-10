@@ -108,5 +108,7 @@ git restore server/test/integration/sharding_test.go server/test/testutil/db.go
 その後、https://github.com/taku-o/go-webdb-template/issues/105 に対して
 pull requestを作成してください。
 
+/review 106
+
 
 
