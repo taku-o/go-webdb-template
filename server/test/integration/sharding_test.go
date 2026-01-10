@@ -46,6 +46,7 @@ func TestShardingGroupConnection(t *testing.T) {
 	defer testutil.CleanupTestGroupManager(groupManager)
 
 	// Test: Get sharding connection for each table range
+	// 論理シャーディング8構成: ShardIDは1,3,5,7（各物理DBの最初のエントリ）
 	testCases := []struct {
 		name        string
 		tableNumber int
@@ -53,12 +54,12 @@ func TestShardingGroupConnection(t *testing.T) {
 	}{
 		{"Table 0 in DB1", 0, 1},
 		{"Table 7 in DB1", 7, 1},
-		{"Table 8 in DB2", 8, 2},
-		{"Table 15 in DB2", 15, 2},
-		{"Table 16 in DB3", 16, 3},
-		{"Table 23 in DB3", 23, 3},
-		{"Table 24 in DB4", 24, 4},
-		{"Table 31 in DB4", 31, 4},
+		{"Table 8 in DB2", 8, 3},
+		{"Table 15 in DB2", 15, 3},
+		{"Table 16 in DB3", 16, 5},
+		{"Table 23 in DB3", 23, 5},
+		{"Table 24 in DB4", 24, 7},
+		{"Table 31 in DB4", 31, 7},
 	}
 
 	for _, tc := range testCases {
@@ -78,10 +79,12 @@ func TestTableSelectionLogic(t *testing.T) {
 
 	tableSelector := db.NewTableSelector(32, 8)
 
+	// expectedDBID は TableSelector.GetDBID() が返す物理DB ID (1-4)
+	// これは GroupManager の ShardID (1,3,5,7) とは異なる
 	testCases := []struct {
 		id              int64
 		expectedTable   int
-		expectedDBID    int
+		expectedDBID    int  // TableSelector.GetDBID() の戻り値 (物理DB ID: 1-4)
 		expectedSuffix  string
 	}{
 		{0, 0, 1, "000"},
@@ -254,16 +257,17 @@ func TestShardingConnectionByID(t *testing.T) {
 	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
 	defer testutil.CleanupTestGroupManager(groupManager)
 
+	// 論理シャーディング8構成: ShardIDは1,3,5,7（各物理DBの最初のエントリ）
 	testCases := []struct {
 		userID      int64
 		expectedDB  int
 	}{
-		{1, 1},    // 1 % 32 = 1, DB1
-		{8, 2},    // 8 % 32 = 8, DB2
-		{16, 3},   // 16 % 32 = 16, DB3
-		{24, 4},   // 24 % 32 = 24, DB4
-		{32, 1},   // 32 % 32 = 0, DB1
-		{100, 1},  // 100 % 32 = 4, DB1
+		{1, 1},    // 1 % 32 = 1, DB1 (ShardID=1)
+		{8, 3},    // 8 % 32 = 8, DB2 (ShardID=3)
+		{16, 5},   // 16 % 32 = 16, DB3 (ShardID=5)
+		{24, 7},   // 24 % 32 = 24, DB4 (ShardID=7)
+		{32, 1},   // 32 % 32 = 0, DB1 (ShardID=1)
+		{100, 1},  // 100 % 32 = 4, DB1 (ShardID=1)
 	}
 
 	for _, tc := range testCases {
@@ -290,11 +294,11 @@ func TestGetAllShardingConnections(t *testing.T) {
 		dbIDs[conn.ShardID] = true
 	}
 
-	// Verify we have connections for all 4 DBs
+	// Verify we have connections for all 4 DBs (ShardID: 1,3,5,7)
 	assert.True(t, dbIDs[1])
-	assert.True(t, dbIDs[2])
 	assert.True(t, dbIDs[3])
-	assert.True(t, dbIDs[4])
+	assert.True(t, dbIDs[5])
+	assert.True(t, dbIDs[7])
 }
 
 // =============================================================================

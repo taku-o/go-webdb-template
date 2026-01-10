@@ -1,0 +1,11 @@
+{
+  "feature": "0051-testdb",
+  "description": "テスト用データベースの導入",
+  "language": "ja",
+  "createdAt": "2026-01-10",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

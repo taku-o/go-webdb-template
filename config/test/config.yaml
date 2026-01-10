@@ -1,0 +1,85 @@
+# テスト環境用設定
+# テスト実行時に使用する設定ファイル
+
+server:
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+
+admin:
+  port: 8081
+  read_timeout: 30s
+  write_timeout: 30s
+  auth:
+    username: admin
+    password: admin123
+  session:
+    lifetime: 7200
+
+logging:
+  level: debug
+  format: json
+  output: stdout
+  output_dir: ../logs
+  sql_log_enabled: true
+  mail_log_enabled: true
+
+cors:
+  allowed_origins:
+    - http://localhost:3000
+  allowed_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - PATCH
+    - HEAD
+    - OPTIONS
+  allowed_headers:
+    - Content-Type
+    - Authorization
+    - Tus-Resumable
+    - Upload-Length
+    - Upload-Offset
+    - Upload-Metadata
+  expose_headers:
+    - Location
+    - Upload-Offset
+    - Upload-Length
+    - Tus-Resumable
+    - Tus-Version
+    - Tus-Extension
+    - Tus-Max-Size
+
+api:
+  current_version: "v2"
+  secret_key: "RNrxs7Rt1ZViughEGb8J08Uc1uQobSOZRRb+BmnGaag="
+  invalid_versions:
+    - "v1"
+  auth0_issuer_base_url: "https://dev-oaa5vtzmld4dsxtd.jp.auth0.com"
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+    requests_per_hour: 1000
+    storage_type: "auto"
+
+upload:
+  base_path: "/api/upload/dm_movie"
+  max_file_size: 2147483648
+  allowed_extensions:
+    - "mp4"
+  storage:
+    type: "local"
+    local:
+      path: "./uploads"
+
+email:
+  sender_type: "mock"
+  mock: {}
+  mailpit:
+    smtp_host: "localhost"
+    smtp_port: 1025
+  ses:
+    from: "sender@example.com"
+    region: "us-east-1"

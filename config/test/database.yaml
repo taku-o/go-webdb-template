@@ -1,0 +1,122 @@
+# PostgreSQL設定（テスト環境用）
+# テスト用データベースは事前に作成し、マイグレーションを実行しておく必要がある
+# PostgreSQLの起動: ./scripts/start-postgres.sh start
+# マイグレーション: ./scripts/migrate-test.sh
+database:
+  groups:
+    master:
+      - id: 1
+        driver: postgres
+        host: localhost
+        port: 5432
+        user: webdb
+        password: webdb
+        name: webdb_master_test
+        max_connections: 25
+        max_idle_connections: 5
+        connection_max_lifetime: 1h
+
+    sharding:
+      databases:
+        # 論理シャード 1: テーブル _000-003 → postgres-sharding-1
+        - id: 1
+          driver: postgres
+          host: localhost
+          port: 5433
+          user: webdb
+          password: webdb
+          name: webdb_sharding_1_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [0, 3]
+        # 論理シャード 2: テーブル _004-007 → postgres-sharding-1
+        - id: 2
+          driver: postgres
+          host: localhost
+          port: 5433
+          user: webdb
+          password: webdb
+          name: webdb_sharding_1_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [4, 7]
+        # 論理シャード 3: テーブル _008-011 → postgres-sharding-2
+        - id: 3
+          driver: postgres
+          host: localhost
+          port: 5434
+          user: webdb
+          password: webdb
+          name: webdb_sharding_2_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [8, 11]
+        # 論理シャード 4: テーブル _012-015 → postgres-sharding-2
+        - id: 4
+          driver: postgres
+          host: localhost
+          port: 5434
+          user: webdb
+          password: webdb
+          name: webdb_sharding_2_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [12, 15]
+        # 論理シャード 5: テーブル _016-019 → postgres-sharding-3
+        - id: 5
+          driver: postgres
+          host: localhost
+          port: 5435
+          user: webdb
+          password: webdb
+          name: webdb_sharding_3_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [16, 19]
+        # 論理シャード 6: テーブル _020-023 → postgres-sharding-3
+        - id: 6
+          driver: postgres
+          host: localhost
+          port: 5435
+          user: webdb
+          password: webdb
+          name: webdb_sharding_3_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [20, 23]
+        # 論理シャード 7: テーブル _024-027 → postgres-sharding-4
+        - id: 7
+          driver: postgres
+          host: localhost
+          port: 5436
+          user: webdb
+          password: webdb
+          name: webdb_sharding_4_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [24, 27]
+        # 論理シャード 8: テーブル _028-031 → postgres-sharding-4
+        - id: 8
+          driver: postgres
+          host: localhost
+          port: 5436
+          user: webdb
+          password: webdb
+          name: webdb_sharding_4_test
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [28, 31]
+
+      tables:
+        - name: dm_users
+          suffix_count: 32
+        - name: dm_posts
+          suffix_count: 32
