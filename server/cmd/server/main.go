@@ -18,6 +18,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/service"
 	"github.com/taku-o/go-webdb-template/internal/service/email"
 	"github.com/taku-o/go-webdb-template/internal/service/jobqueue"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 func main() {
@@ -45,11 +46,17 @@ func main() {
 	// Service層の初期化
 	dmUserService := service.NewDmUserService(dmUserRepo)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
+	dateService := service.NewDateService()
+
+	// Usecase層の初期化
+	todayUsecase := usecase.NewTodayUsecase(dateService)
+	dmUserUsecase := usecase.NewDmUserUsecase(dmUserService)
+	dmPostUsecase := usecase.NewDmPostUsecase(dmPostService)
 
 	// Handler層の初期化
-	dmUserHandler := handler.NewDmUserHandler(dmUserService)
-	dmPostHandler := handler.NewDmPostHandler(dmPostService)
-	todayHandler := handler.NewTodayHandler()
+	dmUserHandler := handler.NewDmUserHandler(dmUserUsecase)
+	dmPostHandler := handler.NewDmPostHandler(dmPostUsecase)
+	todayHandler := handler.NewTodayHandler(todayUsecase)
 
 	// メール送信ログの初期化
 	var mailLogger *logging.MailLogger
@@ -73,8 +80,11 @@ func main() {
 	}
 	templateService := email.NewTemplateService()
 
+	// EmailUsecaseの初期化
+	emailUsecase := usecase.NewEmailUsecase(emailService, templateService)
+
 	// EmailHandlerの初期化
-	emailHandler := handler.NewEmailHandler(emailService, templateService)
+	emailHandler := handler.NewEmailHandler(emailUsecase)
 
 	// Asynqクライアントの初期化
 	// Redisが起動していない場合でも、APIサーバーの起動は継続する
@@ -109,8 +119,17 @@ func main() {
 		}
 	}
 
-	// ジョブキューハンドラーの初期化（jobQueueClientがnilの場合も許可）
-	dmJobqueueHandler := handler.NewDmJobqueueHandler(jobQueueClient)
+	// DmJobqueueUsecaseの初期化（jobQueueClientがnilの場合も許可）
+	var dmJobqueueUsecase *usecase.DmJobqueueUsecase
+	if jobQueueClient != nil {
+		jobQueueClientAdapter := usecase.NewJobQueueClientAdapter(jobQueueClient)
+		dmJobqueueUsecase = usecase.NewDmJobqueueUsecase(jobQueueClientAdapter)
+	} else {
+		dmJobqueueUsecase = usecase.NewDmJobqueueUsecase(nil)
+	}
+
+	// DmJobqueueHandlerの初期化
+	dmJobqueueHandler := handler.NewDmJobqueueHandler(dmJobqueueUsecase)
 
 	// Echoルーターの初期化
 	e := router.NewRouter(dmUserHandler, dmPostHandler, todayHandler, emailHandler, dmJobqueueHandler, cfg)

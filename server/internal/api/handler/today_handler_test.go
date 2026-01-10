@@ -5,17 +5,37 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/stretchr/testify/assert"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
+// MockDateService はDateServiceのモック（usecase用）
+type MockDateService struct {
+	GetTodayFunc func(ctx context.Context) (string, error)
+}
+
+func (m *MockDateService) GetToday(ctx context.Context) (string, error) {
+	if m.GetTodayFunc != nil {
+		return m.GetTodayFunc(ctx)
+	}
+	return time.Now().Format("2006-01-02"), nil
+}
+
+// createTodayHandlerWithMock はモックを使用してTodayHandlerを作成するヘルパー関数
+func createTodayHandlerWithMock() *TodayHandler {
+	mockDateService := &MockDateService{}
+	todayUsecase := usecase.NewTodayUsecase(mockDateService)
+	return NewTodayHandler(todayUsecase)
+}
+
 func TestTodayHandler_GetToday(t *testing.T) {
-	handler := NewTodayHandler()
+	handler := createTodayHandlerWithMock()
 	assert.NotNil(t, handler)
 }
 
 func TestTodayHandler_GetTodayResponse(t *testing.T) {
-	handler := NewTodayHandler()
+	handler := createTodayHandlerWithMock()
 
 	// privateアクセスレベルのコンテキストを作成
 	ctx := context.WithValue(context.Background(), auth.AllowedAccessLevelKey, auth.AccessLevelPrivate)
@@ -29,7 +49,7 @@ func TestTodayHandler_GetTodayResponse(t *testing.T) {
 }
 
 func TestTodayHandler_GetTodayWithPublicAccessLevel(t *testing.T) {
-	handler := NewTodayHandler()
+	handler := createTodayHandlerWithMock()
 
 	// publicアクセスレベルのコンテキストを作成
 	ctx := context.WithValue(context.Background(), auth.AllowedAccessLevelKey, auth.AccessLevelPublic)
@@ -41,7 +61,7 @@ func TestTodayHandler_GetTodayWithPublicAccessLevel(t *testing.T) {
 }
 
 func TestTodayHandler_GetTodayWithoutAccessLevel(t *testing.T) {
-	handler := NewTodayHandler()
+	handler := createTodayHandlerWithMock()
 
 	// アクセスレベルがないコンテキスト
 	ctx := context.Background()

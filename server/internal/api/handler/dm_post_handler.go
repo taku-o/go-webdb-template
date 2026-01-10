@@ -8,18 +8,18 @@ import (
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/model"
-	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 // DmPostHandler は投稿APIのハンドラー
 type DmPostHandler struct {
-	dmPostService *service.DmPostService
+	dmPostUsecase *usecase.DmPostUsecase
 }
 
 // NewDmPostHandler は新しいDmPostHandlerを作成
-func NewDmPostHandler(dmPostService *service.DmPostService) *DmPostHandler {
+func NewDmPostHandler(dmPostUsecase *usecase.DmPostUsecase) *DmPostHandler {
 	return &DmPostHandler{
-		dmPostService: dmPostService,
+		dmPostUsecase: dmPostUsecase,
 	}
 }
 
@@ -54,7 +54,7 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			Content: input.Body.Content,
 		}
 
-		dmPost, err := h.dmPostService.CreateDmPost(ctx, req)
+		dmPost, err := h.dmPostUsecase.CreateDmPost(ctx, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -89,7 +89,7 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 		}
 
-		dmPost, err := h.dmPostService.GetDmPost(ctx, input.ID, input.UserID)
+		dmPost, err := h.dmPostUsecase.GetDmPost(ctx, input.ID, input.UserID)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
 		}
@@ -124,9 +124,9 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			if len(input.UserID) != 32 {
 				return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 			}
-			dmPosts, err = h.dmPostService.ListDmPostsByUser(ctx, input.UserID, input.Limit, input.Offset)
+			dmPosts, err = h.dmPostUsecase.ListDmPostsByUser(ctx, input.UserID, input.Limit, input.Offset)
 		} else {
-			dmPosts, err = h.dmPostService.ListDmPosts(ctx, input.Limit, input.Offset)
+			dmPosts, err = h.dmPostUsecase.ListDmPosts(ctx, input.Limit, input.Offset)
 		}
 
 		if err != nil {
@@ -168,7 +168,7 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			Content: input.Body.Content,
 		}
 
-		dmPost, err := h.dmPostService.UpdateDmPost(ctx, input.ID, input.UserID, req)
+		dmPost, err := h.dmPostUsecase.UpdateDmPost(ctx, input.ID, input.UserID, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -204,7 +204,7 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error400BadRequest("invalid user_id format: must be 32 characters")
 		}
 
-		err := h.dmPostService.DeleteDmPost(ctx, input.ID, input.UserID)
+		err := h.dmPostUsecase.DeleteDmPost(ctx, input.ID, input.UserID)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -229,7 +229,7 @@ func RegisterDmPostEndpoints(api huma.API, h *DmPostHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		dmUserPosts, err := h.dmPostService.GetDmUserPosts(ctx, input.Limit, input.Offset)
+		dmUserPosts, err := h.dmPostUsecase.GetDmUserPosts(ctx, input.Limit, input.Offset)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}

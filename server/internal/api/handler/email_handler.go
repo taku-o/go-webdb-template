@@ -9,20 +9,18 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 	"github.com/taku-o/go-webdb-template/internal/auth"
-	"github.com/taku-o/go-webdb-template/internal/service/email"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 // EmailHandler はメール送信APIのハンドラー
 type EmailHandler struct {
-	emailService    *email.EmailService
-	templateService *email.TemplateService
+	emailUsecase *usecase.EmailUsecase
 }
 
 // NewEmailHandler は新しいEmailHandlerを作成
-func NewEmailHandler(emailService *email.EmailService, templateService *email.TemplateService) *EmailHandler {
+func NewEmailHandler(emailUsecase *usecase.EmailUsecase) *EmailHandler {
 	return &EmailHandler{
-		emailService:    emailService,
-		templateService: templateService,
+		emailUsecase: emailUsecase,
 	}
 }
 
@@ -53,21 +51,9 @@ func RegisterEmailEndpoints(api huma.API, h *EmailHandler) {
 			}
 		}
 
-		// テンプレートからメール本文を生成
-		body, err := h.templateService.Render(input.Body.Template, input.Body.Data)
-		if err != nil {
-			return nil, huma.Error400BadRequest(fmt.Sprintf("failed to render template: %v", err))
-		}
-
-		// テンプレートから件名を取得
-		subject, err := h.templateService.GetSubject(input.Body.Template)
-		if err != nil {
-			return nil, huma.Error400BadRequest(fmt.Sprintf("failed to get subject: %v", err))
-		}
-
-		// メール送信
-		if err := h.emailService.SendEmail(ctx, input.Body.To, subject, body); err != nil {
-			return nil, huma.Error500InternalServerError(fmt.Sprintf("failed to send email: %v", err))
+		// usecase層でメール送信を実行
+		if err := h.emailUsecase.SendEmail(ctx, input.Body.To, input.Body.Template, input.Body.Data); err != nil {
+			return nil, huma.Error400BadRequest(fmt.Sprintf("failed to send email: %v", err))
 		}
 
 		resp := &humaapi.SendEmailOutput{}

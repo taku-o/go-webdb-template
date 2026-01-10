@@ -7,11 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/service/jobqueue"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 func TestNewDmJobqueueHandler(t *testing.T) {
-	// nilのクライアントでもハンドラーが作成できること
-	handler := NewDmJobqueueHandler(nil)
+	// nilのusecaseでもハンドラーが作成できること
+	dmJobqueueUsecase := usecase.NewDmJobqueueUsecase(nil)
+	handler := NewDmJobqueueHandler(dmJobqueueUsecase)
 	assert.NotNil(t, handler)
 }
 
@@ -31,13 +33,17 @@ func TestNewDmJobqueueHandler_WithClient(t *testing.T) {
 	assert.NoError(t, err)
 	defer client.Close()
 
-	handler := NewDmJobqueueHandler(client)
+	// usecase経由でhandlerを作成
+	jobQueueClientAdapter := usecase.NewJobQueueClientAdapter(client)
+	dmJobqueueUsecase := usecase.NewDmJobqueueUsecase(jobQueueClientAdapter)
+	handler := NewDmJobqueueHandler(dmJobqueueUsecase)
 	assert.NotNil(t, handler)
 }
 
 func TestDmJobqueueHandler_RegisterJob_NilClient(t *testing.T) {
 	// nilのクライアントでジョブ登録を試みる
-	handler := NewDmJobqueueHandler(nil)
+	dmJobqueueUsecase := usecase.NewDmJobqueueUsecase(nil)
+	handler := NewDmJobqueueHandler(dmJobqueueUsecase)
 
 	req := &RegisterJobRequest{
 		Message: "Test message",
@@ -54,7 +60,8 @@ func TestDmJobqueueHandler_RegisterJob_NilClient(t *testing.T) {
 func TestDmJobqueueHandler_RegisterJob_DefaultMessage(t *testing.T) {
 	// 空のメッセージでリクエスト（デフォルトメッセージが使用される）
 	// 注意: 実際のRedis接続なしでは、このテストはジョブ登録の前にnilチェックで止まる
-	handler := NewDmJobqueueHandler(nil)
+	dmJobqueueUsecase := usecase.NewDmJobqueueUsecase(nil)
+	handler := NewDmJobqueueHandler(dmJobqueueUsecase)
 
 	req := &RegisterJobRequest{
 		Message: "", // 空のメッセージ
