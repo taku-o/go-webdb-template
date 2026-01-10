@@ -1,0 +1,115 @@
+services:
+  mysql-master:
+    image: mysql:8.0
+    container_name: mysql-master
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: master_db
+      MYSQL_USER: webdb
+      MYSQL_PASSWORD: webdb
+    volumes:
+      - ./mysql/data/master:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "webdb", "-pwebdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mysql-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-sharding-1:
+    image: mysql:8.0
+    container_name: mysql-sharding-1
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sharding_db_1
+      MYSQL_USER: webdb
+      MYSQL_PASSWORD: webdb
+    volumes:
+      - ./mysql/data/sharding_1:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "webdb", "-pwebdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mysql-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-sharding-2:
+    image: mysql:8.0
+    container_name: mysql-sharding-2
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sharding_db_2
+      MYSQL_USER: webdb
+      MYSQL_PASSWORD: webdb
+    volumes:
+      - ./mysql/data/sharding_2:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "webdb", "-pwebdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mysql-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-sharding-3:
+    image: mysql:8.0
+    container_name: mysql-sharding-3
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sharding_db_3
+      MYSQL_USER: webdb
+      MYSQL_PASSWORD: webdb
+    volumes:
+      - ./mysql/data/sharding_3:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "webdb", "-pwebdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mysql-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  mysql-sharding-4:
+    image: mysql:8.0
+    container_name: mysql-sharding-4
+    ports:
+      - "3310:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sharding_db_4
+      MYSQL_USER: webdb
+      MYSQL_PASSWORD: webdb
+    volumes:
+      - ./mysql/data/sharding_4:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "webdb", "-pwebdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mysql-network
+    command: --default-authentication-plugin=mysql_native_password
+
+networks:
+  mysql-network:
+    name: mysql-network
+    driver: bridge
