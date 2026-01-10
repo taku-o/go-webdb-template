@@ -907,7 +907,7 @@ func TestShardConfig_GetDSN_UnknownDriver(t *testing.T) {
 	}
 }
 
-// タスク3.1: Load()関数でDB_TYPEがpostgresqlの場合、database.yamlが読み込まれる
+// タスク3.1: Load()関数でDB_TYPEがpostgresの場合、database.yamlが読み込まれる
 func TestLoad_DBType_PostgreSQL(t *testing.T) {
 	originalEnv := os.Getenv("APP_ENV")
 	os.Setenv("APP_ENV", "develop")
@@ -920,7 +920,7 @@ func TestLoad_DBType_PostgreSQL(t *testing.T) {
 		t.Fatalf("config files not found: %v", err)
 	}
 
-	// DB_TYPE: postgresqlの場合、database.yamlが読み込まれる
+	// DB_TYPE: postgresの場合、database.yamlが読み込まれる
 	// masterのドライバーがpostgresであることを確認
 	if len(cfg.Database.Groups.Master) == 0 {
 		t.Fatal("expected at least one master database")

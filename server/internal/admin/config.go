@@ -64,19 +64,44 @@ func (c *Config) getDatabaseConfig() goadminConfig.DatabaseList {
 		panic("incomplete database configuration: host, port, user, and name are required")
 	}
 
-	// PostgreSQL用のDSN形式を構築
-	// host=... port=... user=... password=... dbname=... sslmode=disable
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		masterDB.Host,
-		masterDB.Port,
-		masterDB.User,
-		masterDB.Password,
-		masterDB.Name,
-	)
+	// ドライバーの検証
+	if masterDB.Driver == "" {
+		panic("database driver is not specified: driver field is required in database configuration")
+	}
+
+	var dsn string
+	var driverName string
+
+	switch masterDB.Driver {
+	case "postgres":
+		// PostgreSQL用のDSN形式を構築
+		// host=... port=... user=... password=... dbname=... sslmode=disable
+		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			masterDB.Host,
+			masterDB.Port,
+			masterDB.User,
+			masterDB.Password,
+			masterDB.Name,
+		)
+		driverName = "postgresql"
+	case "mysql":
+		// MySQL用のDSN形式を構築
+		// user:pass@tcp(host:port)/dbname?charset=utf8mb4&parseTime=true&loc=Local
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+			masterDB.User,
+			masterDB.Password,
+			masterDB.Host,
+			masterDB.Port,
+			masterDB.Name,
+		)
+		driverName = "mysql"
+	default:
+		panic(fmt.Sprintf("unsupported database driver: %s (supported drivers: postgres, mysql)", masterDB.Driver))
+	}
 
 	return goadminConfig.DatabaseList{
 		"default": {
-			Driver: "postgresql",
+			Driver: driverName,
 			Dsn:    dsn,
 		},
 	}

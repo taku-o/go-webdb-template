@@ -264,7 +264,7 @@ func Load() (*Config, error) {
 	// DB_TYPEを読み込む（config.yamlから）
 	dbType := viper.GetString("DB_TYPE")
 	if dbType == "" {
-		dbType = "postgresql" // デフォルト値
+		dbType = "postgres" // デフォルト値
 	}
 
 	// データベース設定ファイルのマージ
