@@ -79,6 +79,17 @@ func GetTestConfig() *config.Config {
 // dbCount: number of sharding databases (typically 4) - パラメータは互換性のため維持、設定ファイルの値を使用
 // tablesPerDB: number of tables per database (typically 8, total 32 tables) - パラメータは互換性のため維持、設定ファイルの値を使用
 func SetupTestGroupManager(t *testing.T, dbCount int, tablesPerDB int) *db.GroupManager {
+	// ロックを取得
+	fileLock, err := AcquireTestLock(t)
+	if err != nil {
+		t.Fatalf("Failed to acquire test lock: %v", err)
+	}
+	defer func() {
+		if err := fileLock.Unlock(); err != nil {
+			t.Logf("Warning: failed to unlock test lock: %v", err)
+		}
+	}()
+
 	// 設定ファイルから読み込む
 	cfg, err := LoadTestConfig()
 	require.NoError(t, err)
@@ -174,6 +185,17 @@ func InitShardingSchema(t *testing.T, database *gorm.DB, startTable, endTable in
 // - Entries 5,6 -> postgres-sharding-3 (port 5435, tables 16-23)
 // - Entries 7,8 -> postgres-sharding-4 (port 5436, tables 24-31)
 func SetupTestGroupManager8Sharding(t *testing.T) *db.GroupManager {
+	// ロックを取得
+	fileLock, err := AcquireTestLock(t)
+	if err != nil {
+		t.Fatalf("Failed to acquire test lock: %v", err)
+	}
+	defer func() {
+		if err := fileLock.Unlock(); err != nil {
+			t.Logf("Warning: failed to unlock test lock: %v", err)
+		}
+	}()
+
 	// 設定ファイルから読み込む
 	cfg, err := LoadTestConfig()
 	require.NoError(t, err)

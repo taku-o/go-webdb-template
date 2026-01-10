@@ -15,6 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ses v1.34.17
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/danielgtaylor/huma/v2 v2.34.1
+	github.com/gofrs/flock v0.13.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
