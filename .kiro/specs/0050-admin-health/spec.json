@@ -1,0 +1,11 @@
+{
+  "feature": "0050-admin-health",
+  "description": "GoAdmin死活監視エンドポイントの作成",
+  "language": "ja",
+  "createdAt": "2026-01-10",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
