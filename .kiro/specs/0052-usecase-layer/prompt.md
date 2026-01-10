@@ -66,4 +66,15 @@ api:start client:start admin:start あたりで。
 いったんgit commitしてください。
 
 
+ひととおりタスクリストの実装を完了しました。
+usecaseを追加したので、更新すべきドキュメントがあれば、ドキュメントを更新したいです。
+think.
+
+ドキュメントを更新しました。
+commitした後、
+https://github.com/taku-o/go-webdb-template/issues/107
+に対してpull requestを発行してください。
+
+
+
 
