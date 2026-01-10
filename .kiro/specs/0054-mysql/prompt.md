@@ -206,10 +206,51 @@ MySQLデータベースにmigrationでデータを入れて。
 
 
 これはAPIサーバへの通信をテストするものであってる？
-TestAPIAuth_ValidToken
+テスト実行時、NEXT_PUBLIC_API_KEYはどこから持ってきてる？
+> TestAPIAuth_ValidToken
 
+いったんgit commitして。
+stagingに上がっているファイル全部ね。
 
+次にテストに失敗したコマンドを教えて？
 
+cd server && APP_ENV=test go test ./test/integration/... -count=1
+
+cd server
+APP_ENV=test go test ./test/integration/api_auth_test.go -count=1
+
+ずばり間違っているのはここです。
+const TestEnv = "develop"と決め打ちだが、
+currentEnvはtestになっているので、環境が違うと弾かれた。
+
+>  // server/test/testutil/db.go
+>  // TestEnv はテスト用の環境
+>  const TestEnv = "develop"
+>
+>  func GetTestAPIToken() (string, error) {
+>      return auth.GeneratePublicAPIKey(TestSecretKey, "v2", TestEnv, time.Now().Unix())
+>  }
+>
+>  // server/internal/auth/jwt.go
+>  // envの検証
+>  if claims.Env != v.currentEnv {
+>  	return errors.New("token environment mismatch")
+>  }
+
+今の進捗ってタスク12が終わったところ？
+途中？
+
+タスク13のチェックをつけて、
+タスク14に取りかかりましょう。
+/kiro:spec-impl 0054-mysql 14
+
+tasks.mdの受け入れ基準のチェックが完了していない。
+
+チェックをつけて。
+
+commitした後、
+https://github.com/taku-o/go-webdb-template/issues/111
+に対してpull requestを発行してください。
 
 
 

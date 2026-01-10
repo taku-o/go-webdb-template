@@ -87,6 +87,59 @@ npm install
 ./scripts/start-postgres.sh stop
 ```
 
+#### MySQLの起動（オプション）
+
+PostgreSQLの代わりにMySQLを使用することもできます。
+
+```bash
+# MySQLコンテナを起動（master + sharding 4台）
+./scripts/start-mysql.sh start
+```
+
+**接続情報**（開発環境）:
+
+| データベース | ホスト | ポート | ユーザー | パスワード | データベース名 |
+|------------|--------|--------|---------|-----------|--------------|
+| Master | localhost | 3306 | webdb | webdb | webdb_master |
+| Sharding 1 | localhost | 3307 | webdb | webdb | webdb_sharding_1 |
+| Sharding 2 | localhost | 3308 | webdb | webdb | webdb_sharding_2 |
+| Sharding 3 | localhost | 3309 | webdb | webdb | webdb_sharding_3 |
+| Sharding 4 | localhost | 3310 | webdb | webdb | webdb_sharding_4 |
+
+#### MySQLマイグレーションの適用
+
+```bash
+# 開発環境用マイグレーション
+atlas migrate apply --dir "file://db/migrations/master-mysql" --url "mysql://webdb:webdb@localhost:3306/webdb_master"
+atlas migrate apply --dir "file://db/migrations/sharding_1-mysql" --url "mysql://webdb:webdb@localhost:3307/webdb_sharding_1"
+atlas migrate apply --dir "file://db/migrations/sharding_2-mysql" --url "mysql://webdb:webdb@localhost:3308/webdb_sharding_2"
+atlas migrate apply --dir "file://db/migrations/sharding_3-mysql" --url "mysql://webdb:webdb@localhost:3309/webdb_sharding_3"
+atlas migrate apply --dir "file://db/migrations/sharding_4-mysql" --url "mysql://webdb:webdb@localhost:3310/webdb_sharding_4"
+
+# テスト環境用マイグレーション
+./scripts/migrate-test-mysql.sh
+```
+
+#### MySQLの停止
+
+```bash
+./scripts/start-mysql.sh stop
+```
+
+#### データベースタイプの切り替え
+
+`config/{env}/config.yaml`の`DB_TYPE`でデータベースを切り替えます：
+
+```yaml
+# PostgreSQLを使用（デフォルト）
+DB_TYPE: postgresql
+
+# MySQLを使用
+DB_TYPE: mysql
+```
+
+MySQLを使用する場合は`database.mysql.yaml`から設定が読み込まれます。
+
 #### シャーディング構成
 
 本プロジェクトでは**8つの論理シャード**を**4つの物理データベース**に分散配置しています：

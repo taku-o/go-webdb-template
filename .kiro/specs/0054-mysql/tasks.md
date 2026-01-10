@@ -832,7 +832,7 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 **受け入れ基準**:
 - [x] `InitMySQLMasterSchema()`関数が実装されている
 - [x] MySQL用のSQL構文が使用されている
-- [ ] 関数が正常に動作する
+- [x] 関数が正常に動作する
 
 - _Requirements: 3.3.1, 6.3_
 - _Design: 3.3.1_
@@ -888,7 +888,7 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 **受け入れ基準**:
 - [x] `InitMySQLShardingSchema()`関数が実装されている
 - [x] MySQL用のSQL構文が使用されている
-- [ ] 関数が正常に動作する
+- [x] 関数が正常に動作する
 
 - _Requirements: 3.3.1, 6.3_
 - _Design: 3.3.1_
@@ -931,8 +931,8 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 **受け入れ基準**:
 - [x] `clearMySQLDatabaseTables()`関数が実装されている
 - [x] MySQL用のSQL構文が使用されている
-- [ ] 関数が正常に動作する
-- [ ] テーブルのデータが正常にクリアされる
+- [x] 関数が正常に動作する
+- [x] テーブルのデータが正常にクリアされる
 
 - _Requirements: 3.3.2, 6.3_
 - _Design: 3.3.2_
@@ -1064,9 +1064,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 - 確認コマンド: `./scripts/start-mysql.sh health`
 
 **受け入れ基準**:
-- [ ] MySQLコンテナが正常に起動できる
-- [ ] ヘルスチェックが正常に動作する
-- [ ] コンテナの状態が正常に表示される
+- [x] MySQLコンテナが正常に起動できる
+- [x] ヘルスチェックが正常に動作する
+- [x] コンテナの状態が正常に表示される
 
 - _Requirements: 6.5, 6.8_
 - _Design: 3.5.1_
@@ -1087,9 +1087,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 - 接続ログを確認
 
 **受け入れ基準**:
-- [ ] MySQL接続が正常に確立できる
-- [ ] 接続エラーが発生しない
-- [ ] DSNが正しく生成されている（`charset=utf8mb4&parseTime=true&loc=Local`が含まれている）
+- [x] MySQL接続が正常に確立できる
+- [x] 接続エラーが発生しない
+- [x] DSNが正しく生成されている（`charset=utf8mb4&parseTime=true&loc=Local`が含まれている）
 
 - _Requirements: 6.7, 6.8_
 - _Design: 3.7.1_
@@ -1112,9 +1112,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - エラーが発生しない
 
 **受け入れ基準**:
-- [ ] マイグレーションが正常に実行できる
-- [ ] エラーが発生しない
-- [ ] テーブルが正常に作成される
+- [x] マイグレーションが正常に実行できる
+- [x] エラーが発生しない
+- [x] テーブルが正常に作成される
 
 - _Requirements: 6.2, 6.8_
 - _Design: 3.6.2_
@@ -1138,9 +1138,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - データベーススキーマが正常に初期化される
 
 **受け入れ基準**:
-- [ ] MySQL環境でテストが正常に実行できる
-- [ ] エラーが発生しない
-- [ ] データベーススキーマが正常に初期化される
+- [x] MySQL環境でテストが正常に実行できる
+- [x] エラーが発生しない
+- [x] データベーススキーマが正常に初期化される
 
 - _Requirements: 6.3, 6.8_
 - _Design: 3.3.3_
@@ -1164,9 +1164,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - 既存のPostgreSQLテストが正常に動作する
 
 **受け入れ基準**:
-- [ ] PostgreSQL環境でテストが正常に実行できる
-- [ ] エラーが発生しない
-- [ ] 既存のPostgreSQLテストが正常に動作する
+- [x] PostgreSQL環境でテストが正常に実行できる
+- [x] エラーが発生しない
+- [x] 既存のPostgreSQLテストが正常に動作する
 
 - _Requirements: 6.8, 7.2_
 - _Design: 3.3.3_
@@ -1192,9 +1192,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - MySQL用の設定ファイルの説明
 
 **受け入れ基準**:
-- [ ] `README.md`にMySQL対応の手順が追加されている
-- [ ] MySQL用のコマンドが記載されている
-- [ ] MySQL用の設定方法が記載されている
+- [x] `README.md`にMySQL対応の手順が追加されている
+- [x] MySQL用のコマンドが記載されている
+- [x] MySQL用の設定方法が記載されている
 
 - _Requirements: 6.8_
 - _Design: 6.4_

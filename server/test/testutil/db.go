@@ -22,7 +22,7 @@ import (
 const TestSecretKey = "test-secret-key-for-jwt-signing"
 
 // TestEnv はテスト用の環境
-const TestEnv = "develop"
+const TestEnv = "test"
 
 // PostgreSQL接続設定（テスト用）
 const (
