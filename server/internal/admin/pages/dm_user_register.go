@@ -94,16 +94,10 @@ func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bo
 			return false, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
 		}
 
-		sqlDB, err := conn.DB.DB()
-		if err != nil {
-			return false, fmt.Errorf("failed to get sql.DB for table %d: %w", tableNum, err)
-		}
-
 		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
-		query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = $1", tableName)
-
-		var count int
-		err = sqlDB.QueryRow(query, email).Scan(&count)
+		// GORMのRawを使用（プレースホルダーは?で統一、GORMが内部で変換）
+		var count int64
+		err = conn.DB.Raw(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = ?", tableName), email).Scan(&count).Error
 		if err != nil {
 			return false, fmt.Errorf("failed to check email in %s: %w", tableName, err)
 		}
@@ -140,19 +134,13 @@ func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (
 		return "", fmt.Errorf("failed to get sharding connection: %w", err)
 	}
 
-	// sql.DBを取得
-	sqlDB, err := conn.DB.DB()
-	if err != nil {
-		return "", fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	// dm_userを挿入
+	// GORMのExecを使用してdm_userを挿入（プレースホルダーは?で統一）
 	query := fmt.Sprintf(`
 		INSERT INTO %s (id, name, email, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES (?, ?, ?, ?, ?)
 	`, tableName)
 
-	_, err = sqlDB.Exec(query, dmUserID, name, email, now, now)
+	err = conn.DB.Exec(query, dmUserID, name, email, now, now).Error
 	if err != nil {
 		return "", fmt.Errorf("failed to insert dm_user: %w", err)
 	}

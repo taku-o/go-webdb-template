@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/GoAdminGroup/go-admin/modules/db/drivers/mysql"
 	_ "github.com/GoAdminGroup/go-admin/modules/db/drivers/postgres"
 	_ "github.com/GoAdminGroup/themes/adminlte"
 
@@ -60,6 +61,9 @@ func main() {
 	// GoAdmin設定構造体の作成
 	adminCfg := admin.NewConfig(cfg)
 	goadminCfg := adminCfg.GetGoAdminConfig()
+
+	// テーブルジェネレータで使用するドライバーを設定
+	admin.SetDriver(goadminCfg.Databases["default"].Driver)
 
 	// GoAdmin Engineの設定とテーブルジェネレータの登録
 	if err := eng.AddConfig(goadminCfg).

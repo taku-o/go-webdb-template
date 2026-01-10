@@ -20,7 +20,7 @@ func TestGetDatabaseConfig_Success(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "localhost",
 						Port:     5432,
 						Name:     "webdb_master",
@@ -86,7 +86,7 @@ func TestGetDatabaseConfig_IncompleteConfig_MissingHost(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "", // 空のhost
 						Port:     5432,
 						Name:     "webdb_master",
@@ -120,7 +120,7 @@ func TestGetDatabaseConfig_IncompleteConfig_MissingPort(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "localhost",
 						Port:     0, // portが0
 						Name:     "webdb_master",
@@ -154,7 +154,7 @@ func TestGetDatabaseConfig_IncompleteConfig_MissingUser(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "localhost",
 						Port:     5432,
 						Name:     "webdb_master",
@@ -188,7 +188,7 @@ func TestGetDatabaseConfig_IncompleteConfig_MissingName(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "localhost",
 						Port:     5432,
 						Name:     "", // 空のname
@@ -222,7 +222,7 @@ func TestGetDatabaseConfig_EmptyPassword(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "localhost",
 						Port:     5432,
 						Name:     "webdb_master",
@@ -248,4 +248,154 @@ func TestGetDatabaseConfig_EmptyPassword(t *testing.T) {
 	// DSN形式が正しく構築されていることを確認（パスワードは空）
 	expectedDsn := "host=localhost port=5432 user=webdb password= dbname=webdb_master sslmode=disable"
 	assert.Equal(t, expectedDsn, defaultDB.Dsn)
+}
+
+func TestGetDatabaseConfig_PostgreSQL(t *testing.T) {
+	// 正常系: Driver=postgresqlの場合、PostgreSQL用のDSN形式が生成されることを確認
+	appConfig := &config.Config{
+		Admin: config.AdminConfig{
+			Port: 8081,
+		},
+		Database: config.DatabaseConfig{
+			Groups: config.DatabaseGroupsConfig{
+				Master: []config.ShardConfig{
+					{
+						ID:       1,
+						Driver:   "postgres",
+						Host:     "localhost",
+						Port:     5432,
+						Name:     "webdb_master",
+						User:     "webdb",
+						Password: "webdb",
+					},
+				},
+			},
+		},
+		Logging: config.LoggingConfig{
+			Level: "debug",
+		},
+	}
+
+	cfg := NewConfig(appConfig)
+	goadminCfg := cfg.GetGoAdminConfig()
+
+	require.NotNil(t, goadminCfg)
+	require.NotNil(t, goadminCfg.Databases)
+
+	defaultDB, ok := goadminCfg.Databases["default"]
+	require.True(t, ok, "default database configuration should exist")
+	assert.Equal(t, "postgresql", defaultDB.Driver, "Driver should be postgresql for GoAdmin")
+
+	// PostgreSQL用のDSN形式が正しく構築されていることを確認
+	expectedDsn := "host=localhost port=5432 user=webdb password=webdb dbname=webdb_master sslmode=disable"
+	assert.Equal(t, expectedDsn, defaultDB.Dsn, "DSN should be correctly formatted for PostgreSQL")
+}
+
+func TestGetDatabaseConfig_MySQL(t *testing.T) {
+	// 正常系: Driver=mysqlの場合、MySQL用のDSN形式が生成されることを確認
+	appConfig := &config.Config{
+		Admin: config.AdminConfig{
+			Port: 8081,
+		},
+		Database: config.DatabaseConfig{
+			Groups: config.DatabaseGroupsConfig{
+				Master: []config.ShardConfig{
+					{
+						ID:       1,
+						Driver:   "mysql",
+						Host:     "localhost",
+						Port:     3306,
+						Name:     "webdb_master",
+						User:     "webdb",
+						Password: "webdb",
+					},
+				},
+			},
+		},
+		Logging: config.LoggingConfig{
+			Level: "debug",
+		},
+	}
+
+	cfg := NewConfig(appConfig)
+	goadminCfg := cfg.GetGoAdminConfig()
+
+	require.NotNil(t, goadminCfg)
+	require.NotNil(t, goadminCfg.Databases)
+
+	defaultDB, ok := goadminCfg.Databases["default"]
+	require.True(t, ok, "default database configuration should exist")
+	assert.Equal(t, "mysql", defaultDB.Driver, "Driver should be mysql for GoAdmin")
+
+	// MySQL用のDSN形式が正しく構築されていることを確認
+	expectedDsn := "webdb:webdb@tcp(localhost:3306)/webdb_master?charset=utf8mb4&parseTime=true&loc=Local"
+	assert.Equal(t, expectedDsn, defaultDB.Dsn, "DSN should be correctly formatted for MySQL")
+}
+
+func TestGetDatabaseConfig_NoDriver(t *testing.T) {
+	// 異常系: ドライバーが指定されていない場合、エラーが発生することを確認
+	appConfig := &config.Config{
+		Admin: config.AdminConfig{
+			Port: 8081,
+		},
+		Database: config.DatabaseConfig{
+			Groups: config.DatabaseGroupsConfig{
+				Master: []config.ShardConfig{
+					{
+						ID:       1,
+						Driver:   "", // ドライバー未指定
+						Host:     "localhost",
+						Port:     5432,
+						Name:     "webdb_master",
+						User:     "webdb",
+						Password: "webdb",
+					},
+				},
+			},
+		},
+		Logging: config.LoggingConfig{
+			Level: "debug",
+		},
+	}
+
+	cfg := NewConfig(appConfig)
+
+	// panicが発生することを確認
+	assert.Panics(t, func() {
+		cfg.GetGoAdminConfig()
+	}, "should panic when driver is not specified")
+}
+
+func TestGetDatabaseConfig_UnsupportedDriver(t *testing.T) {
+	// 異常系: 未対応のドライバーが指定された場合、エラーが発生することを確認
+	appConfig := &config.Config{
+		Admin: config.AdminConfig{
+			Port: 8081,
+		},
+		Database: config.DatabaseConfig{
+			Groups: config.DatabaseGroupsConfig{
+				Master: []config.ShardConfig{
+					{
+						ID:       1,
+						Driver:   "sqlite", // 未対応のドライバー
+						Host:     "localhost",
+						Port:     5432,
+						Name:     "webdb_master",
+						User:     "webdb",
+						Password: "webdb",
+					},
+				},
+			},
+		},
+		Logging: config.LoggingConfig{
+			Level: "debug",
+		},
+	}
+
+	cfg := NewConfig(appConfig)
+
+	// panicが発生することを確認
+	assert.Panics(t, func() {
+		cfg.GetGoAdminConfig()
+	}, "should panic when unsupported driver is specified")
 }

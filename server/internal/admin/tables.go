@@ -10,12 +10,22 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 )
 
+// currentDriver はGoAdminで使用するデータベースドライバーを保持する
+// デフォルトはPostgreSQL
+var currentDriver = db.DriverPostgresql
+
+// SetDriver はデータベースドライバーを設定する
+// 設定ファイルのdriver値に基づいてGoAdminのドライバーを設定する
+func SetDriver(driver string) {
+	currentDriver = driver
+}
+
 // GetDmNewsTable はdm_newsテーブルのGoAdmin設定を返す
 // 注意: GoAdminはmasterグループのデータベースのみを使用するため、
 // dm_users/dm_postsテーブル（shardingグループ）はGoAdminで管理できません
 func GetDmNewsTable(ctx *context.Context) table.Table {
 	newsTable := table.NewDefaultTable(ctx, table.Config{
-		Driver:     db.DriverPostgresql,
+		Driver:     currentDriver,
 		CanAdd:     true,
 		Editable:   true,
 		Deletable:  true,

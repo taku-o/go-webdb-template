@@ -84,13 +84,13 @@ Adminサーバー（GoAdmin管理画面）をPostgreSQLに加えて、MySQLで�
   ```
 
 **受け入れ基準**:
-- [ ] `getDatabaseConfig()`メソッドで`masterDB.Driver`を参照してデータベースタイプを判定している
-- [ ] PostgreSQLの場合、PostgreSQL用のDSN形式を生成している（`host=... port=... user=... password=... dbname=... sslmode=disable`）
-- [ ] MySQLの場合、MySQL用のDSN形式を生成している（`user:pass@tcp(host:port)/dbname?charset=utf8mb4&parseTime=true&loc=Local`）
-- [ ] ドライバー名がデータベースタイプに応じて設定されている（`postgresql`または`mysql`）
-- [ ] ドライバーが指定されていない場合にエラーを返している
-- [ ] 未対応のドライバーが指定された場合にエラーを返している
-- [ ] 既存のPostgreSQLコードに影響がない（後方互換性を維持）
+- [x] `getDatabaseConfig()`メソッドで`masterDB.Driver`を参照してデータベースタイプを判定している
+- [x] PostgreSQLの場合、PostgreSQL用のDSN形式を生成している（`host=... port=... user=... password=... dbname=... sslmode=disable`）
+- [x] MySQLの場合、MySQL用のDSN形式を生成している（`user:pass@tcp(host:port)/dbname?charset=utf8mb4&parseTime=true&loc=Local`）
+- [x] ドライバー名がデータベースタイプに応じて設定されている（`postgresql`または`mysql`）
+- [x] ドライバーが指定されていない場合にエラーを返している
+- [x] 未対応のドライバーが指定された場合にエラーを返している
+- [x] 既存のPostgreSQLコードに影響がない（後方互換性を維持）
 
 - _Requirements: 3.1.1, 3.1.2, 6.1_
 - _Design: 3.1.1_
@@ -121,9 +121,9 @@ Adminサーバー（GoAdmin管理画面）をPostgreSQLに加えて、MySQLで�
   ```
 
 **受け入れ基準**:
-- [ ] `server/cmd/admin/main.go`にMySQLドライバーのインポートが追加されている
-- [ ] 既存のPostgreSQLドライバーのインポートが維持されている
-- [ ] ブランクインポート（`_`）を使用している
+- [x] `server/cmd/admin/main.go`にMySQLドライバーのインポートが追加されている
+- [x] 既存のPostgreSQLドライバーのインポートが維持されている
+- [x] ブランクインポート（`_`）を使用している
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -276,12 +276,12 @@ func TestConfig_getDatabaseConfig_UnsupportedDriver(t *testing.T) {
 ```
 
 **受け入れ基準**:
-- [ ] `TestConfig_getDatabaseConfig_PostgreSQL`テストが追加されている
-- [ ] `TestConfig_getDatabaseConfig_MySQL`テストが追加されている
-- [ ] `TestConfig_getDatabaseConfig_NoDriver`テストが追加されている
-- [ ] `TestConfig_getDatabaseConfig_UnsupportedDriver`テストが追加されている
-- [ ] すべてのテストが正常に実行できる
-- [ ] テストカバレッジが適切である
+- [x] `TestConfig_getDatabaseConfig_PostgreSQL`テストが追加されている
+- [x] `TestConfig_getDatabaseConfig_MySQL`テストが追加されている
+- [x] `TestConfig_getDatabaseConfig_NoDriver`テストが追加されている
+- [x] `TestConfig_getDatabaseConfig_UnsupportedDriver`テストが追加されている
+- [x] すべてのテストが正常に実行できる
+- [x] テストカバレッジが適切である
 
 - _Requirements: 6.1_
 - _Design: 6.1.1_

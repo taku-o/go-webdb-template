@@ -51,7 +51,7 @@ func TestGetGoAdminConfig(t *testing.T) {
 				Master: []config.ShardConfig{
 					{
 						ID:       1,
-						Driver:   "postgresql",
+						Driver:   "postgres",
 						Host:     "localhost",
 						Port:     5432,
 						Name:     "webdb_master",
