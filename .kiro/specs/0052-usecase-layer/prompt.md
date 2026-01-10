@@ -75,6 +75,8 @@ commitした後、
 https://github.com/taku-o/go-webdb-template/issues/107
 に対してpull requestを発行してください。
 
+/review 108
+
 
 
 
