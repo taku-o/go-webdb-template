@@ -175,7 +175,10 @@ commitした後、
 https://github.com/taku-o/go-webdb-template/issues/113
 に対してpull requestを発行してください。
 
-/review 114
+/review 115
+
+これどこ？どのファイル？
+config_test.go:1501
 
 
 
