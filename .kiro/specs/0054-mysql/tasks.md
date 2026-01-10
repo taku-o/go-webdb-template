@@ -32,10 +32,10 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   ```
 
 **受け入れ基準**:
-- [ ] `GetDSN()`メソッドでMySQLのDSNに`charset=utf8mb4`が追加されている
-- [ ] `GetDSN()`メソッドでMySQLのDSNに`loc=Local`が追加されている
-- [ ] 既存の`parseTime=true`が維持されている
-- [ ] PostgreSQLのDSN生成に影響がない（後方互換性を維持）
+- [x] `GetDSN()`メソッドでMySQLのDSNに`charset=utf8mb4`が追加されている
+- [x] `GetDSN()`メソッドでMySQLのDSNに`loc=Local`が追加されている
+- [x] 既存の`parseTime=true`が維持されている
+- [x] PostgreSQLのDSN生成に影響がない（後方互換性を維持）
 
 - _Requirements: 3.7.1, 6.7_
 - _Design: 3.7.1_
@@ -62,8 +62,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   ```
 
 **受け入れ基準**:
-- [ ] `config/develop/config.yaml`に`DB_TYPE`フィールドが追加されている
-- [ ] デフォルト値が`postgresql`に設定されている
+- [x] `config/develop/config.yaml`に`DB_TYPE`フィールドが追加されている
+- [x] デフォルト値が`postgresql`に設定されている
 
 - _Requirements: 3.1.2, 6.1_
 - _Design: 3.1.2_
@@ -82,7 +82,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 追加内容: タスク2.1と同様
 
 **受け入れ基準**:
-- [ ] `config/staging/config.yaml`に`DB_TYPE`フィールドが追加されている
+- [x] `config/staging/config.yaml`に`DB_TYPE`フィールドが追加されている
 
 - _Requirements: 3.1.2, 6.1_
 - _Design: 3.1.2_
@@ -101,7 +101,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 追加内容: タスク2.1と同様
 
 **受け入れ基準**:
-- [ ] `config/production/config.yaml.example`に`DB_TYPE`フィールドが追加されている
+- [x] `config/production/config.yaml.example`に`DB_TYPE`フィールドが追加されている
 
 - _Requirements: 3.1.2, 6.1_
 - _Design: 3.1.2_
@@ -120,7 +120,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 追加内容: タスク2.1と同様
 
 **受け入れ基準**:
-- [ ] `config/test/config.yaml`に`DB_TYPE`フィールドが追加されている
+- [x] `config/test/config.yaml`に`DB_TYPE`フィールドが追加されている
 
 - _Requirements: 3.1.2, 6.1_
 - _Design: 3.1.2_
@@ -171,10 +171,10 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   ```
 
 **受け入れ基準**:
-- [ ] `Load()`関数で`DB_TYPE`が正しく読み込まれる
-- [ ] `DB_TYPE`が`mysql`の場合、`database.mysql.yaml`が読み込まれる
-- [ ] `DB_TYPE`が`postgresql`または未指定の場合、`database.yaml`が読み込まれる（既存の動作）
-- [ ] 既存のPostgreSQL設定ファイルの読み込みに影響がない
+- [x] `Load()`関数で`DB_TYPE`が正しく読み込まれる
+- [x] `DB_TYPE`が`mysql`の場合、`database.mysql.yaml`が読み込まれる
+- [x] `DB_TYPE`が`postgresql`または未指定の場合、`database.yaml`が読み込まれる（既存の動作）
+- [x] 既存のPostgreSQL設定ファイルの読み込みに影響がない
 
 - _Requirements: 3.1.2, 6.1_
 - _Design: 3.1.2_
@@ -201,10 +201,10 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - その他の設定はPostgreSQLと同じ値を維持
 
 **受け入れ基準**:
-- [ ] `config/develop/database.mysql.yaml`が作成されている
-- [ ] 各設定で`driver: mysql`が指定されている
-- [ ] MySQL接続情報が正しく設定されている
-- [ ] ポート番号がMySQL用に変更されている（3306, 3307, 3308, 3309, 3310）
+- [x] `config/develop/database.mysql.yaml`が作成されている
+- [x] 各設定で`driver: mysql`が指定されている
+- [x] MySQL接続情報が正しく設定されている
+- [x] ポート番号がMySQL用に変更されている（3306, 3307, 3308, 3309, 3310）
 
 - _Requirements: 3.1.1, 6.1_
 - _Design: 3.1.1_
@@ -225,9 +225,9 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 変更内容: タスク4.1と同様
 
 **受け入れ基準**:
-- [ ] `config/staging/database.mysql.yaml`が作成されている
-- [ ] 各設定で`driver: mysql`が指定されている
-- [ ] MySQL接続情報が正しく設定されている
+- [x] `config/staging/database.mysql.yaml`が作成されている
+- [x] 各設定で`driver: mysql`が指定されている
+- [x] MySQL接続情報が正しく設定されている
 
 - _Requirements: 3.1.1, 6.1_
 - _Design: 3.1.1_
@@ -248,9 +248,9 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 変更内容: タスク4.1と同様
 
 **受け入れ基準**:
-- [ ] `config/production/database.mysql.yaml.example`が作成されている
-- [ ] 各設定で`driver: mysql`が指定されている
-- [ ] MySQL接続情報が正しく設定されている
+- [x] `config/production/database.mysql.yaml.example`が作成されている
+- [x] 各設定で`driver: mysql`が指定されている
+- [x] MySQL接続情報が正しく設定されている
 
 - _Requirements: 3.1.1, 6.1_
 - _Design: 3.1.1_
@@ -271,9 +271,9 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 変更内容: タスク4.1と同様
 
 **受け入れ基準**:
-- [ ] `config/test/database.mysql.yaml`が作成されている
-- [ ] 各設定で`driver: mysql`が指定されている
-- [ ] MySQL接続情報が正しく設定されている
+- [x] `config/test/database.mysql.yaml`が作成されている
+- [x] 各設定で`driver: mysql`が指定されている
+- [x] MySQL接続情報が正しく設定されている
 
 - _Requirements: 3.1.1, 6.1_
 - _Design: 3.1.1_
@@ -303,13 +303,13 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - コマンド: `--default-authentication-plugin=mysql_native_password`を追加
 
 **受け入れ基準**:
-- [ ] `docker-compose.mysql.yml`が作成されている
-- [ ] マスターデータベースコンテナが定義されている（port 3306）
-- [ ] シャーディングデータベースコンテナが定義されている（port 3307-3310）
-- [ ] 各コンテナでMySQL 8のイメージが使用されている
-- [ ] 環境変数がMySQL用に設定されている
-- [ ] ボリュームマウントがMySQL用に設定されている
-- [ ] ヘルスチェックがMySQL用に設定されている
+- [x] `docker-compose.mysql.yml`が作成されている
+- [x] マスターデータベースコンテナが定義されている（port 3306）
+- [x] シャーディングデータベースコンテナが定義されている（port 3307-3310）
+- [x] 各コンテナでMySQL 8のイメージが使用されている
+- [x] 環境変数がMySQL用に設定されている
+- [x] ボリュームマウントがMySQL用に設定されている
+- [x] ヘルスチェックがMySQL用に設定されている
 
 - _Requirements: 3.5.1, 6.5_
 - _Design: 3.5.1_
@@ -336,12 +336,12 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - メッセージをMySQL用に変更
 
 **受け入れ基準**:
-- [ ] `scripts/start-mysql.sh`が作成されている
-- [ ] 実行権限が設定されている（`chmod +x scripts/start-mysql.sh`）
-- [ ] `start`コマンドでMySQLコンテナが起動できる
-- [ ] `stop`コマンドでMySQLコンテナが停止できる
-- [ ] `status`コマンドでコンテナの状態が表示できる
-- [ ] `health`コマンドでヘルスチェック状態が表示できる
+- [x] `scripts/start-mysql.sh`が作成されている
+- [x] 実行権限が設定されている（`chmod +x scripts/start-mysql.sh`）
+- [x] `start`コマンドでMySQLコンテナが起動できる
+- [x] `stop`コマンドでMySQLコンテナが停止できる
+- [x] `status`コマンドでコンテナの状態が表示できる
+- [x] `health`コマンドでヘルスチェック状態が表示できる
 
 - _Requirements: 3.6.1, 6.6_
 - _Design: 3.6.1_
@@ -369,11 +369,11 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - マイグレーションディレクトリ: `master` → `master-mysql`など
 
 **受け入れ基準**:
-- [ ] `scripts/migrate-test-mysql.sh`が作成されている
-- [ ] 実行権限が設定されている（`chmod +x scripts/migrate-test-mysql.sh`）
-- [ ] マスターデータベースへのマイグレーションが正常に実行できる
-- [ ] シャーディングデータベースへのマイグレーションが正常に実行できる
-- [ ] 各データベースへのSQLファイルが正常に適用できる
+- [x] `scripts/migrate-test-mysql.sh`が作成されている
+- [x] 実行権限が設定されている（`chmod +x scripts/migrate-test-mysql.sh`）
+- [x] マスターデータベースへのマイグレーションが正常に実行できる
+- [x] シャーディングデータベースへのマイグレーションが正常に実行できる
+- [x] 各データベースへのSQLファイルが正常に適用できる
 
 - _Requirements: 3.6.2, 6.6_
 - _Design: 3.6.2_
@@ -400,10 +400,10 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - `dir = "file://db/migrations/master"` → `dir = "file://db/migrations/master-mysql"`
 
 **受け入れ基準**:
-- [ ] `config/develop/atlas.mysql.hcl`が作成されている
-- [ ] 各環境でMySQL用のURLが設定されている
-- [ ] 各環境で`dev = "docker://mysql/8/dev"`が設定されている
-- [ ] マイグレーションディレクトリがMySQL用に設定されている
+- [x] `config/develop/atlas.mysql.hcl`が作成されている
+- [x] 各環境でMySQL用のURLが設定されている
+- [x] 各環境で`dev = "docker://mysql/8/dev"`が設定されている
+- [x] マイグレーションディレクトリがMySQL用に設定されている
 
 - _Requirements: 3.4.1, 6.4_
 - _Design: 3.4.1_
@@ -423,8 +423,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 変更内容: タスク7.1と同様（接続情報はstaging環境用に調整）
 
 **受け入れ基準**:
-- [ ] `config/staging/atlas.mysql.hcl`が作成されている
-- [ ] 各環境でMySQL用のURLが設定されている
+- [x] `config/staging/atlas.mysql.hcl`が作成されている
+- [x] 各環境でMySQL用のURLが設定されている
 
 - _Requirements: 3.4.1, 6.4_
 - _Design: 3.4.1_
@@ -444,8 +444,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 変更内容: タスク7.1と同様（接続情報はproduction環境用に調整）
 
 **受け入れ基準**:
-- [ ] `config/production/atlas.mysql.hcl`が作成されている
-- [ ] 各環境でMySQL用のURLが設定されている
+- [x] `config/production/atlas.mysql.hcl`が作成されている
+- [x] 各環境でMySQL用のURLが設定されている
 
 - _Requirements: 3.4.1, 6.4_
 - _Design: 3.4.1_
@@ -465,8 +465,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - 変更内容: タスク7.1と同様（接続情報はtest環境用に調整）
 
 **受け入れ基準**:
-- [ ] `config/test/atlas.mysql.hcl`が作成されている
-- [ ] 各環境でMySQL用のURLが設定されている
+- [x] `config/test/atlas.mysql.hcl`が作成されている
+- [x] 各環境でMySQL用のURLが設定されている
 
 - _Requirements: 3.4.1, 6.4_
 - _Design: 3.4.1_
@@ -485,7 +485,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - ディレクトリ作成: `mkdir -p db/migrations/master-mysql`
 
 **受け入れ基準**:
-- [ ] `db/migrations/master-mysql/`ディレクトリが作成されている
+- [x] `db/migrations/master-mysql/`ディレクトリが作成されている
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -502,7 +502,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - ディレクトリ作成: `mkdir -p db/migrations/sharding_1-mysql`
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_1-mysql/`ディレクトリが作成されている
+- [x] `db/migrations/sharding_1-mysql/`ディレクトリが作成されている
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -519,7 +519,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - ディレクトリ作成: `mkdir -p db/migrations/sharding_2-mysql`
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_2-mysql/`ディレクトリが作成されている
+- [x] `db/migrations/sharding_2-mysql/`ディレクトリが作成されている
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -536,7 +536,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - ディレクトリ作成: `mkdir -p db/migrations/sharding_3-mysql`
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_3-mysql/`ディレクトリが作成されている
+- [x] `db/migrations/sharding_3-mysql/`ディレクトリが作成されている
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -553,7 +553,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - ディレクトリ作成: `mkdir -p db/migrations/sharding_4-mysql`
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_4-mysql/`ディレクトリが作成されている
+- [x] `db/migrations/sharding_4-mysql/`ディレクトリが作成されている
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -570,7 +570,7 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - ディレクトリ作成: `mkdir -p db/migrations/view_master-mysql`
 
 **受け入れ基準**:
-- [ ] `db/migrations/view_master-mysql/`ディレクトリが作成されている
+- [x] `db/migrations/view_master-mysql/`ディレクトリが作成されている
 
 - _Requirements: 3.2.1, 6.2_
 - _Design: 3.2.1_
@@ -604,10 +604,10 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - 生成されたSQLに構文エラーがないか
 
 **受け入れ基準**:
-- [ ] Atlasコマンドが正常に実行できる
-- [ ] MySQL用のSQLが生成される
-- [ ] 生成されたSQLに構文エラーがない
-- [ ] 問題が発生した場合は、MySQL用HCLスキーマの作成が必要であることを記録
+- [x] Atlasコマンドが正常に実行できる
+- [x] MySQL用のSQLが生成される
+- [x] 生成されたSQLに構文エラーがない
+- [x] 問題が発生した場合は、MySQL用HCLスキーマの作成が必要であることを記録（`db/schema/*-mysql/`ディレクトリを作成）
 
 - _Requirements: 3.2.2, 6.2_
 - _Design: 3.2.2, 7.2_
@@ -636,9 +636,9 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - 上記コマンドの`--to`を`file://db/schema/master-mysql.hcl`に変更
 
 **受け入れ基準**:
-- [ ] `db/migrations/master-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
-- [ ] 生成されたSQLファイルがMySQL構文になっている
-- [ ] 生成されたSQLファイルに構文エラーがない
+- [x] `db/migrations/master-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
+- [x] 生成されたSQLファイルがMySQL構文になっている
+- [x] 生成されたSQLファイルに構文エラーがない
 
 - _Requirements: 3.2.2, 3.2.3, 6.2_
 - _Design: 3.2.2, 8.5_
@@ -665,8 +665,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
   - 各HCLファイルをMySQL用に修正
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_1-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
-- [ ] 生成されたSQLファイルがMySQL構文になっている
+- [x] `db/migrations/sharding_1-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
+- [x] 生成されたSQLファイルがMySQL構文になっている
 
 - _Requirements: 3.2.2, 3.2.3, 6.2_
 - _Design: 3.2.2, 8.5_
@@ -683,8 +683,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - タスク9.3と同様（`sharding_2`に変更）
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_2-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
-- [ ] 生成されたSQLファイルがMySQL構文になっている
+- [x] `db/migrations/sharding_2-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
+- [x] 生成されたSQLファイルがMySQL構文になっている
 
 - _Requirements: 3.2.2, 3.2.3, 6.2_
 - _Design: 3.2.2, 8.5_
@@ -701,8 +701,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - タスク9.3と同様（`sharding_3`に変更）
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_3-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
-- [ ] 生成されたSQLファイルがMySQL構文になっている
+- [x] `db/migrations/sharding_3-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
+- [x] 生成されたSQLファイルがMySQL構文になっている
 
 - _Requirements: 3.2.2, 3.2.3, 6.2_
 - _Design: 3.2.2, 8.5_
@@ -719,8 +719,8 @@ PostgreSQLが主のデータベースだが、MySQLでも動作するように�
 - タスク9.3と同様（`sharding_4`に変更）
 
 **受け入れ基準**:
-- [ ] `db/migrations/sharding_4-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
-- [ ] 生成されたSQLファイルがMySQL構文になっている
+- [x] `db/migrations/sharding_4-mysql/`ディレクトリにMySQL用のSQLファイルが生成されている
+- [x] 生成されたSQLファイルがMySQL構文になっている
 
 - _Requirements: 3.2.2, 3.2.3, 6.2_
 - _Design: 3.2.2, 8.5_
@@ -759,9 +759,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 ```
 
 **受け入れ基準**:
-- [ ] `db/migrations/master-mysql/20260108145415_seed_data.sql`が作成されている
-- [ ] PostgreSQL固有の構文がMySQL構文に変換されている
-- [ ] 生成されたSQLファイルがMySQLで正常に実行できる
+- [x] `db/migrations/master-mysql/20260110125440_seed_data.sql`が作成されている（タイムスタンプはinitial_schemaより後に調整）
+- [x] PostgreSQL固有の構文がMySQL構文に変換されている
+- [x] 生成されたSQLファイルがMySQLで正常に実行できる
 
 - _Requirements: 3.2.3, 6.2_
 - _Design: 3.2.3_
@@ -786,9 +786,9 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
 - ビューの定義がPostgreSQLとMySQLで大きく異なる場合は、設計を確認する
 
 **受け入れ基準**:
-- [ ] `db/migrations/view_master-mysql/20260103030225_create_dm_news_view.sql`が作成されている（必要に応じて）
-- [ ] PostgreSQL固有の構文がMySQL構文に変換されている
-- [ ] 生成されたSQLファイルがMySQLで正常に実行できる
+- [x] `db/migrations/view_master-mysql/20260103030225_create_dm_news_view.sql`が作成されている
+- [x] PostgreSQL固有の構文がMySQL構文に変換されている
+- [x] 生成されたSQLファイルがMySQLで正常に実行できる
 
 - _Requirements: 3.2.3, 6.2_
 - _Design: 3.2.3_
@@ -830,8 +830,8 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - その他の構文は両方で動作する
 
 **受け入れ基準**:
-- [ ] `InitMySQLMasterSchema()`関数が実装されている
-- [ ] MySQL用のSQL構文が使用されている
+- [x] `InitMySQLMasterSchema()`関数が実装されている
+- [x] MySQL用のSQL構文が使用されている
 - [ ] 関数が正常に動作する
 
 - _Requirements: 3.3.1, 6.3_
@@ -886,8 +886,8 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - `TEXT PRIMARY KEY` → `VARCHAR(32) PRIMARY KEY`（より適切）
 
 **受け入れ基準**:
-- [ ] `InitMySQLShardingSchema()`関数が実装されている
-- [ ] MySQL用のSQL構文が使用されている
+- [x] `InitMySQLShardingSchema()`関数が実装されている
+- [x] MySQL用のSQL構文が使用されている
 - [ ] 関数が正常に動作する
 
 - _Requirements: 3.3.1, 6.3_
@@ -929,8 +929,8 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   - `TRUNCATE TABLE ... RESTART IDENTITY CASCADE` → `TRUNCATE TABLE`（AUTO_INCREMENTは自動リセット）
 
 **受け入れ基準**:
-- [ ] `clearMySQLDatabaseTables()`関数が実装されている
-- [ ] MySQL用のSQL構文が使用されている
+- [x] `clearMySQLDatabaseTables()`関数が実装されている
+- [x] MySQL用のSQL構文が使用されている
 - [ ] 関数が正常に動作する
 - [ ] テーブルのデータが正常にクリアされる
 
@@ -990,10 +990,10 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   ```
 
 **受け入れ基準**:
-- [ ] `SetupTestGroupManager()`関数でデータベースドライバーが判定されている
-- [ ] `driver == "postgres"`の場合、既存の関数が呼び出される
-- [ ] `driver == "mysql"`の場合、MySQL用の関数が呼び出される
-- [ ] 既存のPostgreSQLテストが正常に動作する
+- [x] `SetupTestGroupManager()`関数でデータベースドライバーが判定されている
+- [x] `driver == "postgres"`の場合、既存の関数が呼び出される
+- [x] `driver == "mysql"`の場合、MySQL用の関数が呼び出される
+- [x] 既存のPostgreSQLテストが正常に動作する
 
 - _Requirements: 3.3.3, 6.3_
 - _Design: 3.3.3_
@@ -1038,10 +1038,10 @@ INSERT IGNORE INTO `goadmin_roles` (`id`, `name`, `slug`, `created_at`, `updated
   ```
 
 **受け入れ基準**:
-- [ ] `ClearTestDatabase()`関数でデータベースドライバーが判定されている
-- [ ] `driver == "postgres"`の場合、既存の関数が呼び出される
-- [ ] `driver == "mysql"`の場合、MySQL用の関数が呼び出される
-- [ ] 既存のPostgreSQLテストが正常に動作する
+- [x] `ClearTestDatabase()`関数でデータベースドライバーが判定されている
+- [x] `driver == "postgres"`の場合、既存の関数が呼び出される
+- [x] `driver == "mysql"`の場合、MySQL用の関数が呼び出される
+- [x] 既存のPostgreSQLテストが正常に動作する
 
 - _Requirements: 3.3.3, 6.3_
 - _Design: 3.3.3_

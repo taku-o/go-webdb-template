@@ -1,14 +1,14 @@
 services:
   mysql-master:
-    image: mysql:8.0
+    image: mysql:8
     container_name: mysql-master
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: master_db
       MYSQL_USER: webdb
       MYSQL_PASSWORD: webdb
+      MYSQL_DATABASE: webdb_master
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - ./mysql/data/master:/var/lib/mysql
     restart: unless-stopped
@@ -19,18 +19,18 @@ services:
       retries: 5
     networks:
       - mysql-network
-    command: --default-authentication-plugin=mysql_native_password
+    command: --mysql-native-password=ON
 
   mysql-sharding-1:
-    image: mysql:8.0
+    image: mysql:8
     container_name: mysql-sharding-1
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sharding_db_1
       MYSQL_USER: webdb
       MYSQL_PASSWORD: webdb
+      MYSQL_DATABASE: webdb_sharding_1
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - ./mysql/data/sharding_1:/var/lib/mysql
     restart: unless-stopped
@@ -41,18 +41,18 @@ services:
       retries: 5
     networks:
       - mysql-network
-    command: --default-authentication-plugin=mysql_native_password
+    command: --mysql-native-password=ON
 
   mysql-sharding-2:
-    image: mysql:8.0
+    image: mysql:8
     container_name: mysql-sharding-2
     ports:
       - "3308:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sharding_db_2
       MYSQL_USER: webdb
       MYSQL_PASSWORD: webdb
+      MYSQL_DATABASE: webdb_sharding_2
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - ./mysql/data/sharding_2:/var/lib/mysql
     restart: unless-stopped
@@ -63,18 +63,18 @@ services:
       retries: 5
     networks:
       - mysql-network
-    command: --default-authentication-plugin=mysql_native_password
+    command: --mysql-native-password=ON
 
   mysql-sharding-3:
-    image: mysql:8.0
+    image: mysql:8
     container_name: mysql-sharding-3
     ports:
       - "3309:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sharding_db_3
       MYSQL_USER: webdb
       MYSQL_PASSWORD: webdb
+      MYSQL_DATABASE: webdb_sharding_3
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - ./mysql/data/sharding_3:/var/lib/mysql
     restart: unless-stopped
@@ -85,18 +85,18 @@ services:
       retries: 5
     networks:
       - mysql-network
-    command: --default-authentication-plugin=mysql_native_password
+    command: --mysql-native-password=ON
 
   mysql-sharding-4:
-    image: mysql:8.0
+    image: mysql:8
     container_name: mysql-sharding-4
     ports:
       - "3310:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sharding_db_4
       MYSQL_USER: webdb
       MYSQL_PASSWORD: webdb
+      MYSQL_DATABASE: webdb_sharding_4
+      MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
       - ./mysql/data/sharding_4:/var/lib/mysql
     restart: unless-stopped
@@ -107,7 +107,7 @@ services:
       retries: 5
     networks:
       - mysql-network
-    command: --default-authentication-plugin=mysql_native_password
+    command: --mysql-native-password=ON
 
 networks:
   mysql-network:

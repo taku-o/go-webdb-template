@@ -1,0 +1,154 @@
+database:
+  groups:
+    master:
+      - id: 1
+        driver: mysql
+        host: staging-db-master.example.com
+        port: 3306
+        name: app_db_master
+        user: staging_user
+        password: ${DB_PASSWORD_MASTER}  # 環境変数から読み込み
+        writer_dsn: staging_user:${DB_PASSWORD_MASTER}@tcp(staging-db-master-writer.example.com:3306)/app_db_master?charset=utf8mb4&parseTime=true&loc=Local
+        reader_dsns:
+          - staging_user:${DB_PASSWORD_MASTER}@tcp(staging-db-master-reader1.example.com:3306)/app_db_master?charset=utf8mb4&parseTime=true&loc=Local
+        reader_policy: random
+        max_connections: 25
+        max_idle_connections: 10
+        connection_max_lifetime: 600s
+
+    sharding:
+      databases:
+        # sharding 1: テーブル _000-003（4テーブル）→ sharding1
+        - id: 1
+          driver: mysql
+          host: staging-db-sharding1.example.com
+          port: 3306
+          name: app_db_sharding1
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING1}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING1}@tcp(staging-db-sharding1-writer.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING1}@tcp(staging-db-sharding1-reader1.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [0, 3]
+        # sharding 2: テーブル _004-007（4テーブル）→ sharding1
+        - id: 2
+          driver: mysql
+          host: staging-db-sharding1.example.com
+          port: 3306
+          name: app_db_sharding1
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING1}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING1}@tcp(staging-db-sharding1-writer.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING1}@tcp(staging-db-sharding1-reader1.example.com:3306)/app_db_sharding1?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [4, 7]
+        # sharding 3: テーブル _008-011（4テーブル）→ sharding2
+        - id: 3
+          driver: mysql
+          host: staging-db-sharding2.example.com
+          port: 3306
+          name: app_db_sharding2
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING2}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING2}@tcp(staging-db-sharding2-writer.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING2}@tcp(staging-db-sharding2-reader1.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [8, 11]
+        # sharding 4: テーブル _012-015（4テーブル）→ sharding2
+        - id: 4
+          driver: mysql
+          host: staging-db-sharding2.example.com
+          port: 3306
+          name: app_db_sharding2
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING2}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING2}@tcp(staging-db-sharding2-writer.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING2}@tcp(staging-db-sharding2-reader1.example.com:3306)/app_db_sharding2?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [12, 15]
+        # sharding 5: テーブル _016-019（4テーブル）→ sharding3
+        - id: 5
+          driver: mysql
+          host: staging-db-sharding3.example.com
+          port: 3306
+          name: app_db_sharding3
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING3}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING3}@tcp(staging-db-sharding3-writer.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING3}@tcp(staging-db-sharding3-reader1.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [16, 19]
+        # sharding 6: テーブル _020-023（4テーブル）→ sharding3
+        - id: 6
+          driver: mysql
+          host: staging-db-sharding3.example.com
+          port: 3306
+          name: app_db_sharding3
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING3}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING3}@tcp(staging-db-sharding3-writer.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING3}@tcp(staging-db-sharding3-reader1.example.com:3306)/app_db_sharding3?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [20, 23]
+        # sharding 7: テーブル _024-027（4テーブル）→ sharding4
+        - id: 7
+          driver: mysql
+          host: staging-db-sharding4.example.com
+          port: 3306
+          name: app_db_sharding4
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING4}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING4}@tcp(staging-db-sharding4-writer.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING4}@tcp(staging-db-sharding4-reader1.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [24, 27]
+        # sharding 8: テーブル _028-031（4テーブル）→ sharding4
+        - id: 8
+          driver: mysql
+          host: staging-db-sharding4.example.com
+          port: 3306
+          name: app_db_sharding4
+          user: staging_user
+          password: ${DB_PASSWORD_SHARDING4}  # 環境変数から読み込み
+          writer_dsn: staging_user:${DB_PASSWORD_SHARDING4}@tcp(staging-db-sharding4-writer.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_dsns:
+            - staging_user:${DB_PASSWORD_SHARDING4}@tcp(staging-db-sharding4-reader1.example.com:3306)/app_db_sharding4?charset=utf8mb4&parseTime=true&loc=Local
+          reader_policy: random
+          max_connections: 25
+          max_idle_connections: 10
+          connection_max_lifetime: 600s
+          table_range: [28, 31]
+
+      tables:
+        - name: dm_users
+          suffix_count: 32
+        - name: dm_posts
+          suffix_count: 32

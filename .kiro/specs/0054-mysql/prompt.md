@@ -106,7 +106,111 @@ _serena_indexing
 
 /serena-initialize
 
-/kiro:spec-impl 0053-parallel-dbtest
+/kiro:spec-impl 0054-mysql 1
+
+タスクリストの完了した受け入れ基準にチェックをつけてください。
+
+/kiro:spec-impl 0054-mysql 2
+/kiro:spec-impl 0054-mysql 3
+
+/compact
+
+/kiro:spec-impl 0054-mysql 4
+/kiro:spec-impl 0054-mysql 5
+/kiro:spec-impl 0054-mysql 6
+
+>  注意: タスク6.2の受け入れ基準のうち、マイグレーション実行確認（残り3項目）はPhase 8-9でMySQL用マイグレーションディレクトリとファイルが作成された後に確認できます。
+
+/compact
+
+/kiro:spec-impl 0054-mysql 7
+/kiro:spec-impl 0054-mysql 8
+/kiro:spec-impl 0054-mysql 9
+
+タスク9 OK。
+/kiro:spec-impl 0054-mysql 10
+
+これらのファイルのMySQL版が作られていない。
+db/migrations/master/20260108145415_seed_data.sql
+db/migrations/view_master/20260103030225_create_dm_news_view.sql
+
+タスクリストの完了した受け入れ基準にチェックをつけてください。
+タスク6.2のチェックも。
+
+MySQLにSQLを流し込むのはまだやっていない？
+
+はい、MySQLを起動して、SQLを実行してください。
+
+MySQLに接続してみたい。
+ホストと、DB名、ユーザー、パスワードの情報ください
+
+  │ ホスト     │ localhost         │
+  │ ポート     │ 3306              │
+  │ DB名       │ webdb_master_test │
+  │ ユーザー   │ webdb             │
+  │ パスワード │ webdb             │
+
+  Sharding Databases
+  │  シャード  │ ポート │         DB名          │
+  │ Sharding 1 │ 3307   │ webdb_sharding_1_test │
+  │ Sharding 2 │ 3308   │ webdb_sharding_2_test │
+  │ Sharding 3 │ 3309   │ webdb_sharding_3_test │
+  │ Sharding 4 │ 3310   │ webdb_sharding_4_test │
+
+docker-compose.cloudbeaver.yml でMySQLに接続したい。
+けど、おそらくネットワーク設定がいる？
+
+  ┌────────────┬───────────────────┬───────────────────────┬───────────────────────┬───────────────────────┬───────────────────────┐
+  │    項目    │      Master       │      Sharding 1       │      Sharding 2       │      Sharding 3       │      Sharding 4       │
+  ├────────────┼───────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │ ホスト     │ mysql-master      │ mysql-sharding-1      │ mysql-sharding-2      │ mysql-sharding-3      │ mysql-sharding-4      │
+  ├────────────┼───────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │ ポート     │ 3306              │ 3306                  │ 3306                  │ 3306                  │ 3306                  │
+  ├────────────┼───────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │ DB名       │ webdb_master_test │ webdb_sharding_1_test │ webdb_sharding_2_test │ webdb_sharding_3_test │ webdb_sharding_4_test │
+  ├────────────┼───────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │ ユーザー   │ webdb             │ webdb                 │ webdb                 │ webdb                 │ webdb                 │
+  ├────────────┼───────────────────┼───────────────────────┼───────────────────────┼───────────────────────┼───────────────────────┤
+  │ パスワード │ webdb             │ webdb                 │ webdb                 │ webdb                 │ webdb                 │
+  └────────────┴───────────────────┴───────────────────────┴───────────────────────┴───────────────────────┴───────────────────────┘
+
+DB接続成功した。
+/kiro:spec-impl 0054-mysql 11
+
+関数の動作確認はどうする？
+確認するなら
+config/{env}/config.ymlのDB_TYPEとかは一時的に変更してもいいよ。
+
+タスク12を先にやった方が都合がいい？
+他にスキップしているけど、報告していない確認項目はある？
+
+OK。
+/kiro:spec-impl 0054-mysql 12
+
+/kiro:spec-impl 0054-mysql 13
+
+INSERT文でデータを入れたのは正しい動作確認といえないな。
+
+イミングの良いところでユーザーに応答を返して。割り込めない。
+
+まずやって貰いたいことがある。
+MySQLデータベースにmigrationでデータを入れて。
+前回確認したのはテストデータベースだった。
+テストでないデータベースに入れたデータを確認したい。
+
+文字化けはしてなさそうだよ。ちゃんとしたデータが入ってる。
+> 日本語が文字化けしていますが、データは入っています。シャーディングDBにもマイグレーションを実行します。
+
+次に問題の報告。
+何に失敗して、どのようなエラーが起きたのか。
+
+
+これはAPIサーバへの通信をテストするものであってる？
+TestAPIAuth_ValidToken
+
+
+
+
 
 
 

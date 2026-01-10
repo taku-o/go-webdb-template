@@ -1,0 +1,121 @@
+# MySQL設定（開発環境用）
+# MySQLの起動: ./scripts/start-mysql.sh start
+# マイグレーション: ./scripts/migrate-test-mysql.sh
+database:
+  groups:
+    master:
+      - id: 1
+        driver: mysql
+        host: localhost
+        port: 3306
+        user: webdb
+        password: webdb
+        name: webdb_master
+        max_connections: 25
+        max_idle_connections: 5
+        connection_max_lifetime: 1h
+
+    sharding:
+      databases:
+        # 論理シャード 1: テーブル _000-003 → mysql-sharding-1
+        - id: 1
+          driver: mysql
+          host: localhost
+          port: 3307
+          user: webdb
+          password: webdb
+          name: webdb_sharding_1
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [0, 3]
+        # 論理シャード 2: テーブル _004-007 → mysql-sharding-1
+        - id: 2
+          driver: mysql
+          host: localhost
+          port: 3307
+          user: webdb
+          password: webdb
+          name: webdb_sharding_1
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [4, 7]
+        # 論理シャード 3: テーブル _008-011 → mysql-sharding-2
+        - id: 3
+          driver: mysql
+          host: localhost
+          port: 3308
+          user: webdb
+          password: webdb
+          name: webdb_sharding_2
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [8, 11]
+        # 論理シャード 4: テーブル _012-015 → mysql-sharding-2
+        - id: 4
+          driver: mysql
+          host: localhost
+          port: 3308
+          user: webdb
+          password: webdb
+          name: webdb_sharding_2
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [12, 15]
+        # 論理シャード 5: テーブル _016-019 → mysql-sharding-3
+        - id: 5
+          driver: mysql
+          host: localhost
+          port: 3309
+          user: webdb
+          password: webdb
+          name: webdb_sharding_3
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [16, 19]
+        # 論理シャード 6: テーブル _020-023 → mysql-sharding-3
+        - id: 6
+          driver: mysql
+          host: localhost
+          port: 3309
+          user: webdb
+          password: webdb
+          name: webdb_sharding_3
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [20, 23]
+        # 論理シャード 7: テーブル _024-027 → mysql-sharding-4
+        - id: 7
+          driver: mysql
+          host: localhost
+          port: 3310
+          user: webdb
+          password: webdb
+          name: webdb_sharding_4
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [24, 27]
+        # 論理シャード 8: テーブル _028-031 → mysql-sharding-4
+        - id: 8
+          driver: mysql
+          host: localhost
+          port: 3310
+          user: webdb
+          password: webdb
+          name: webdb_sharding_4
+          max_connections: 25
+          max_idle_connections: 5
+          connection_max_lifetime: 1h
+          table_range: [28, 31]
+
+      tables:
+        - name: dm_users
+          suffix_count: 32
+        - name: dm_posts
+          suffix_count: 32

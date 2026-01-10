@@ -133,6 +133,115 @@
 					"autocommit": true
 				}
 			}
+		},
+		"mysql8-19ba82f3e58-b83b472a90a6224": {
+			"provider": "mysql",
+			"driver": "mysql8",
+			"name": "mysql-master",
+			"save-password": true,
+			"configuration": {
+				"host": "mysql-master",
+				"port": "3306",
+				"url": "jdbc:mysql://mysql-master:3306/",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-all-dbs@": "false"
+				},
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"mysql8-19ba82ff0a2-402b934fa3b27f8d": {
+			"provider": "mysql",
+			"driver": "mysql8",
+			"name": "mysql-sharding-1",
+			"save-password": true,
+			"configuration": {
+				"host": "mysql-sharding-1",
+				"port": "3306",
+				"database": "webdb_sharding_1",
+				"url": "jdbc:mysql://mysql-sharding-1:3306/webdb_sharding_1",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-all-dbs@": "false"
+				},
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"mysql8-19ba8309929-4a3e84d392fedeb9": {
+			"provider": "mysql",
+			"driver": "mysql8",
+			"name": "mysql-sharding-2",
+			"save-password": true,
+			"configuration": {
+				"host": "mysql-sharding-2",
+				"port": "3306",
+				"database": "webdb_sharding_2",
+				"url": "jdbc:mysql://mysql-sharding-2:3306/webdb_sharding_2",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-all-dbs@": "false"
+				},
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"mysql8-19ba8321162-4ad4ad2e9e86f35d": {
+			"provider": "mysql",
+			"driver": "mysql8",
+			"name": "mysql-sharding-3",
+			"save-password": true,
+			"configuration": {
+				"host": "mysql-sharding-3",
+				"port": "3306",
+				"database": "webdb_sharding_3",
+				"url": "jdbc:mysql://mysql-sharding-3:3306/webdb_sharding_3",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-all-dbs@": "false"
+				},
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
+		},
+		"mysql8-19ba8328a6d-6be3a84ef1cb2794": {
+			"provider": "mysql",
+			"driver": "mysql8",
+			"name": "mysql-sharding-4",
+			"save-password": true,
+			"configuration": {
+				"host": "mysql-sharding-4",
+				"port": "3306",
+				"database": "webdb_sharding_4",
+				"url": "jdbc:mysql://mysql-sharding-4:3306/webdb_sharding_4",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-all-dbs@": "false"
+				},
+				"auth-model": "native",
+				"bootstrap": {
+					"autocommit": true
+				}
+			}
 		}
 	},
 	"connection-types": {

@@ -26,6 +26,9 @@ redis/data/
 # PostgreSQL data
 postgres/data/
 
+# MySQL data
+mysql/data/
+
 # Redis Insight (接続設定のみGit管理対象)
 redis/insight/*
 !redis/insight/redisinsight.db

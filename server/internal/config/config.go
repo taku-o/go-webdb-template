@@ -261,8 +261,20 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to read main config file: %w", err)
 	}
 
+	// DB_TYPEを読み込む（config.yamlから）
+	dbType := viper.GetString("DB_TYPE")
+	if dbType == "" {
+		dbType = "postgresql" // デフォルト値
+	}
+
 	// データベース設定ファイルのマージ
-	viper.SetConfigName("database")
+	var databaseFileName string
+	if dbType == "mysql" {
+		databaseFileName = "database.mysql"
+	} else {
+		databaseFileName = "database"
+	}
+	viper.SetConfigName(databaseFileName)
 	if err := viper.MergeInConfig(); err != nil {
 		return nil, fmt.Errorf("failed to read database config file: %w", err)
 	}
@@ -360,7 +372,7 @@ func (s *ShardConfig) GetDSN() string {
 		return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			s.Host, s.Port, s.User, s.Password, s.Name)
 	case "mysql":
-		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local",
 			s.User, s.Password, s.Host, s.Port, s.Name)
 	default:
 		return ""
