@@ -15,9 +15,14 @@ go-webdb-template/
 │   │   │   │   └── post_handler.go
 │   │   │   └── router/         # ルーティング
 │   │   │       └── router.go
-│   │   ├── service/            # ビジネスロジック層
-│   │   │   ├── user_service.go
-│   │   │   ├── post_service.go
+│   │   ├── usecase/            # ビジネスロジック層
+│   │   │   ├── dm_user_usecase.go
+│   │   │   ├── dm_post_usecase.go
+│   │   │   ├── email_usecase.go
+│   │   │   └── ...
+│   │   ├── service/            # ドメインロジック層
+│   │   │   ├── dm_user_service.go
+│   │   │   ├── dm_post_service.go
 │   │   │   ├── email/          # メール送信サービス
 │   │   │   │   ├── email_sender.go
 │   │   │   │   ├── email_service.go
@@ -371,7 +376,8 @@ test('should create user', async ({ page }) => {
 - **`cmd/`**: エントリーポイント（main.go）
 - **`internal/`**: 内部パッケージ（外部からインポート不可）
   - **`api/`**: HTTPハンドラーとルーター
-  - **`service/`**: ビジネスロジック
+  - **`usecase/`**: ビジネスロジック
+  - **`service/`**: ドメインロジック
   - **`repository/`**: データアクセス
   - **`model/`**: ドメインモデル
   - **`db/`**: データベース接続管理

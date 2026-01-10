@@ -24,9 +24,16 @@ This project implements a database-sharded web application using Go for the back
 │  └──────────────────────┬─────────────────────────────────┘ │
 │                         │                                     │
 │  ┌──────────────────────▼─────────────────────────────────┐ │
-│  │                 Service Layer                           │ │
+│  │                 Usecase Layer                           │ │
 │  │  • Business logic                                       │ │
 │  │  • Transaction management                               │ │
+│  │  • Cross-service coordination                           │ │
+│  └──────────────────────┬─────────────────────────────────┘ │
+│                         │                                     │
+│  ┌──────────────────────▼─────────────────────────────────┐ │
+│  │                 Service Layer                           │ │
+│  │  • Domain logic                                         │ │
+│  │  • Domain-specific operations                           │ │
 │  │  • Cross-shard operations                               │ │
 │  └──────────────────────┬─────────────────────────────────┘ │
 │                         │                                     │
@@ -63,27 +70,59 @@ This project implements a database-sharded web application using Go for the back
 - Response serialization
 - CORS configuration
 - Error handling and HTTP status code mapping
+- Authentication and authorization checks
 
 **Key Components**:
 - `UserHandler`: User-related endpoints
 - `PostHandler`: Post-related endpoints
 - `Router`: Route definitions and middleware
 
-### 2. Service Layer (`internal/service`)
-**Location**: `internal/service/`
+**Constraints**:
+- Minimal processing (business logic is delegated to usecase layer)
+- Does not directly call service layer (goes through usecase layer)
+
+### 2. Usecase Layer (`internal/usecase`)
+**Location**: `internal/usecase/`
 
 **Responsibilities**:
 - Business logic implementation
 - Transaction coordination
-- Cross-shard operations
-- Data transformation
-- Input validation
+- Combining multiple services
+- Business rule application
 
 **Key Components**:
-- `UserService`: User business logic
-- `PostService`: Post business logic
+- `DmUserUsecase`: User business logic
+- `DmPostUsecase`: Post business logic
+- `EmailUsecase`: Email business logic
+- `DmJobqueueUsecase`: Job queue business logic
+- `TodayUsecase`: Date business logic
 
-### 3. Repository Layer (`internal/repository`)
+**Constraints**:
+- Does not call other usecases
+- Calls one or multiple services
+- Does not directly call repository layer (goes through service layer)
+
+### 3. Service Layer (`internal/service`)
+**Location**: `internal/service/`
+
+**Responsibilities**:
+- Domain logic implementation
+- Domain-specific operations
+- Cross-shard operations
+- Data transformation
+- Domain-specific validation
+
+**Key Components**:
+- `DmUserService`: User domain logic
+- `DmPostService`: Post domain logic
+- `EmailService`: Email domain logic
+- `DateService`: Date domain logic
+
+**Constraints**:
+- Focuses on single domain-specific processing
+- Business logic is delegated to usecase layer
+
+### 4. Repository Layer (`internal/repository`)
 **Location**: `internal/repository/`
 
 **Responsibilities**:
@@ -100,7 +139,7 @@ This project implements a database-sharded web application using Go for the back
 
 **Note**: 現在は`database/sql`版のRepositoryを使用していますが、GORM版のRepositoryも実装済みです。将来的にService層をInterface化することで、GORM版への切り替えが可能です。
 
-### 4. DB Layer (`internal/db`)
+### 5. DB Layer (`internal/db`)
 **Location**: `internal/db/`
 
 **Responsibilities**:
@@ -133,37 +172,47 @@ This project implements a database-sharded web application using Go for the back
    POST /api/users
    Body: {"name": "John", "email": "john@example.com"}
 
-2. API Layer → Service Layer
+2. API Layer → Usecase Layer
    UserHandler.CreateUser()
    ↓
-   UserService.CreateUser(CreateUserRequest)
+   DmUserUsecase.CreateDmUser(CreateDmUserRequest)
 
-3. Service Layer → Repository Layer
-   Validates business rules
+3. Usecase Layer → Service Layer
+   Applies business rules
    ↓
-   UserRepository.Create(user)
+   DmUserService.CreateDmUser(CreateDmUserRequest)
 
-4. Repository Layer → DB Layer
+4. Service Layer → Repository Layer
+   Validates domain rules
+   ↓
+   DmUserRepository.Create(user)
+
+5. Repository Layer → DB Layer
    Constructs SQL query
    ↓
    DBManager.GetConnectionByKey(userID)
 
-5. DB Layer
+6. DB Layer
    Calculates shard ID using hash(userID)
    ↓
    Returns connection to appropriate shard
 
-6. Repository Layer
+7. Repository Layer
    Executes INSERT statement
    ↓
    Returns created user
 
-7. Service Layer → API Layer
+8. Service Layer → Usecase Layer
+   Returns User
+   ↓
+   Usecase layer returns User
+
+9. Usecase Layer → API Layer
    Returns User
    ↓
    UserHandler formats response
 
-8. API Layer → Client
+10. API Layer → Client
    HTTP 201 Created
    Body: {"id": 1, "name": "John", "email": "john@example.com", ...}
 ```
@@ -307,13 +356,14 @@ json.NewEncoder(w).Encode(map[string]string{
 
 1. **Repository Layer**: Returns Go errors
 2. **Service Layer**: Wraps errors with context
-3. **API Layer**: Converts errors to HTTP status codes
-4. **Client**: Displays user-friendly error messages
+3. **Usecase Layer**: Wraps errors with business context
+4. **API Layer**: Converts errors to HTTP status codes
+5. **Client**: Displays user-friendly error messages
 
 ## Security Considerations
 
 1. **CORS**: Configured in router to allow specific origins
-2. **Input Validation**: Performed at both API and Service layers
+2. **Input Validation**: Performed at API layer (format validation) and Service layer (domain validation)
 3. **SQL Injection Prevention**: Using parameterized queries
 4. **Environment Variables**: Sensitive data stored in config files (excluded from git)
 
@@ -329,7 +379,7 @@ json.NewEncoder(w).Encode(map[string]string{
 - Database-specific optimizations (indexes, query optimization)
 
 ### Caching Strategy
-- Future enhancement: Add Redis/Memcached layer between Service and Repository
+- Future enhancement: Add Redis/Memcached layer between Usecase and Service
 
 ## Deployment
 

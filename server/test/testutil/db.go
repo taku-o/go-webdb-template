@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -9,9 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
+	"github.com/taku-o/go-webdb-template/internal/api/handler"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/db"
+	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 // TestSecretKey はテスト用の秘密鍵
@@ -247,4 +251,44 @@ func ClearTestDatabase(t *testing.T, manager *db.GroupManager) {
 	for _, conn := range connections {
 		clearDatabaseTables(t, conn.DB)
 	}
+}
+
+// MockDateService はテスト用のDateServiceモック
+type MockDateService struct{}
+
+// GetToday は今日の日付を返す
+func (m *MockDateService) GetToday(ctx context.Context) (string, error) {
+	return time.Now().Format("2006-01-02"), nil
+}
+
+// CreateTodayHandler はテスト用のTodayHandlerを作成するヘルパー関数
+func CreateTodayHandler() *handler.TodayHandler {
+	mockDateService := &MockDateService{}
+	todayUsecase := usecase.NewTodayUsecase(mockDateService)
+	return handler.NewTodayHandler(todayUsecase)
+}
+
+// CreateDmUserHandler はテスト用のDmUserHandlerを作成するヘルパー関数
+func CreateDmUserHandler(dmUserService *service.DmUserService) *handler.DmUserHandler {
+	dmUserUsecase := usecase.NewDmUserUsecase(dmUserService)
+	return handler.NewDmUserHandler(dmUserUsecase)
+}
+
+// CreateDmPostHandler はテスト用のDmPostHandlerを作成するヘルパー関数
+func CreateDmPostHandler(dmPostService *service.DmPostService) *handler.DmPostHandler {
+	dmPostUsecase := usecase.NewDmPostUsecase(dmPostService)
+	return handler.NewDmPostHandler(dmPostUsecase)
+}
+
+// CreateEmailHandler はテスト用のEmailHandlerを作成するヘルパー関数
+func CreateEmailHandler(emailService usecase.EmailServiceInterface, templateService usecase.TemplateServiceInterface) *handler.EmailHandler {
+	emailUsecase := usecase.NewEmailUsecase(emailService, templateService)
+	return handler.NewEmailHandler(emailUsecase)
+}
+
+// CreateDmJobqueueHandler はテスト用のDmJobqueueHandlerを作成するヘルパー関数
+// jobQueueClient が nil の場合、usecase層も nil クライアントで初期化される
+func CreateDmJobqueueHandler(jobQueueClient usecase.JobQueueClientInterface) *handler.DmJobqueueHandler {
+	dmJobqueueUsecase := usecase.NewDmJobqueueUsecase(jobQueueClient)
+	return handler.NewDmJobqueueHandler(dmJobqueueUsecase)
 }

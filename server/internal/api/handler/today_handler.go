@@ -3,19 +3,23 @@ package handler
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 // TodayHandler は今日の日付APIのハンドラー
-type TodayHandler struct{}
+type TodayHandler struct {
+	todayUsecase *usecase.TodayUsecase
+}
 
 // NewTodayHandler は新しいTodayHandlerを作成
-func NewTodayHandler() *TodayHandler {
-	return &TodayHandler{}
+func NewTodayHandler(todayUsecase *usecase.TodayUsecase) *TodayHandler {
+	return &TodayHandler{
+		todayUsecase: todayUsecase,
+	}
 }
 
 // GetToday は今日の日付を取得
@@ -25,8 +29,8 @@ func (h *TodayHandler) GetToday(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	// 今日の日付をYYYY-MM-DD形式で返す
-	return time.Now().Format("2006-01-02"), nil
+	// usecase層を呼び出し
+	return h.todayUsecase.GetToday(ctx)
 }
 
 // RegisterTodayEndpoints はHuma APIにToday APIエンドポイントを登録

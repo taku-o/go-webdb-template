@@ -2,22 +2,21 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/taku-o/go-webdb-template/internal/service/jobqueue"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 // DmJobqueueHandler はジョブキューAPIのハンドラー
 type DmJobqueueHandler struct {
-	jobQueueClient *jobqueue.Client
+	dmJobqueueUsecase *usecase.DmJobqueueUsecase
 }
 
 // NewDmJobqueueHandler は新しいDmJobqueueHandlerを作成
-func NewDmJobqueueHandler(jobQueueClient *jobqueue.Client) *DmJobqueueHandler {
+func NewDmJobqueueHandler(dmJobqueueUsecase *usecase.DmJobqueueUsecase) *DmJobqueueHandler {
 	return &DmJobqueueHandler{
-		jobQueueClient: jobQueueClient,
+		dmJobqueueUsecase: dmJobqueueUsecase,
 	}
 }
 
@@ -46,45 +45,18 @@ type RegisterJobResponse struct {
 
 // RegisterJob はジョブを登録
 func (h *DmJobqueueHandler) RegisterJob(ctx context.Context, req *RegisterJobRequest) (*RegisterJobResponse, error) {
-	// Redis接続が利用できない場合のエラーハンドリング
-	if h.jobQueueClient == nil {
-		return nil, huma.Error503ServiceUnavailable("Job queue service is unavailable: Redis is not connected")
-	}
-
-	// メッセージの設定（デフォルト値）
-	message := req.Message
-	if message == "" {
-		message = "Job executed successfully"
-	}
-
-	// ペイロードの作成
-	payload := jobqueue.DelayPrintPayload{
-		Message: message,
-	}
-	payloadBytes, err := json.Marshal(payload)
+	// usecase層でジョブ登録を実行
+	jobID, err := h.dmJobqueueUsecase.RegisterJob(ctx, req.Message, req.DelaySeconds, req.MaxRetry)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("failed to marshal payload")
-	}
-
-	// ジョブオプションの作成
-	jobOpts := &jobqueue.JobOptions{
-		DelaySeconds: req.DelaySeconds,
-		MaxRetry:     req.MaxRetry,
-	}
-
-	// ジョブをキューに登録
-	info, err := h.jobQueueClient.EnqueueJob(
-		ctx,
-		jobqueue.JobTypeDelayPrint,
-		payloadBytes,
-		jobOpts,
-	)
-	if err != nil {
+		// Redis接続が利用できない場合のエラーハンドリング
+		if err.Error() == "job queue service is unavailable: Redis is not connected" {
+			return nil, huma.Error503ServiceUnavailable(err.Error())
+		}
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
 	return &RegisterJobResponse{
-		JobID:  info.ID,
+		JobID:  jobID,
 		Status: "registered",
 	}, nil
 }

@@ -11,18 +11,18 @@ import (
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/model"
-	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/usecase"
 )
 
 // DmUserHandler はユーザーAPIのハンドラー
 type DmUserHandler struct {
-	dmUserService *service.DmUserService
+	dmUserUsecase *usecase.DmUserUsecase
 }
 
 // NewDmUserHandler は新しいDmUserHandlerを作成
-func NewDmUserHandler(dmUserService *service.DmUserService) *DmUserHandler {
+func NewDmUserHandler(dmUserUsecase *usecase.DmUserUsecase) *DmUserHandler {
 	return &DmUserHandler{
-		dmUserService: dmUserService,
+		dmUserUsecase: dmUserUsecase,
 	}
 }
 
@@ -51,7 +51,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			Email: input.Body.Email,
 		}
 
-		dmUser, err := h.dmUserService.CreateDmUser(ctx, req)
+		dmUser, err := h.dmUserUsecase.CreateDmUser(ctx, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -79,7 +79,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 		}
 
 		// ユーザー情報20件を取得
-		users, err := h.dmUserService.ListDmUsers(ctx, 20, 0)
+		users, err := h.dmUserUsecase.ListDmUsers(ctx, 20, 0)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -157,7 +157,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
 
-		dmUser, err := h.dmUserService.GetDmUser(ctx, input.ID)
+		dmUser, err := h.dmUserUsecase.GetDmUser(ctx, input.ID)
 		if err != nil {
 			return nil, huma.Error404NotFound(err.Error())
 		}
@@ -184,7 +184,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error403Forbidden(err.Error())
 		}
 
-		dmUsers, err := h.dmUserService.ListDmUsers(ctx, input.Limit, input.Offset)
+		dmUsers, err := h.dmUserUsecase.ListDmUsers(ctx, input.Limit, input.Offset)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -221,7 +221,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			Email: input.Body.Email,
 		}
 
-		dmUser, err := h.dmUserService.UpdateDmUser(ctx, input.ID, req)
+		dmUser, err := h.dmUserUsecase.UpdateDmUser(ctx, input.ID, req)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}
@@ -254,7 +254,7 @@ func RegisterDmUserEndpoints(api huma.API, h *DmUserHandler) {
 			return nil, huma.Error400BadRequest("invalid id format: must be 32 characters")
 		}
 
-		err := h.dmUserService.DeleteDmUser(ctx, input.ID)
+		err := h.dmUserUsecase.DeleteDmUser(ctx, input.ID)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(err.Error())
 		}

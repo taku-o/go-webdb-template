@@ -18,7 +18,10 @@ go-webdb-template/
 │   │   │   │   ├── user_handler.go
 │   │   │   │   └── user_handler_test.go
 │   │   │   └── router/         # ルーティング
-│   │   ├── service/            # ビジネスロジック層
+│   │   ├── usecase/            # ビジネスロジック層
+│   │   │   ├── user_usecase.go
+│   │   │   └── user_usecase_test.go
+│   │   ├── service/            # ドメインロジック層
 │   │   │   ├── user_service.go
 │   │   │   └── user_service_test.go
 │   │   ├── repository/         # データベース処理層
@@ -109,27 +112,34 @@ go-webdb-template/
 1. **API定義層** (`internal/api/`)
    - HTTPリクエスト/レスポンスの処理
    - ルーティング定義
-   - バリデーション
+   - バリデーション（形式チェック）
+   - 認証・認可チェック
 
-2. **ビジネスロジック層** (`internal/service/`)
+2. **ビジネスロジック層** (`internal/usecase/`)
    - アプリケーションのコアロジック
    - トランザクション管理
+   - 複数のserviceを組み合わせた処理
 
-3. **データベース処理層** (`internal/repository/`)
+3. **ドメインロジック層** (`internal/service/`)
+   - ドメイン固有のロジック
+   - ドメイン固有のバリデーション
+   - ドメイン固有のビジネスルール
+
+4. **データベース処理層** (`internal/repository/`)
    - データベースへのアクセス
    - CRUD操作の実装
    - Shard Key に基づくDB選択
 
-4. **SQL定義層** (`internal/sql/`)
+5. **SQL定義層** (`internal/sql/`)
    - SQL クエリの定義
    - クエリビルダー
 
-5. **DB接続管理層** (`internal/db/`)
+6. **DB接続管理層** (`internal/db/`)
    - 複数DBシャードへの接続プール管理
    - Sharding戦略の実装（Hash-based, Range-based等）
    - DB接続のライフサイクル管理
 
-6. **設定管理層** (`internal/config/`)
+7. **設定管理層** (`internal/config/`)
    - 環境別設定ファイルの読み込み
    - 設定値のバリデーション
    - DBシャード設定の管理
@@ -337,7 +347,7 @@ cors:
 2. **統合テスト**
    - 複数のレイヤーを組み合わせたテスト
    - 実際のDBを使用（テスト用DB）
-   - API → Service → Repository の流れを確認
+   - API → Usecase → Service → Repository の流れを確認
 
 3. **E2Eテスト**
    - ユーザーシナリオベースのテスト
@@ -346,7 +356,7 @@ cors:
 ### サーバー側テスト方針
 
 #### ユニットテスト
-- 各レイヤー（handler, service, repository）に `*_test.go` を配置
+- 各レイヤー（handler, usecase, service, repository）に `*_test.go` を配置
 - テーブル駆動テストを活用
 - モックは testify/mock や go-sqlmock を使用
 

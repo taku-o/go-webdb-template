@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/taku-o/go-webdb-template/internal/api/handler"
 	"github.com/taku-o/go-webdb-template/internal/api/router"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/repository"
@@ -27,14 +26,14 @@ func setupAuthTestServer(t *testing.T) *httptest.Server {
 	// Initialize layers (using GORM repositories)
 	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
-	dmUserHandler := handler.NewDmUserHandler(dmUserService)
+	dmUserHandler := testutil.CreateDmUserHandler(dmUserService)
 
 	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
-	dmPostHandler := handler.NewDmPostHandler(dmPostService)
+	dmPostHandler := testutil.CreateDmPostHandler(dmPostService)
 
 	// TodayHandler
-	todayHandler := handler.NewTodayHandler()
+	todayHandler := testutil.CreateTodayHandler()
 
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()

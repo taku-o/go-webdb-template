@@ -1,0 +1,11 @@
+{
+  "feature": "0052-usecase-layer",
+  "description": "APIサーバーにusecase層を導入する",
+  "language": "ja",
+  "createdAt": "2026-01-10",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

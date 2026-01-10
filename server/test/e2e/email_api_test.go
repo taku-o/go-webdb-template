@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/taku-o/go-webdb-template/internal/api/handler"
 	"github.com/taku-o/go-webdb-template/internal/api/router"
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/repository"
@@ -31,14 +30,14 @@ func setupEmailE2EServer(t *testing.T) *httptest.Server {
 	// Initialize layers
 	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
-	dmUserHandler := handler.NewDmUserHandler(dmUserService)
+	dmUserHandler := testutil.CreateDmUserHandler(dmUserService)
 
 	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
-	dmPostHandler := handler.NewDmPostHandler(dmPostService)
+	dmPostHandler := testutil.CreateDmPostHandler(dmPostService)
 
 	// TodayHandler
-	todayHandler := handler.NewTodayHandler()
+	todayHandler := testutil.CreateTodayHandler()
 
 	// EmailHandler（MockSenderを使用）
 	emailCfg := &config.EmailConfig{
@@ -47,7 +46,7 @@ func setupEmailE2EServer(t *testing.T) *httptest.Server {
 	emailService, err := email.NewEmailService(emailCfg, nil)
 	require.NoError(t, err)
 	templateService := email.NewTemplateService()
-	emailHandler := handler.NewEmailHandler(emailService, templateService)
+	emailHandler := testutil.CreateEmailHandler(emailService, templateService)
 
 	// Setup router with test config
 	cfg := testutil.GetTestConfig()

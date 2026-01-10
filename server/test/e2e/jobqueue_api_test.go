@@ -29,14 +29,14 @@ func setupJobqueueE2EServer(t *testing.T, withJobqueueHandler bool) *httptest.Se
 	// Initialize layers
 	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
-	dmUserHandler := handler.NewDmUserHandler(dmUserService)
+	dmUserHandler := testutil.CreateDmUserHandler(dmUserService)
 
 	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
-	dmPostHandler := handler.NewDmPostHandler(dmPostService)
+	dmPostHandler := testutil.CreateDmPostHandler(dmPostService)
 
 	// TodayHandler
-	todayHandler := handler.NewTodayHandler()
+	todayHandler := testutil.CreateTodayHandler()
 
 	// EmailHandler（MockSenderを使用）
 	emailCfg := &config.EmailConfig{
@@ -45,12 +45,12 @@ func setupJobqueueE2EServer(t *testing.T, withJobqueueHandler bool) *httptest.Se
 	emailService, err := email.NewEmailService(emailCfg, nil)
 	require.NoError(t, err)
 	templateService := email.NewTemplateService()
-	emailHandler := handler.NewEmailHandler(emailService, templateService)
+	emailHandler := testutil.CreateEmailHandler(emailService, templateService)
 
 	// JobqueueHandler（nilクライアントでテスト）
 	var dmJobqueueHandler *handler.DmJobqueueHandler
 	if withJobqueueHandler {
-		dmJobqueueHandler = handler.NewDmJobqueueHandler(nil)
+		dmJobqueueHandler = testutil.CreateDmJobqueueHandler(nil)
 	}
 
 	// Setup router with test config

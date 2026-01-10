@@ -14,7 +14,7 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 - ✅ **Sharding対応**: テーブルベースシャーディング（32分割）で複数DBへデータ分散
 - ✅ **GORM対応**: Writer/Reader分離をサポート (GORM v1.25.12)
 - ✅ **GoAdmin管理画面**: Webベースの管理画面でデータ管理
-- ✅ **レイヤー分離**: API層、Service層、Repository層、DB層で責務を明確化
+- ✅ **レイヤー分離**: API層、Usecase層、Service層、Repository層、DB層で責務を明確化
 - ✅ **環境別設定**: develop/staging/production環境で設定切り替え
 - ✅ **型安全**: TypeScriptによる型定義
 - ✅ **テスト**: ユニット/統合/E2Eテスト対応

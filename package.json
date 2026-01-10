@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Go Web DB Template - CloudBeaver and Metabase management scripts",
   "scripts": {
+    "api": "cd server && APP_ENV=develop go run ./cmd/server/main.go",
+    "client": "cd client && npm run dev",
+    "admin": "cd server && APP_ENV=develop go run ./cmd/admin/main.go",
     "cloudbeaver:start": "./scripts/cloudbeaver-start.sh",
     "cloudbeaver:stop": "docker-compose -f docker-compose.cloudbeaver.yml down",
     "cloudbeaver:logs": "docker-compose -f docker-compose.cloudbeaver.yml logs -f cloudbeaver",

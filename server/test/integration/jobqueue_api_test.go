@@ -29,14 +29,14 @@ func setupJobqueueTestServer(t *testing.T, withJobqueueHandler bool) *httptest.S
 	// Initialize layers (using GORM repositories)
 	dmUserRepo := repository.NewDmUserRepository(groupManager)
 	dmUserService := service.NewDmUserService(dmUserRepo)
-	dmUserHandler := handler.NewDmUserHandler(dmUserService)
+	dmUserHandler := testutil.CreateDmUserHandler(dmUserService)
 
 	dmPostRepo := repository.NewDmPostRepository(groupManager)
 	dmPostService := service.NewDmPostService(dmPostRepo, dmUserRepo)
-	dmPostHandler := handler.NewDmPostHandler(dmPostService)
+	dmPostHandler := testutil.CreateDmPostHandler(dmPostService)
 
 	// TodayHandler
-	todayHandler := handler.NewTodayHandler()
+	todayHandler := testutil.CreateTodayHandler()
 
 	// EmailHandler（MockSenderを使用）
 	emailCfg := &config.EmailConfig{
@@ -45,13 +45,13 @@ func setupJobqueueTestServer(t *testing.T, withJobqueueHandler bool) *httptest.S
 	emailService, err := email.NewEmailService(emailCfg, nil)
 	require.NoError(t, err)
 	templateService := email.NewTemplateService()
-	emailHandler := handler.NewEmailHandler(emailService, templateService)
+	emailHandler := testutil.CreateEmailHandler(emailService, templateService)
 
 	// JobqueueHandler（Redisなしでテストする場合はnil）
 	var dmJobqueueHandler *handler.DmJobqueueHandler
 	if withJobqueueHandler {
 		// nilクライアントでハンドラーを作成（Redis接続なしのテスト用）
-		dmJobqueueHandler = handler.NewDmJobqueueHandler(nil)
+		dmJobqueueHandler = testutil.CreateDmJobqueueHandler(nil)
 	}
 
 	// Setup router with test config
