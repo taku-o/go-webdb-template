@@ -6,24 +6,22 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/template/types"
-	appdb "github.com/taku-o/go-webdb-template/internal/db"
-	"github.com/taku-o/go-webdb-template/internal/util/idgen"
+	"github.com/taku-o/go-webdb-template/internal/usecase/admin"
 )
 
 // DmUserRegisterPage はユーザー登録ページを返す
-func DmUserRegisterPage(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
+func DmUserRegisterPage(ctx *context.Context, dmUserRegisterUsecase *admin.DmUserRegisterUsecase) (types.Panel, error) {
 	if ctx.Method() == http.MethodPost {
-		return handleDmUserRegisterPost(ctx, groupManager)
+		return handleDmUserRegisterPost(ctx, dmUserRegisterUsecase)
 	}
 	return renderDmUserRegisterForm(ctx, "", "", nil)
 }
 
 // handleDmUserRegisterPost はPOSTリクエストを処理する
-func handleDmUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupManager) (types.Panel, error) {
+func handleDmUserRegisterPost(ctx *context.Context, dmUserRegisterUsecase *admin.DmUserRegisterUsecase) (types.Panel, error) {
 	name := strings.TrimSpace(ctx.FormValue("name"))
 	email := strings.TrimSpace(ctx.FormValue("email"))
 
@@ -33,19 +31,10 @@ func handleDmUserRegisterPost(ctx *context.Context, groupManager *appdb.GroupMan
 		return renderDmUserRegisterForm(ctx, name, email, errors)
 	}
 
-	// メールアドレスの重複チェック（全シャードを検索）
-	exists, err := checkEmailExistsSharded(groupManager, email)
+	// usecase層を呼び出し
+	dmUserID, err := dmUserRegisterUsecase.RegisterDmUser(ctx.Request.Context(), name, email)
 	if err != nil {
-		return renderDmUserRegisterForm(ctx, name, email, []string{"データベースエラーが発生しました"})
-	}
-	if exists {
-		return renderDmUserRegisterForm(ctx, name, email, []string{"このメールアドレスは既に登録されています"})
-	}
-
-	// dm_user登録（シャーディング対応）
-	dmUserID, err := insertDmUserSharded(groupManager, name, email)
-	if err != nil {
-		return renderDmUserRegisterForm(ctx, name, email, []string{"ユーザー登録に失敗しました: " + err.Error()})
+		return renderDmUserRegisterForm(ctx, name, email, []string{err.Error()})
 	}
 
 	// 登録完了ページへリダイレクト（クエリパラメータで情報を渡す）
@@ -83,69 +72,6 @@ func validateDmUserInput(name, email string) []string {
 	}
 
 	return errors
-}
-
-// checkEmailExistsSharded はメールアドレスが既に存在するかチェックする（全シャード検索）
-func checkEmailExistsSharded(groupManager *appdb.GroupManager, email string) (bool, error) {
-	// 全テーブルを検索
-	for tableNum := 0; tableNum < appdb.DBShardingTableCount; tableNum++ {
-		conn, err := groupManager.GetShardingConnection(tableNum)
-		if err != nil {
-			return false, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
-		}
-
-		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
-		// GORMのRawを使用（プレースホルダーは?で統一、GORMが内部で変換）
-		var count int64
-		err = conn.DB.Raw(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email = ?", tableName), email).Scan(&count).Error
-		if err != nil {
-			return false, fmt.Errorf("failed to check email in %s: %w", tableName, err)
-		}
-
-		if count > 0 {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-// insertDmUserSharded はdm_userを登録する（シャーディング対応）
-func insertDmUserSharded(groupManager *appdb.GroupManager, name, email string) (string, error) {
-	now := time.Now()
-
-	// UUIDv7でIDを生成
-	dmUserID, err := idgen.GenerateUUIDv7()
-	if err != nil {
-		return "", fmt.Errorf("failed to generate UUIDv7: %w", err)
-	}
-
-	// UUIDからテーブル番号を計算
-	selector := appdb.NewTableSelector(appdb.DBShardingTableCount, appdb.DBShardingTablesPerDB)
-	tableNumber, err := selector.GetTableNumberFromUUID(dmUserID)
-	if err != nil {
-		return "", fmt.Errorf("failed to get table number: %w", err)
-	}
-	tableName := fmt.Sprintf("dm_users_%03d", tableNumber)
-
-	// 接続の取得
-	conn, err := groupManager.GetShardingConnection(tableNumber)
-	if err != nil {
-		return "", fmt.Errorf("failed to get sharding connection: %w", err)
-	}
-
-	// GORMのExecを使用してdm_userを挿入（プレースホルダーは?で統一）
-	query := fmt.Sprintf(`
-		INSERT INTO %s (id, name, email, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-	`, tableName)
-
-	err = conn.DB.Exec(query, dmUserID, name, email, now, now).Error
-	if err != nil {
-		return "", fmt.Errorf("failed to insert dm_user: %w", err)
-	}
-
-	return dmUserID, nil
 }
 
 // renderDmUserRegisterForm はユーザー登録フォームをレンダリングする

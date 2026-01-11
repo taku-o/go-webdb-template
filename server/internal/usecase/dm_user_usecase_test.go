@@ -11,11 +11,12 @@ import (
 
 // MockDmUserService はDmUserServiceのモック
 type MockDmUserService struct {
-	CreateDmUserFunc func(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error)
-	GetDmUserFunc    func(ctx context.Context, id string) (*model.DmUser, error)
-	ListDmUsersFunc  func(ctx context.Context, limit, offset int) ([]*model.DmUser, error)
-	UpdateDmUserFunc func(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error)
-	DeleteDmUserFunc func(ctx context.Context, id string) error
+	CreateDmUserFunc     func(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error)
+	GetDmUserFunc        func(ctx context.Context, id string) (*model.DmUser, error)
+	ListDmUsersFunc      func(ctx context.Context, limit, offset int) ([]*model.DmUser, error)
+	UpdateDmUserFunc     func(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error)
+	DeleteDmUserFunc     func(ctx context.Context, id string) error
+	CheckEmailExistsFunc func(ctx context.Context, email string) (bool, error)
 }
 
 func (m *MockDmUserService) CreateDmUser(ctx context.Context, req *model.CreateDmUserRequest) (*model.DmUser, error) {
@@ -51,6 +52,13 @@ func (m *MockDmUserService) DeleteDmUser(ctx context.Context, id string) error {
 		return m.DeleteDmUserFunc(ctx, id)
 	}
 	return nil
+}
+
+func (m *MockDmUserService) CheckEmailExists(ctx context.Context, email string) (bool, error) {
+	if m.CheckEmailExistsFunc != nil {
+		return m.CheckEmailExistsFunc(ctx, email)
+	}
+	return false, nil
 }
 
 func TestDmUserUsecase_CreateDmUser(t *testing.T) {

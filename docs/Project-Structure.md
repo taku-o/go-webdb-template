@@ -21,6 +21,11 @@ go-webdb-template/
 │   │   ├── usecase/            # ビジネスロジック層
 │   │   │   ├── user_usecase.go
 │   │   │   ├── user_usecase_test.go
+│   │   │   ├── admin/          # Admin用usecase層
+│   │   │   │   ├── dm_user_register_usecase.go
+│   │   │   │   ├── dm_user_register_usecase_test.go
+│   │   │   │   ├── api_key_usecase.go
+│   │   │   │   └── api_key_usecase_test.go
 │   │   │   └── cli/            # CLI用usecase層
 │   │   │       ├── list_dm_users_usecase.go
 │   │   │       ├── list_dm_users_usecase_test.go
@@ -33,6 +38,8 @@ go-webdb-template/
 │   │   │   ├── user_service_test.go
 │   │   │   ├── secret_service.go
 │   │   │   ├── secret_service_test.go
+│   │   │   ├── api_key_service.go
+│   │   │   ├── api_key_service_test.go
 │   │   │   ├── generate_sample_service.go
 │   │   │   └── generate_sample_service_test.go
 │   │   ├── repository/         # データベース処理層

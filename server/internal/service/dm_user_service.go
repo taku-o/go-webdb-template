@@ -104,3 +104,8 @@ func (s *DmUserService) DeleteDmUser(ctx context.Context, id string) error {
 
 	return nil
 }
+
+// CheckEmailExists はメールアドレスが既に存在するかチェックする
+func (s *DmUserService) CheckEmailExists(ctx context.Context, email string) (bool, error) {
+	return s.dmUserRepo.CheckEmailExists(ctx, email)
+}

@@ -301,3 +301,71 @@ func TestDmUserRepository_InsertDmUsersBatch(t *testing.T) {
 		})
 	}
 }
+
+
+func TestDmUserRepository_CheckEmailExists(t *testing.T) {
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
+
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	ctx := context.Background()
+
+	// ユニークなメールアドレスを生成
+	uniqueID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+	existingEmail := fmt.Sprintf("existing-%s@example.com", uniqueID)
+	nonExistingEmail := fmt.Sprintf("non-existing-%s@example.com", uniqueID)
+
+	// テスト用ユーザーを作成
+	req := &model.CreateDmUserRequest{
+		Name:  "Test User",
+		Email: existingEmail,
+	}
+	created, err := dmUserRepo.Create(ctx, req)
+	require.NoError(t, err)
+
+	// クリーンアップ
+	defer func() {
+		_ = dmUserRepo.Delete(ctx, created.ID)
+	}()
+
+	tests := []struct {
+		name    string
+		email   string
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "メールアドレスが存在する場合",
+			email:   existingEmail,
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "メールアドレスが存在しない場合",
+			email:   nonExistingEmail,
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "空のメールアドレス",
+			email:   "",
+			want:    false,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := dmUserRepo.CheckEmailExists(ctx, tt.email)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

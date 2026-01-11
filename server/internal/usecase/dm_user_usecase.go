@@ -13,6 +13,7 @@ type DmUserServiceInterface interface {
 	ListDmUsers(ctx context.Context, limit, offset int) ([]*model.DmUser, error)
 	UpdateDmUser(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error)
 	DeleteDmUser(ctx context.Context, id string) error
+	CheckEmailExists(ctx context.Context, email string) (bool, error)
 }
 
 // DmUserUsecase はdm_user関連のビジネスロジックを担当

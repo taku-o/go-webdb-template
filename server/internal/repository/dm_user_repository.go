@@ -197,6 +197,34 @@ func (r *DmUserRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// CheckEmailExists はメールアドレスが既に存在するかチェックする（全シャード検索）
+func (r *DmUserRepository) CheckEmailExists(ctx context.Context, email string) (bool, error) {
+	// 全テーブルを検索
+	tableCount := r.tableSelector.GetTableCount()
+	for tableNum := 0; tableNum < tableCount; tableNum++ {
+		conn, err := r.groupManager.GetShardingConnection(tableNum)
+		if err != nil {
+			return false, fmt.Errorf("failed to get connection for table %d: %w", tableNum, err)
+		}
+
+		tableName := fmt.Sprintf("dm_users_%03d", tableNum)
+		var count int64
+		// リトライ機能付きでクエリ実行
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).Table(tableName).Where("email = ?", email).Count(&count).Error
+		})
+		if err != nil {
+			return false, fmt.Errorf("failed to check email in %s: %w", tableName, err)
+		}
+
+		if count > 0 {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // InsertDmUsersBatch はdm_usersテーブルにバッチでデータを挿入
 func (r *DmUserRepository) InsertDmUsersBatch(ctx context.Context, tableName string, dmUsers []*model.DmUser) error {
 	if len(dmUsers) == 0 {

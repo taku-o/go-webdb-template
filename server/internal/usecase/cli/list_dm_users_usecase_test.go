@@ -38,6 +38,10 @@ func (m *MockDmUserServiceInterface) DeleteDmUser(ctx context.Context, id string
 	return nil
 }
 
+func (m *MockDmUserServiceInterface) CheckEmailExists(ctx context.Context, email string) (bool, error) {
+	return false, nil
+}
+
 func TestListDmUsersUsecase_ListDmUsers(t *testing.T) {
 	tests := []struct {
 		name        string
