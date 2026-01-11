@@ -13,6 +13,7 @@ type DmUserRepositoryInterface interface {
 	List(ctx context.Context, limit, offset int) ([]*model.DmUser, error)
 	Update(ctx context.Context, id string, req *model.UpdateDmUserRequest) (*model.DmUser, error)
 	Delete(ctx context.Context, id string) error
+	CheckEmailExists(ctx context.Context, email string) (bool, error)
 }
 
 // DmPostRepositoryInterface はDmPostRepositoryの共通インターフェース

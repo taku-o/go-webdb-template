@@ -29,6 +29,9 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/config"
 	appdb "github.com/taku-o/go-webdb-template/internal/db"
 	"github.com/taku-o/go-webdb-template/internal/logging"
+	"github.com/taku-o/go-webdb-template/internal/repository"
+	"github.com/taku-o/go-webdb-template/internal/service"
+	adminUsecase "github.com/taku-o/go-webdb-template/internal/usecase/admin"
 )
 
 func main() {
@@ -48,6 +51,17 @@ func main() {
 	// 起動時のDB接続確認は削除（遅延接続のため）
 	// 最初のクエリ実行時に接続が確立される
 	log.Println("Database connections will be established on first query execution (lazy connection)")
+
+	// Repository層の初期化
+	dmUserRepository := repository.NewDmUserRepository(groupManager)
+
+	// Service層の初期化
+	dmUserService := service.NewDmUserService(dmUserRepository)
+	apiKeyService := service.NewAPIKeyService()
+
+	// Usecase層の初期化
+	dmUserRegisterUsecase := adminUsecase.NewDmUserRegisterUsecase(dmUserService)
+	apiKeyUsecase := adminUsecase.NewAPIKeyUsecase(apiKeyService, cfg)
 
 	// Gorilla Mux Router
 	app := mux.NewRouter()
@@ -97,13 +111,13 @@ func main() {
 		return pages.HomePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
 	app.HandleFunc("/admin/dm-user/register", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
-		return pages.DmUserRegisterPage(goadminContext.NewContext(ctx.Request), groupManager)
+		return pages.DmUserRegisterPage(goadminContext.NewContext(ctx.Request), dmUserRegisterUsecase)
 	})).Methods("GET", "POST")
 	app.HandleFunc("/admin/dm-user/register/new", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
 		return pages.DmUserRegisterCompletePage(goadminContext.NewContext(ctx.Request), conn)
 	})).Methods("GET")
 	app.HandleFunc("/admin/api-key", gorillaAdapter.Content(func(ctx gorillaAdapter.Context) (types.Panel, error) {
-		return pages.APIKeyPage(goadminContext.NewContext(ctx.Request), conn)
+		return pages.APIKeyPage(goadminContext.NewContext(ctx.Request), apiKeyUsecase)
 	})).Methods("GET", "POST")
 
 	// アクセスログの初期化（production環境以外）

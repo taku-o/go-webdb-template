@@ -9,64 +9,51 @@ import (
 	"time"
 
 	"github.com/GoAdminGroup/go-admin/context"
-	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/template/types"
 
 	"github.com/taku-o/go-webdb-template/internal/auth"
-	"github.com/taku-o/go-webdb-template/internal/config"
+	"github.com/taku-o/go-webdb-template/internal/usecase/admin"
 )
 
 // APIKeyPage はAPIキー発行ページを返す
 // 注意: RegisterCustomPagesで"/api-key"と登録すると、実際のURLは"/admin/api-key"になる
 // HTML内のリンクも"/admin/api-key"とする必要がある
-func APIKeyPage(ctx *context.Context, conn db.Connection) (types.Panel, error) {
-	// 設定を取得
-	cfg, err := config.Load()
-	if err != nil {
-		return types.Panel{}, err
-	}
-
+func APIKeyPage(ctx *context.Context, apiKeyUsecase *admin.APIKeyUsecase) (types.Panel, error) {
 	// POSTリクエスト: キー生成
 	if ctx.Method() == http.MethodPost {
-		return handleGenerateKey(ctx, cfg)
+		return handleGenerateKey(ctx, apiKeyUsecase)
 	}
 
 	// GETリクエスト: フォーム表示
-	return renderAPIKeyPage(ctx, cfg)
+	return renderAPIKeyPage()
 }
 
 // handleGenerateKey はAPIキーを生成
-func handleGenerateKey(ctx *context.Context, cfg *config.Config) (types.Panel, error) {
+func handleGenerateKey(ctx *context.Context, apiKeyUsecase *admin.APIKeyUsecase) (types.Panel, error) {
 	// 現在の環境を取得
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "develop"
 	}
 
-	// JWTトークンを生成
-	token, err := generatePublicAPIKey(cfg, env)
+	// 鍵の生成（usecase層を呼び出し）
+	token, err := apiKeyUsecase.GenerateAPIKey(ctx.Request.Context(), env)
 	if err != nil {
 		return types.Panel{}, err
 	}
 
-	// ペイロードをデコード
-	claims, err := auth.ParseJWTClaims(token)
+	// ペイロードのデコード（usecase層を呼び出し）
+	claims, err := apiKeyUsecase.DecodeAPIKeyPayload(ctx.Request.Context(), token)
 	if err != nil {
 		return types.Panel{}, err
 	}
 
 	// 生成結果を表示
-	return renderAPIKeyResult(ctx, token, claims)
-}
-
-// generatePublicAPIKey はPublic JWTキーを生成
-func generatePublicAPIKey(cfg *config.Config, env string) (string, error) {
-	now := time.Now()
-	return auth.GeneratePublicAPIKey(cfg.API.SecretKey, cfg.API.CurrentVersion, env, now.Unix())
+	return renderAPIKeyResult(token, claims)
 }
 
 // renderAPIKeyPage はAPIキー発行ページをレンダリング
-func renderAPIKeyPage(ctx *context.Context, cfg *config.Config) (types.Panel, error) {
+func renderAPIKeyPage() (types.Panel, error) {
 	content := `
 <div class="box box-primary">
     <div class="box-header with-border">
@@ -91,7 +78,7 @@ func renderAPIKeyPage(ctx *context.Context, cfg *config.Config) (types.Panel, er
 }
 
 // renderAPIKeyResult は生成結果をレンダリング
-func renderAPIKeyResult(ctx *context.Context, token string, claims *auth.JWTClaims) (types.Panel, error) {
+func renderAPIKeyResult(token string, claims *auth.JWTClaims) (types.Panel, error) {
 	// ペイロードをJSON形式で整形
 	payloadJSON, _ := json.MarshalIndent(claims, "", "  ")
 
