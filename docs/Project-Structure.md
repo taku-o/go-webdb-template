@@ -20,7 +20,10 @@ go-webdb-template/
 │   │   │   └── router/         # ルーティング
 │   │   ├── usecase/            # ビジネスロジック層
 │   │   │   ├── user_usecase.go
-│   │   │   └── user_usecase_test.go
+│   │   │   ├── user_usecase_test.go
+│   │   │   └── cli/            # CLI用usecase層
+│   │   │       ├── list_dm_users_usecase.go
+│   │   │       └── list_dm_users_usecase_test.go
 │   │   ├── service/            # ドメインロジック層
 │   │   │   ├── user_service.go
 │   │   │   └── user_service_test.go

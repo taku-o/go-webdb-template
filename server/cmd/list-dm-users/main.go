@@ -14,6 +14,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/model"
 	"github.com/taku-o/go-webdb-template/internal/repository"
 	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/usecase/cli"
 )
 
 func main() {
@@ -59,9 +60,12 @@ func main() {
 	// Service層の初期化
 	dmUserService := service.NewDmUserService(dmUserRepo)
 
+	// Usecase層の初期化
+	listDmUsersUsecase := cli.NewListDmUsersUsecase(dmUserService)
+
 	// ユーザー一覧の取得
 	ctx := context.Background()
-	dmUsers, err := dmUserService.ListDmUsers(ctx, validatedLimit, 0)
+	dmUsers, err := listDmUsersUsecase.ListDmUsers(ctx, validatedLimit, 0)
 	if err != nil {
 		log.Fatalf("Failed to list users: %v", err)
 	}

@@ -419,6 +419,92 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 - Integration tests for multi-layer interactions
 - E2E tests for complete workflows
 
+## CLI Commands
+
+### CLI Layer (`cmd/list-dm-users`)
+
+**Location**: `cmd/list-dm-users/main.go`
+
+**Responsibilities**:
+- Command-line argument parsing
+- Input validation
+- Configuration loading
+- Layer initialization (Repository → Service → Usecase)
+- Usecase layer invocation
+- Output formatting (TSV)
+
+**Key Components**:
+- `main()`: Entry point
+- `validateLimit()`: Input validation
+- `printDmUsersTSV()`: Output formatting
+
+### CLI Usecase Layer (`internal/usecase/cli`)
+
+**Location**: `internal/usecase/cli/`
+
+**Responsibilities**:
+- CLI-specific business logic coordination
+- Service layer invocation for CLI commands
+
+**Key Components**:
+- `ListDmUsersUsecase`: User list retrieval for CLI
+
+**Constraints**:
+- Uses existing service layer interfaces
+- Does not contain domain logic (delegates to service layer)
+
+### CLI Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              CLI Layer (cmd/list-dm-users/main.go)          │
+│  • コマンドライン引数の解析                                  │
+│  • 引数のバリデーション                                      │
+│  • 設定ファイルの読み込み                                    │
+│  • GroupManagerの初期化                                     │
+│  • レイヤーの初期化（Repository → Service → Usecase）      │
+│  • usecase層の呼び出し                                      │
+│  • 結果の出力（TSV形式）                                    │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Usecase Layer (internal/usecase/cli)                  │
+│  • ListDmUsersUsecase                                        │
+│  • ビジネスロジックの調整（CLI用）                           │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Service Layer (internal/service)                      │
+│  • DmUserService                                            │
+│  • ドメインロジック                                          │
+│  • クロスシャード操作                                        │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│      Repository Layer (internal/repository)                  │
+│  • DmUserRepository                                         │
+│  • データアクセスの抽象化                                    │
+│  • CRUD操作                                                 │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│           DB Layer (internal/db)                              │
+│  • GroupManager                                             │
+│  • シャーディング戦略                                        │
+│  • 接続プール管理                                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+          ┌──────────────┴──────────────┐
+          ▼                              ▼
+    ┌─────────┐                    ┌─────────┐
+    │ Shard 1 │                    │ Shard 2 │
+    └─────────┘                    └─────────┘
+```
+
 ## Admin Panel (GoAdmin)
 
 ### Overview
