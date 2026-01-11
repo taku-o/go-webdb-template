@@ -125,6 +125,9 @@ Auth0からJWT形式のアクセストークンを取得するために、APIを
    - **Identifier**: `https://go-webdb-template/api` （任意の識別子、URLである必要はないがURL形式が推奨）
    - **Signing Algorithm**: `RS256`
 5. **[Create]** をクリック
+6. `Settings` タブを開く
+7. `Allow Offline Access` を **ON** にする
+8. 画面下部の `Save Changes` をクリック
 
 ### 環境変数の設定
 
@@ -133,17 +136,20 @@ Auth0からJWT形式のアクセストークンを取得するために、APIを
 `client/.env.local` に以下を追加:
 ```
 AUTH0_AUDIENCE=https://go-webdb-template/api
+AUTH0_SCOPE='openid profile email offline_access'
 ```
 
 ### 各環境の設定例
 
-| 環境 | AUTH0_AUDIENCE |
-| --- | --- |
-| 開発環境 | `https://go-webdb-template/api` |
-| ステージング | `https://go-webdb-template/api` |
-| 本番 | `https://go-webdb-template/api` |
+| 環境 | AUTH0_AUDIENCE | AUTH0_SCOPE |
+| --- | --- | --- |
+| 開発環境 | `https://go-webdb-template/api` | `openid profile email offline_access` |
+| ステージング | `https://go-webdb-template/api` | `openid profile email offline_access` |
+| 本番 | `https://go-webdb-template/api` | `openid profile email offline_access` |
 
-**注意**: Audienceの値はAPIのIdentifierと完全に一致する必要があります。
+**注意**:
+- Audienceの値はAPIのIdentifierと完全に一致する必要があります。
+- `offline_access`スコープを含めることで、リフレッシュトークンが取得できます。
 
 ---
 
