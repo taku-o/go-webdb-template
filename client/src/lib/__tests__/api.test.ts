@@ -1,16 +1,25 @@
 import { DmUser, CreateDmUserRequest } from '@/types/dm_user'
 import { DmPost, CreateDmPostRequest } from '@/types/dm_post'
 import { apiClient } from '../api'
+import * as authModule from '../auth'
 
 // テスト用APIキー（jest.setup.jsで設定済み）
 const TEST_API_KEY = 'test-api-key'
+const TEST_JWT = 'test-jwt-token'
 
 // Mock fetch
 global.fetch = jest.fn()
 
+// Mock getAuthToken
+jest.mock('../auth', () => ({
+  getAuthToken: jest.fn(),
+}))
+
 describe('apiClient', () => {
   beforeEach(() => {
     ;(fetch as jest.Mock).mockClear()
+    // getAuthTokenのデフォルトモック（未ログイン時はAPI Keyを返す）
+    ;(authModule.getAuthToken as jest.Mock).mockResolvedValue(TEST_API_KEY)
   })
 
   describe('Authorization header', () => {
@@ -475,6 +484,66 @@ describe('apiClient', () => {
       await expect(
         apiClient.sendEmail(['test@example.com'], 'welcome', { Name: 'Test', Email: 'test@example.com' })
       ).rejects.toThrow('Failed to send email')
+    })
+  })
+
+  describe('Today API', () => {
+    it('gets today date without auth0user (uses API key)', async () => {
+      const mockResponse = { date: '2024-01-15' }
+
+      ;(authModule.getAuthToken as jest.Mock).mockResolvedValueOnce(TEST_API_KEY)
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      })
+
+      const result = await apiClient.getToday()
+
+      expect(result).toEqual(mockResponse)
+      expect(authModule.getAuthToken).toHaveBeenCalledWith(undefined)
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:8080/api/today',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${TEST_API_KEY}`,
+          }),
+        })
+      )
+    })
+
+    it('gets today date with auth0user (uses JWT)', async () => {
+      const mockAuth0User = {
+        sub: 'auth0|123',
+        email: 'test@example.com',
+      }
+      const mockResponse = { date: '2024-01-15' }
+
+      ;(authModule.getAuthToken as jest.Mock).mockResolvedValueOnce(TEST_JWT)
+      ;(fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      })
+
+      const result = await apiClient.getToday(mockAuth0User)
+
+      expect(result).toEqual(mockResponse)
+      expect(authModule.getAuthToken).toHaveBeenCalledWith(mockAuth0User)
+      expect(fetch).toHaveBeenCalledWith(
+        'http://localhost:8080/api/today',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${TEST_JWT}`,
+          }),
+        })
+      )
+    })
+
+    it('handles error when getAuthToken fails', async () => {
+      ;(authModule.getAuthToken as jest.Mock).mockRejectedValueOnce(
+        new Error('Failed to get access token')
+      )
+
+      await expect(apiClient.getToday()).rejects.toThrow('Failed to get access token')
     })
   })
 })

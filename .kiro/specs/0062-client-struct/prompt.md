@@ -315,6 +315,19 @@ describe('DmUser API', () => {
 
 ここでいったんgit commitしましょう。
 
+/kiro:spec-impl 0062-client-struct 4.1
+/kiro:spec-impl 0062-client-struct 5.1
+/kiro:spec-impl 0062-client-struct 5.2
+/kiro:spec-impl 0062-client-struct 5.3
+
+/kiro:spec-impl 0062-client-struct 6.1
+/kiro:spec-impl 0062-client-struct 6.2
+
+ここでいったんgit commitしましょう。
+
+
+
+
 
 
 
