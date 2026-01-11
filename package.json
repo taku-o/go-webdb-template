@@ -8,6 +8,7 @@
     "admin": "cd server && APP_ENV=develop go run ./cmd/admin/main.go",
     "cli:list-dm-users": "cd server && APP_ENV=develop go run ./cmd/list-dm-users/main.go --limit 20",
     "cli:generate-secret": "cd server && APP_ENV=develop go run ./cmd/generate-secret/main.go",
+    "cli:generate-sample-data": "cd server && APP_ENV=develop go run ./cmd/generate-sample-data/main.go",
     "cloudbeaver:start": "./scripts/cloudbeaver-start.sh",
     "cloudbeaver:stop": "docker-compose -f docker-compose.cloudbeaver.yml down",
     "cloudbeaver:logs": "docker-compose -f docker-compose.cloudbeaver.yml logs -f cloudbeaver",

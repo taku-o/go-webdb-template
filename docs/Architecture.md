@@ -461,6 +461,7 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 **Key Components**:
 - `ListDmUsersUsecase`: User list retrieval for CLI
 - `GenerateSecretUsecase`: Secret key generation for CLI
+- `GenerateSampleUsecase`: Sample data generation for CLI
 
 **Constraints**:
 - Uses existing service layer interfaces
@@ -566,6 +567,60 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 │  • 秘密鍵生成処理（共通ライブラリ）                          │
 │  • crypto/rand + encoding/base64                            │
 └─────────────────────────────────────────────────────────────┘
+```
+
+#### generate-sample-data
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│       CLI Layer (cmd/generate-sample-data/main.go)           │
+│  • エントリーポイント                                        │
+│  • 設定ファイルの読み込み                                    │
+│  • GroupManagerの初期化                                      │
+│  • レイヤーの初期化（Repository → Service → Usecase）       │
+│  • usecase層の呼び出し                                       │
+│  • 結果の出力（標準出力にログ出力）                          │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│      Usecase Layer (internal/usecase/cli)                    │
+│  • GenerateSampleUsecase                                    │
+│  • ビジネスロジックの調整（CLI用）                           │
+│  • GenerateDmUsers() → GenerateDmPosts() → GenerateDmNews() │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Service Layer (internal/service)                      │
+│  • GenerateSampleService                                    │
+│  • ドメインロジック                                          │
+│  • gofakeitを使用したデータ生成                              │
+│  • UUID生成、テーブル番号計算                                 │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│      Repository Layer (internal/repository)                   │
+│  • DmUserRepository.InsertDmUsersBatch()                    │
+│  • DmPostRepository.InsertDmPostsBatch()                    │
+│  • DmNewsRepository.InsertDmNewsBatch()                     │
+│  • バッチ挿入処理（500件ずつ）                               │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│           DB Layer (internal/db)                              │
+│  • GroupManager                                             │
+│  • Sharding接続管理                                          │
+│  • Master接続管理                                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+          ┌──────────────┴──────────────┐
+          ▼                              ▼
+    ┌─────────┐                    ┌─────────┐
+    │ Shard 1 │                    │ Shard 2 │
+    └─────────┘                    └─────────┘
 ```
 
 ## Admin Panel (GoAdmin)

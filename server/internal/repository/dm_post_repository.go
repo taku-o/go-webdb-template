@@ -278,3 +278,42 @@ func (r *DmPostRepository) Delete(ctx context.Context, id string, userID string)
 
 	return nil
 }
+
+// InsertDmPostsBatch はdm_postsテーブルにバッチでデータを挿入
+func (r *DmPostRepository) InsertDmPostsBatch(ctx context.Context, tableName string, dmPosts []*model.DmPost) error {
+	if len(dmPosts) == 0 {
+		return nil
+	}
+
+	const batchSize = 500
+
+	// テーブル番号から接続を取得
+	tableNumber, err := extractTableNumber(tableName, "dm_posts_")
+	if err != nil {
+		return fmt.Errorf("failed to extract table number from %s: %w", tableName, err)
+	}
+
+	conn, err := r.groupManager.GetShardingConnection(tableNumber)
+	if err != nil {
+		return fmt.Errorf("failed to get connection for table %d: %w", tableNumber, err)
+	}
+
+	// バッチサイズを考慮して分割
+	for i := 0; i < len(dmPosts); i += batchSize {
+		end := i + batchSize
+		if end > len(dmPosts) {
+			end = len(dmPosts)
+		}
+		batch := dmPosts[i:end]
+
+		// GORMのCreateInBatchesを使用（動的テーブル名対応）
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).Table(tableName).CreateInBatches(batch, len(batch)).Error
+		})
+		if err != nil {
+			return fmt.Errorf("failed to insert batch: %w", err)
+		}
+	}
+
+	return nil
+}

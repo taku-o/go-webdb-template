@@ -25,15 +25,21 @@ go-webdb-template/
 │   │   │       ├── list_dm_users_usecase.go
 │   │   │       ├── list_dm_users_usecase_test.go
 │   │   │       ├── generate_secret_usecase.go
-│   │   │       └── generate_secret_usecase_test.go
+│   │   │       ├── generate_secret_usecase_test.go
+│   │   │       ├── generate_sample_usecase.go
+│   │   │       └── generate_sample_usecase_test.go
 │   │   ├── service/            # ドメインロジック層
 │   │   │   ├── user_service.go
 │   │   │   ├── user_service_test.go
 │   │   │   ├── secret_service.go
-│   │   │   └── secret_service_test.go
+│   │   │   ├── secret_service_test.go
+│   │   │   ├── generate_sample_service.go
+│   │   │   └── generate_sample_service_test.go
 │   │   ├── repository/         # データベース処理層
 │   │   │   ├── user_repository.go
-│   │   │   └── user_repository_test.go
+│   │   │   ├── user_repository_test.go
+│   │   │   ├── dm_news_repository.go
+│   │   │   └── dm_news_repository_test.go
 │   │   ├── sql/                # SQL定義層
 │   │   ├── model/              # データモデル
 │   │   ├── db/                 # DB接続管理

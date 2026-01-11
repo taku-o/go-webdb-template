@@ -156,6 +156,64 @@ relation "dm_users_000" does not exist
 - 既存データの削除は行いません（追加のみ）
 - 複数回実行するとデータが追加されます
 
+## アーキテクチャ
+
+generate-sample-dataコマンドは、APIサーバーと同じレイヤードアーキテクチャを使用しています。usecase層を介してservice層を呼び出す構成になっています。
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│               generate-sample-data コマンド                   │
+│               (cmd/generate-sample-data/main.go)            │
+└────────────────────────┬──────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Usecase層 (internal/usecase/cli)                     │
+│         - GenerateSampleUsecase.GenerateSampleData()        │
+└────────────────────────┬──────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Service層 (internal/service)                    │
+│              - GenerateSampleService.GenerateDmUsers()      │
+│              - GenerateSampleService.GenerateDmPosts()      │
+│              - GenerateSampleService.GenerateDmNews()       │
+└────────────────────────┬──────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Repository層 (internal/repository)              │
+│              - DmUserRepository.InsertDmUsersBatch()        │
+│              - DmPostRepository.InsertDmPostsBatch()        │
+│              - DmNewsRepository.InsertDmNewsBatch()         │
+└────────────────────────┬──────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              DB層 (internal/db)                              │
+│              - GroupManager                                  │
+│              - TableSelector                                 │
+└────────────────────────┬──────────────────────────────────┘
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+    ┌─────────┐    ┌─────────┐    ┌─────────┐
+    │ Master  │    │ Shard 1 │    │ Shard 2 │  ...
+    │(dm_news)│    │(dm_users│    │(dm_users│
+    └─────────┘    │ dm_posts)│   │ dm_posts)│
+                   └─────────┘    └─────────┘
+```
+
+### レイヤー構造
+
+| レイヤー | ディレクトリ | 役割 |
+|---------|-------------|------|
+| CLI層 | cmd/generate-sample-data/main.go | エントリーポイント、入出力制御 |
+| Usecase層 | internal/usecase/cli/ | CLI用ビジネスロジック調整 |
+| Service層 | internal/service/ | データ生成ロジック、gofakeitの使用 |
+| Repository層 | internal/repository/ | バッチ挿入、データアクセス抽象化 |
+| DB層 | internal/db/ | シャーディング戦略、接続管理 |
+
 ## 技術仕様
 
 - **バッチサイズ**: 500件ずつ

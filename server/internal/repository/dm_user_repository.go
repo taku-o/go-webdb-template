@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/taku-o/go-webdb-template/internal/db"
@@ -193,4 +195,57 @@ func (r *DmUserRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+// InsertDmUsersBatch はdm_usersテーブルにバッチでデータを挿入
+func (r *DmUserRepository) InsertDmUsersBatch(ctx context.Context, tableName string, dmUsers []*model.DmUser) error {
+	if len(dmUsers) == 0 {
+		return nil
+	}
+
+	const batchSize = 500
+
+	// テーブル番号から接続を取得
+	// tableNameからテーブル番号を抽出（例: "dm_users_001" -> 1）
+	tableNumber, err := extractTableNumber(tableName, "dm_users_")
+	if err != nil {
+		return fmt.Errorf("failed to extract table number from %s: %w", tableName, err)
+	}
+
+	conn, err := r.groupManager.GetShardingConnection(tableNumber)
+	if err != nil {
+		return fmt.Errorf("failed to get connection for table %d: %w", tableNumber, err)
+	}
+
+	// バッチサイズを考慮して分割
+	for i := 0; i < len(dmUsers); i += batchSize {
+		end := i + batchSize
+		if end > len(dmUsers) {
+			end = len(dmUsers)
+		}
+		batch := dmUsers[i:end]
+
+		// GORMのCreateInBatchesを使用（動的テーブル名対応）
+		err = db.ExecuteWithRetry(func() error {
+			return conn.DB.WithContext(ctx).Table(tableName).CreateInBatches(batch, len(batch)).Error
+		})
+		if err != nil {
+			return fmt.Errorf("failed to insert batch: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// extractTableNumber はテーブル名からテーブル番号を抽出
+func extractTableNumber(tableName, prefix string) (int, error) {
+	if !strings.HasPrefix(tableName, prefix) {
+		return 0, fmt.Errorf("table name %s does not start with %s", tableName, prefix)
+	}
+	suffix := tableName[len(prefix):]
+	tableNumber, err := strconv.Atoi(suffix)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse table number from %s: %w", suffix, err)
+	}
+	return tableNumber, nil
 }
