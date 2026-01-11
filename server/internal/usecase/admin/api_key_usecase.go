@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/taku-o/go-webdb-template/internal/auth"
@@ -26,11 +27,11 @@ func NewAPIKeyUsecase(apiKeyService service.APIKeyServiceInterface, cfg *config.
 // GenerateAPIKey はAPIキーを生成
 func (u *APIKeyUsecase) GenerateAPIKey(ctx context.Context, env string) (string, error) {
 	if env == "" {
-		env = "develop"
+		return "", fmt.Errorf("環境が指定されていません")
 	}
 
 	now := time.Now()
-	token, err := u.apiKeyService.GenerateAPIKey(ctx, u.cfg.API.SecretKey, u.cfg.API.CurrentVersion, env, now.Unix())
+	token, err := u.apiKeyService.GenerateAPIKey(u.cfg.API.SecretKey, u.cfg.API.CurrentVersion, env, now.Unix())
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +41,7 @@ func (u *APIKeyUsecase) GenerateAPIKey(ctx context.Context, env string) (string,
 
 // DecodeAPIKeyPayload はAPIキーのペイロードをデコード
 func (u *APIKeyUsecase) DecodeAPIKeyPayload(ctx context.Context, token string) (*auth.JWTClaims, error) {
-	claims, err := u.apiKeyService.DecodeAPIKeyPayload(ctx, token)
+	claims, err := u.apiKeyService.DecodeAPIKeyPayload(token)
 	if err != nil {
 		return nil, err
 	}

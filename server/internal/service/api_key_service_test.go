@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -38,7 +37,7 @@ func TestAPIKeyService_GenerateAPIKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewAPIKeyService()
-			got, err := s.GenerateAPIKey(context.Background(), tt.secretKey, tt.version, tt.env, tt.issuedAt)
+			got, err := s.GenerateAPIKey(tt.secretKey, tt.version, tt.env, tt.issuedAt)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -55,7 +54,6 @@ func TestAPIKeyService_GenerateAPIKey(t *testing.T) {
 
 func TestAPIKeyService_DecodeAPIKeyPayload(t *testing.T) {
 	s := NewAPIKeyService()
-	ctx := context.Background()
 
 	// テスト用トークンを生成
 	secretKey := "test-secret-key-12345678901234567890"
@@ -63,7 +61,7 @@ func TestAPIKeyService_DecodeAPIKeyPayload(t *testing.T) {
 	env := "develop"
 	issuedAt := time.Now().Unix()
 
-	validToken, err := s.GenerateAPIKey(ctx, secretKey, version, env, issuedAt)
+	validToken, err := s.GenerateAPIKey(secretKey, version, env, issuedAt)
 	assert.NoError(t, err)
 
 	tests := []struct {
@@ -94,7 +92,7 @@ func TestAPIKeyService_DecodeAPIKeyPayload(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			claims, err := s.DecodeAPIKeyPayload(ctx, tt.token)
+			claims, err := s.DecodeAPIKeyPayload(tt.token)
 
 			if tt.wantErr {
 				assert.Error(t, err)
