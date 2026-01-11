@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/taku-o/go-webdb-template/internal/model"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // ListDmUsersUsecase はCLI用のdm_user一覧取得usecase
 type ListDmUsersUsecase struct {
-	dmUserService usecase.DmUserServiceInterface
+	dmUserService usecaseapi.DmUserServiceInterface
 }
 
 // NewListDmUsersUsecase は新しいListDmUsersUsecaseを作成
-func NewListDmUsersUsecase(dmUserService usecase.DmUserServiceInterface) *ListDmUsersUsecase {
+func NewListDmUsersUsecase(dmUserService usecaseapi.DmUserServiceInterface) *ListDmUsersUsecase {
 	return &ListDmUsersUsecase{
 		dmUserService: dmUserService,
 	}

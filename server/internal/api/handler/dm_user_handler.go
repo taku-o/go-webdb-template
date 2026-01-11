@@ -11,16 +11,16 @@ import (
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/model"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // DmUserHandler はユーザーAPIのハンドラー
 type DmUserHandler struct {
-	dmUserUsecase *usecase.DmUserUsecase
+	dmUserUsecase *usecaseapi.DmUserUsecase
 }
 
 // NewDmUserHandler は新しいDmUserHandlerを作成
-func NewDmUserHandler(dmUserUsecase *usecase.DmUserUsecase) *DmUserHandler {
+func NewDmUserHandler(dmUserUsecase *usecaseapi.DmUserUsecase) *DmUserHandler {
 	return &DmUserHandler{
 		dmUserUsecase: dmUserUsecase,
 	}

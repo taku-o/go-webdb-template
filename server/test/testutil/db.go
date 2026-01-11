@@ -15,7 +15,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/db"
 	"github.com/taku-o/go-webdb-template/internal/service"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // TestSecretKey はテスト用の秘密鍵
@@ -389,31 +389,31 @@ func (m *MockDateService) GetToday(ctx context.Context) (string, error) {
 // CreateTodayHandler はテスト用のTodayHandlerを作成するヘルパー関数
 func CreateTodayHandler() *handler.TodayHandler {
 	mockDateService := &MockDateService{}
-	todayUsecase := usecase.NewTodayUsecase(mockDateService)
+	todayUsecase := usecaseapi.NewTodayUsecase(mockDateService)
 	return handler.NewTodayHandler(todayUsecase)
 }
 
 // CreateDmUserHandler はテスト用のDmUserHandlerを作成するヘルパー関数
 func CreateDmUserHandler(dmUserService *service.DmUserService) *handler.DmUserHandler {
-	dmUserUsecase := usecase.NewDmUserUsecase(dmUserService)
+	dmUserUsecase := usecaseapi.NewDmUserUsecase(dmUserService)
 	return handler.NewDmUserHandler(dmUserUsecase)
 }
 
 // CreateDmPostHandler はテスト用のDmPostHandlerを作成するヘルパー関数
 func CreateDmPostHandler(dmPostService *service.DmPostService) *handler.DmPostHandler {
-	dmPostUsecase := usecase.NewDmPostUsecase(dmPostService)
+	dmPostUsecase := usecaseapi.NewDmPostUsecase(dmPostService)
 	return handler.NewDmPostHandler(dmPostUsecase)
 }
 
 // CreateEmailHandler はテスト用のEmailHandlerを作成するヘルパー関数
-func CreateEmailHandler(emailService usecase.EmailServiceInterface, templateService usecase.TemplateServiceInterface) *handler.EmailHandler {
-	emailUsecase := usecase.NewEmailUsecase(emailService, templateService)
+func CreateEmailHandler(emailService usecaseapi.EmailServiceInterface, templateService usecaseapi.TemplateServiceInterface) *handler.EmailHandler {
+	emailUsecase := usecaseapi.NewEmailUsecase(emailService, templateService)
 	return handler.NewEmailHandler(emailUsecase)
 }
 
 // CreateDmJobqueueHandler はテスト用のDmJobqueueHandlerを作成するヘルパー関数
 // jobQueueClient が nil の場合、usecase層も nil クライアントで初期化される
-func CreateDmJobqueueHandler(jobQueueClient usecase.JobQueueClientInterface) *handler.DmJobqueueHandler {
-	dmJobqueueUsecase := usecase.NewDmJobqueueUsecase(jobQueueClient)
+func CreateDmJobqueueHandler(jobQueueClient usecaseapi.JobQueueClientInterface) *handler.DmJobqueueHandler {
+	dmJobqueueUsecase := usecaseapi.NewDmJobqueueUsecase(jobQueueClient)
 	return handler.NewDmJobqueueHandler(dmJobqueueUsecase)
 }

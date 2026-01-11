@@ -8,16 +8,16 @@ import (
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 	"github.com/taku-o/go-webdb-template/internal/auth"
 	"github.com/taku-o/go-webdb-template/internal/model"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // DmPostHandler は投稿APIのハンドラー
 type DmPostHandler struct {
-	dmPostUsecase *usecase.DmPostUsecase
+	dmPostUsecase *usecaseapi.DmPostUsecase
 }
 
 // NewDmPostHandler は新しいDmPostHandlerを作成
-func NewDmPostHandler(dmPostUsecase *usecase.DmPostUsecase) *DmPostHandler {
+func NewDmPostHandler(dmPostUsecase *usecaseapi.DmPostUsecase) *DmPostHandler {
 	return &DmPostHandler{
 		dmPostUsecase: dmPostUsecase,
 	}

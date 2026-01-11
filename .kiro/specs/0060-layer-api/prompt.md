@@ -27,5 +27,18 @@ _serena_indexing
 
 /kiro:spec-impl 0060-layer-api
 
+もしテストの実行で認証エラーが起きたのなら、APP_ENV=testを指定していない可能性があります。 .kiro/steering/tech.md を確認してください。
+
+npm run test
+
+動作確認は取れた。
+残ったタスクはない？
+
+commitした後、
+https://github.com/taku-o/go-webdb-template/issues/124
+に対してpull requestを発行してください。
+
+/review 125
+
 
 
