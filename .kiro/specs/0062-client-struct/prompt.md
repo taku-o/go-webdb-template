@@ -441,8 +441,11 @@ Auth0ログイン状態でGet Todayが成功、OK。
 
 タスクはこれで全部クリア？
 
+ここまでfeature/0062-client-structブランチで修正コードを作成していました。
+https://github.com/taku-o/go-webdb-template/issues/128
+に対してpull requestを作成してください。
 
-
+/review 129
 
 
 
