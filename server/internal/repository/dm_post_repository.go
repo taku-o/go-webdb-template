@@ -285,8 +285,6 @@ func (r *DmPostRepository) InsertDmPostsBatch(ctx context.Context, tableName str
 		return nil
 	}
 
-	const batchSize = 500
-
 	// テーブル番号から接続を取得
 	tableNumber, err := extractTableNumber(tableName, "dm_posts_")
 	if err != nil {
@@ -299,8 +297,8 @@ func (r *DmPostRepository) InsertDmPostsBatch(ctx context.Context, tableName str
 	}
 
 	// バッチサイズを考慮して分割
-	for i := 0; i < len(dmPosts); i += batchSize {
-		end := i + batchSize
+	for i := 0; i < len(dmPosts); i += db.BatchSize {
+		end := i + db.BatchSize
 		if end > len(dmPosts) {
 			end = len(dmPosts)
 		}

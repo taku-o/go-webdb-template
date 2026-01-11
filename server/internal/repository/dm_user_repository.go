@@ -203,8 +203,6 @@ func (r *DmUserRepository) InsertDmUsersBatch(ctx context.Context, tableName str
 		return nil
 	}
 
-	const batchSize = 500
-
 	// テーブル番号から接続を取得
 	// tableNameからテーブル番号を抽出（例: "dm_users_001" -> 1）
 	tableNumber, err := extractTableNumber(tableName, "dm_users_")
@@ -218,8 +216,8 @@ func (r *DmUserRepository) InsertDmUsersBatch(ctx context.Context, tableName str
 	}
 
 	// バッチサイズを考慮して分割
-	for i := 0; i < len(dmUsers); i += batchSize {
-		end := i + batchSize
+	for i := 0; i < len(dmUsers); i += db.BatchSize {
+		end := i + db.BatchSize
 		if end > len(dmUsers) {
 			end = len(dmUsers)
 		}

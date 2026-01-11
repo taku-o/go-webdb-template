@@ -26,8 +26,6 @@ func (r *DmNewsRepository) InsertDmNewsBatch(ctx context.Context, dmNews []*mode
 		return nil
 	}
 
-	const batchSize = 500
-
 	// master接続を取得
 	conn, err := r.groupManager.GetMasterConnection()
 	if err != nil {
@@ -35,8 +33,8 @@ func (r *DmNewsRepository) InsertDmNewsBatch(ctx context.Context, dmNews []*mode
 	}
 
 	// バッチサイズを考慮して分割
-	for i := 0; i < len(dmNews); i += batchSize {
-		end := i + batchSize
+	for i := 0; i < len(dmNews); i += db.BatchSize {
+		end := i + db.BatchSize
 		if end > len(dmNews) {
 			end = len(dmNews)
 		}
