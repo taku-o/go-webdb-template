@@ -1,5 +1,5 @@
-import { User, CreateUserRequest } from '@/types/user'
-import { Post, CreatePostRequest } from '@/types/post'
+import { DmUser, CreateDmUserRequest } from '@/types/dm_user'
+import { DmPost, CreateDmPostRequest } from '@/types/dm_post'
 import { apiClient } from '../api'
 
 // テスト用APIキー（jest.setup.jsで設定済み）
@@ -20,7 +20,7 @@ describe('apiClient', () => {
         json: async () => [],
       })
 
-      await apiClient.getUsers()
+      await apiClient.getDmUsers()
 
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
@@ -42,7 +42,7 @@ describe('apiClient', () => {
         json: async () => ({ code: 401, message: 'Invalid API key' }),
       })
 
-      await expect(apiClient.getUsers()).rejects.toThrow('Invalid API key')
+      await expect(apiClient.getDmUsers()).rejects.toThrow('Invalid API key')
     })
 
     it('handles 403 Forbidden error with message from response', async () => {
@@ -53,7 +53,7 @@ describe('apiClient', () => {
         json: async () => ({ code: 403, message: 'Insufficient scope' }),
       })
 
-      await expect(apiClient.getUsers()).rejects.toThrow('Insufficient scope')
+      await expect(apiClient.getDmUsers()).rejects.toThrow('Insufficient scope')
     })
 
     it('uses statusText when json parsing fails for 401', async () => {
@@ -66,13 +66,13 @@ describe('apiClient', () => {
         },
       })
 
-      await expect(apiClient.getUsers()).rejects.toThrow('Unauthorized')
+      await expect(apiClient.getDmUsers()).rejects.toThrow('Unauthorized')
     })
   })
 
-  describe('User API', () => {
+  describe('DmUser API', () => {
     it('creates a user', async () => {
-      const mockUser: User = {
+      const mockDmUser: DmUser = {
         id: '1',
         name: 'Test User',
         email: 'test@example.com',
@@ -82,17 +82,17 @@ describe('apiClient', () => {
 
       ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockUser,
+        json: async () => mockDmUser,
       })
 
-      const createRequest: CreateUserRequest = {
+      const createRequest: CreateDmUserRequest = {
         name: 'Test User',
         email: 'test@example.com',
       }
 
-      const result = await apiClient.createUser(createRequest)
+      const result = await apiClient.createDmUser(createRequest)
 
-      expect(result).toEqual(mockUser)
+      expect(result).toEqual(mockDmUser)
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/dm-users',
         expect.objectContaining({
@@ -107,7 +107,7 @@ describe('apiClient', () => {
     })
 
     it('gets all users', async () => {
-      const mockUsers: User[] = [
+      const mockDmUsers: DmUser[] = [
         {
           id: '1',
           name: 'User 1',
@@ -126,13 +126,13 @@ describe('apiClient', () => {
 
       ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockUsers,
+        json: async () => mockDmUsers,
       })
 
-      const result = await apiClient.getUsers()
+      const result = await apiClient.getDmUsers()
 
-      expect(result).toEqual(mockUsers)
-      // getUsers has default parameters limit=20 and offset=0
+      expect(result).toEqual(mockDmUsers)
+      // getDmUsers has default parameters limit=20 and offset=0
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/dm-users?limit=20&offset=0',
         expect.objectContaining({
@@ -152,7 +152,7 @@ describe('apiClient', () => {
         text: async () => 'Internal server error',
       })
 
-      await expect(apiClient.getUsers()).rejects.toThrow('Internal server error')
+      await expect(apiClient.getDmUsers()).rejects.toThrow('Internal server error')
     })
 
     it('deletes a user', async () => {
@@ -161,7 +161,7 @@ describe('apiClient', () => {
         status: 204,
       })
 
-      await apiClient.deleteUser('1')
+      await apiClient.deleteDmUser('1')
 
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/dm-users/1',
@@ -178,7 +178,7 @@ describe('apiClient', () => {
 
   describe('Post API', () => {
     it('creates a post', async () => {
-      const mockPost: Post = {
+      const mockDmPost: DmPost = {
         id: '1',
         user_id: '1',
         title: 'Test Post',
@@ -189,18 +189,18 @@ describe('apiClient', () => {
 
       ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockPost,
+        json: async () => mockDmPost,
       })
 
-      const createRequest: CreatePostRequest = {
+      const createRequest: CreateDmPostRequest = {
         user_id: '1',
         title: 'Test Post',
         content: 'Test content',
       }
 
-      const result = await apiClient.createPost(createRequest)
+      const result = await apiClient.createDmPost(createRequest)
 
-      expect(result).toEqual(mockPost)
+      expect(result).toEqual(mockDmPost)
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/dm-posts',
         expect.objectContaining({
@@ -215,7 +215,7 @@ describe('apiClient', () => {
     })
 
     it('gets all posts', async () => {
-      const mockPosts: Post[] = [
+      const mockDmPosts: DmPost[] = [
         {
           id: '1',
           user_id: '1',
@@ -228,12 +228,12 @@ describe('apiClient', () => {
 
       ;(fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockPosts,
+        json: async () => mockDmPosts,
       })
 
-      const result = await apiClient.getPosts()
+      const result = await apiClient.getDmPosts()
 
-      expect(result).toEqual(mockPosts)
+      expect(result).toEqual(mockDmPosts)
     })
 
     it('deletes a post', async () => {
@@ -242,7 +242,7 @@ describe('apiClient', () => {
         status: 204,
       })
 
-      await apiClient.deletePost('1', '1')
+      await apiClient.deleteDmPost('1', '1')
 
       expect(fetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/dm-posts/1?user_id=1',
@@ -301,7 +301,7 @@ describe('apiClient', () => {
         blob: async () => mockBlob,
       })
 
-      await apiClient.downloadUsersCSV()
+      await apiClient.downloadDmUsersCSV()
 
       // fetchが正しく呼ばれたか確認
       expect(fetch).toHaveBeenCalledWith(
@@ -338,7 +338,7 @@ describe('apiClient', () => {
         blob: async () => mockBlob,
       })
 
-      await apiClient.downloadUsersCSV()
+      await apiClient.downloadDmUsersCSV()
 
       // デフォルトのファイル名が使用されているか確認
       expect(mockLink.download).toBe('dm-users.csv')
@@ -352,7 +352,7 @@ describe('apiClient', () => {
         json: async () => ({ message: 'Invalid token' }),
       })
 
-      await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Invalid token')
+      await expect(apiClient.downloadDmUsersCSV()).rejects.toThrow('Invalid token')
     })
 
     it('handles 403 error correctly', async () => {
@@ -363,7 +363,7 @@ describe('apiClient', () => {
         json: async () => ({ message: 'Access denied' }),
       })
 
-      await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Access denied')
+      await expect(apiClient.downloadDmUsersCSV()).rejects.toThrow('Access denied')
     })
 
     it('handles 500 error correctly', async () => {
@@ -374,7 +374,7 @@ describe('apiClient', () => {
         text: async () => 'Server error occurred',
       })
 
-      await expect(apiClient.downloadUsersCSV()).rejects.toThrow('Server error occurred')
+      await expect(apiClient.downloadDmUsersCSV()).rejects.toThrow('Server error occurred')
     })
   })
 

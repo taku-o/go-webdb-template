@@ -1,6 +1,10 @@
-import { User, CreateUserRequest, UpdateUserRequest } from '@/types/user'
-import { Post, CreatePostRequest, UpdatePostRequest, UserPost } from '@/types/post'
+import { User } from '@auth0/nextjs-auth0'
+import { DmUser, CreateDmUserRequest, UpdateDmUserRequest } from '@/types/dm_user'
+import { DmPost, CreateDmPostRequest, UpdateDmPostRequest, DmUserPost } from '@/types/dm_post'
 import { RegisterJobRequest, RegisterJobResponse } from '@/types/jobqueue'
+import { getAuthToken } from './auth'
+
+type Auth0User = User
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
 
@@ -21,12 +25,12 @@ class ApiClient {
   private async request<T>(
     endpoint: string,
     options?: RequestInit,
-    jwt?: string
+    auth0user?: Auth0User | undefined
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
 
-    // JWTの取得（引数で渡された場合はそれを使用、なければapiKeyを使用）
-    const token = jwt || this.apiKey
+    // 認証トークンを取得
+    const token = await getAuthToken(auth0user)
 
     // Authorizationヘッダーを追加
     const headers = {
@@ -57,37 +61,37 @@ class ApiClient {
     return response.json()
   }
 
-  // User API
-  async getUsers(limit = 20, offset = 0): Promise<User[]> {
-    return this.request<User[]>(`/api/dm-users?limit=${limit}&offset=${offset}`)
+  // DmUser API
+  async getDmUsers(limit = 20, offset = 0, auth0user?: Auth0User | undefined): Promise<DmUser[]> {
+    return this.request<DmUser[]>(`/api/dm-users?limit=${limit}&offset=${offset}`, undefined, auth0user)
   }
 
-  async getUser(id: string): Promise<User> {
-    return this.request<User>(`/api/dm-users/${id}`)
+  async getDmUser(id: string, auth0user?: Auth0User | undefined): Promise<DmUser> {
+    return this.request<DmUser>(`/api/dm-users/${id}`, undefined, auth0user)
   }
 
-  async createUser(data: CreateUserRequest): Promise<User> {
-    return this.request<User>('/api/dm-users', {
+  async createDmUser(data: CreateDmUserRequest, auth0user?: Auth0User | undefined): Promise<DmUser> {
+    return this.request<DmUser>('/api/dm-users', {
       method: 'POST',
       body: JSON.stringify(data),
-    })
+    }, auth0user)
   }
 
-  async updateUser(id: string, data: UpdateUserRequest): Promise<User> {
-    return this.request<User>(`/api/dm-users/${id}`, {
+  async updateDmUser(id: string, data: UpdateDmUserRequest, auth0user?: Auth0User | undefined): Promise<DmUser> {
+    return this.request<DmUser>(`/api/dm-users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    })
+    }, auth0user)
   }
 
-  async deleteUser(id: string): Promise<void> {
+  async deleteDmUser(id: string, auth0user?: Auth0User | undefined): Promise<void> {
     return this.request<void>(`/api/dm-users/${id}`, {
       method: 'DELETE',
-    })
+    }, auth0user)
   }
 
-  // Post API
-  async getPosts(limit = 20, offset = 0, userId?: string): Promise<Post[]> {
+  // DmPost API
+  async getDmPosts(limit = 20, offset = 0, userId?: string, auth0user?: Auth0User | undefined): Promise<DmPost[]> {
     const params = new URLSearchParams({
       limit: limit.toString(),
       offset: offset.toString(),
@@ -95,67 +99,68 @@ class ApiClient {
     if (userId) {
       params.append('user_id', userId)
     }
-    return this.request<Post[]>(`/api/dm-posts?${params.toString()}`)
+    return this.request<DmPost[]>(`/api/dm-posts?${params.toString()}`, undefined, auth0user)
   }
 
-  async getPost(id: string, userId: string): Promise<Post> {
-    return this.request<Post>(`/api/dm-posts/${id}?user_id=${userId}`)
+  async getDmPost(id: string, userId: string, auth0user?: Auth0User | undefined): Promise<DmPost> {
+    return this.request<DmPost>(`/api/dm-posts/${id}?user_id=${userId}`, undefined, auth0user)
   }
 
-  async createPost(data: CreatePostRequest): Promise<Post> {
-    return this.request<Post>('/api/dm-posts', {
+  async createDmPost(data: CreateDmPostRequest, auth0user?: Auth0User | undefined): Promise<DmPost> {
+    return this.request<DmPost>('/api/dm-posts', {
       method: 'POST',
       body: JSON.stringify(data),
-    })
+    }, auth0user)
   }
 
-  async updatePost(id: string, userId: string, data: UpdatePostRequest): Promise<Post> {
-    return this.request<Post>(`/api/dm-posts/${id}?user_id=${userId}`, {
+  async updateDmPost(id: string, userId: string, data: UpdateDmPostRequest, auth0user?: Auth0User | undefined): Promise<DmPost> {
+    return this.request<DmPost>(`/api/dm-posts/${id}?user_id=${userId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    })
+    }, auth0user)
   }
 
-  async deletePost(id: string, userId: string): Promise<void> {
+  async deleteDmPost(id: string, userId: string, auth0user?: Auth0User | undefined): Promise<void> {
     return this.request<void>(`/api/dm-posts/${id}?user_id=${userId}`, {
       method: 'DELETE',
-    })
+    }, auth0user)
   }
 
-  // User-Post JOIN API
-  async getUserPosts(limit = 20, offset = 0): Promise<UserPost[]> {
-    return this.request<UserPost[]>(`/api/dm-user-posts?limit=${limit}&offset=${offset}`)
+  // DmUser-DmPost JOIN API
+  async getDmUserPosts(limit = 20, offset = 0, auth0user?: Auth0User | undefined): Promise<DmUserPost[]> {
+    return this.request<DmUserPost[]>(`/api/dm-user-posts?limit=${limit}&offset=${offset}`, undefined, auth0user)
   }
 
   // Today API (private - requires Auth0 JWT)
-  async getToday(jwt: string): Promise<{ date: string }> {
-    return this.request<{ date: string }>('/api/today', undefined, jwt)
+  async getToday(auth0user?: Auth0User | undefined): Promise<{ date: string }> {
+    return this.request<{ date: string }>('/api/today', undefined, auth0user)
   }
 
   // Email API
   async sendEmail(
     to: string[],
     template: string,
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
+    auth0user?: Auth0User | undefined
   ): Promise<{ success: boolean; message: string }> {
     return this.request<{ success: boolean; message: string }>('/api/email/send', {
       method: 'POST',
       body: JSON.stringify({ to, template, data }),
-    })
+    }, auth0user)
   }
 
   // JobQueue API (Demo)
-  async registerJob(data?: RegisterJobRequest): Promise<RegisterJobResponse> {
+  async registerJob(data?: RegisterJobRequest, auth0user?: Auth0User | undefined): Promise<RegisterJobResponse> {
     return this.request<RegisterJobResponse>('/api/dm-jobqueue/register', {
       method: 'POST',
       body: JSON.stringify(data || {}),
-    })
+    }, auth0user)
   }
 
   // CSV Download API
-  async downloadUsersCSV(): Promise<void> {
+  async downloadDmUsersCSV(auth0user?: Auth0User | undefined): Promise<void> {
     const url = `${this.baseURL}/api/export/dm-users/csv`
-    const token = this.apiKey
+    const token = await getAuthToken(auth0user)
 
     const response = await fetch(url, {
       method: 'GET',
