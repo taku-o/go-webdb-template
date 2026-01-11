@@ -1,4 +1,4 @@
-import { User } from '@auth0/nextjs-auth0'
+import { User } from '@auth0/nextjs-auth0/types'
 import { DmUser, CreateDmUserRequest, UpdateDmUserRequest } from '@/types/dm_user'
 import { DmPost, CreateDmPostRequest, UpdateDmPostRequest, DmUserPost } from '@/types/dm_post'
 import { RegisterJobRequest, RegisterJobResponse } from '@/types/jobqueue'

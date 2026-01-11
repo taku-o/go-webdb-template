@@ -1,4 +1,4 @@
-import { User } from '@auth0/nextjs-auth0'
+import { User } from '@auth0/nextjs-auth0/types'
 
 type Auth0User = User
 
