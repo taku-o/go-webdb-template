@@ -1,0 +1,11 @@
+{
+  "feature": "0058-layer-sampledata",
+  "description": "server/cmd/generate-sample-dataの構造修正",
+  "language": "ja",
+  "createdAt": "2026-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
