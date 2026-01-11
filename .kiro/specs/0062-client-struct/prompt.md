@@ -417,9 +417,16 @@ think.
 
 client/src/app/api/auth/[auth0]/route.ts は削除。
 
+動画アップロードを試したい。
+ダミーファイルで良いので、拡張子mp4のファイルを作って。
+
+
+動作確認が取れました。
+
 dmUser、dmPost、dmUserPost
 メール送信、ジョブキュー、動いてる。
 dmUserCSVダウンロードも動いている。
+動画アップロードも成功。
 
 Auth0ログイン
 Auth0ログアウト
@@ -427,9 +434,12 @@ Auth0ログアウト状態でGet Todayが認証エラー、OK。
 Auth0ログイン状態でGet Todayが成功、OK。
 
 
+今のコードの状態は良い状態だから、
+ここでいったんgit commitしましょう。
 
+/kiro:spec-impl 0062-client-struct 7.2
 
-
+タスクはこれで全部クリア？
 
 
 
