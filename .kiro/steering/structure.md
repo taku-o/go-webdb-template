@@ -19,6 +19,9 @@ go-webdb-template/
 │   │   │   ├── dm_user_usecase.go
 │   │   │   ├── dm_post_usecase.go
 │   │   │   ├── email_usecase.go
+│   │   │   ├── cli/            # CLI用usecase層
+│   │   │   │   ├── list_dm_users_usecase.go
+│   │   │   │   └── list_dm_users_usecase_test.go
 │   │   │   └── ...
 │   │   ├── service/            # ドメインロジック層
 │   │   │   ├── dm_user_service.go

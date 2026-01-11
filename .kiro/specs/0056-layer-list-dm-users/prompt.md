@@ -24,7 +24,14 @@ _serena_indexing
 
 /kiro:spec-impl 0056-layer-list-dm-users
 
+server/list-dm-users でなくて、
+server/bin/list-dm-users にビルドを出力して欲しい。
 
 
+commitした後、
+https://github.com/taku-o/go-webdb-template/issues/116
+に対してpull requestを発行してください。
+
+/review 117
 
 
