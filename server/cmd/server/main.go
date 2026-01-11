@@ -18,7 +18,7 @@ import (
 	"github.com/taku-o/go-webdb-template/internal/service"
 	"github.com/taku-o/go-webdb-template/internal/service/email"
 	"github.com/taku-o/go-webdb-template/internal/service/jobqueue"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 func main() {
@@ -49,9 +49,9 @@ func main() {
 	dateService := service.NewDateService()
 
 	// Usecase層の初期化
-	todayUsecase := usecase.NewTodayUsecase(dateService)
-	dmUserUsecase := usecase.NewDmUserUsecase(dmUserService)
-	dmPostUsecase := usecase.NewDmPostUsecase(dmPostService)
+	todayUsecase := usecaseapi.NewTodayUsecase(dateService)
+	dmUserUsecase := usecaseapi.NewDmUserUsecase(dmUserService)
+	dmPostUsecase := usecaseapi.NewDmPostUsecase(dmPostService)
 
 	// Handler層の初期化
 	dmUserHandler := handler.NewDmUserHandler(dmUserUsecase)
@@ -81,7 +81,7 @@ func main() {
 	templateService := email.NewTemplateService()
 
 	// EmailUsecaseの初期化
-	emailUsecase := usecase.NewEmailUsecase(emailService, templateService)
+	emailUsecase := usecaseapi.NewEmailUsecase(emailService, templateService)
 
 	// EmailHandlerの初期化
 	emailHandler := handler.NewEmailHandler(emailUsecase)
@@ -120,12 +120,12 @@ func main() {
 	}
 
 	// DmJobqueueUsecaseの初期化（jobQueueClientがnilの場合も許可）
-	var dmJobqueueUsecase *usecase.DmJobqueueUsecase
+	var dmJobqueueUsecase *usecaseapi.DmJobqueueUsecase
 	if jobQueueClient != nil {
-		jobQueueClientAdapter := usecase.NewJobQueueClientAdapter(jobQueueClient)
-		dmJobqueueUsecase = usecase.NewDmJobqueueUsecase(jobQueueClientAdapter)
+		jobQueueClientAdapter := usecaseapi.NewJobQueueClientAdapter(jobQueueClient)
+		dmJobqueueUsecase = usecaseapi.NewDmJobqueueUsecase(jobQueueClientAdapter)
 	} else {
-		dmJobqueueUsecase = usecase.NewDmJobqueueUsecase(nil)
+		dmJobqueueUsecase = usecaseapi.NewDmJobqueueUsecase(nil)
 	}
 
 	// DmJobqueueHandlerの初期化

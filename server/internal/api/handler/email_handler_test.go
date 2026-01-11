@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/service/email"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 func TestNewEmailHandler(t *testing.T) {
@@ -20,7 +20,7 @@ func TestNewEmailHandler(t *testing.T) {
 	templateService := email.NewTemplateService()
 
 	// EmailUsecaseを経由してHandlerを作成
-	emailUsecase := usecase.NewEmailUsecase(emailService, templateService)
+	emailUsecase := usecaseapi.NewEmailUsecase(emailService, templateService)
 	handler := NewEmailHandler(emailUsecase)
 	assert.NotNil(t, handler)
 }

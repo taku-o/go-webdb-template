@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/taku-o/go-webdb-template/internal/auth"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // MockDateService はDateServiceのモック（usecase用）
@@ -25,7 +25,7 @@ func (m *MockDateService) GetToday(ctx context.Context) (string, error) {
 // createTodayHandlerWithMock はモックを使用してTodayHandlerを作成するヘルパー関数
 func createTodayHandlerWithMock() *TodayHandler {
 	mockDateService := &MockDateService{}
-	todayUsecase := usecase.NewTodayUsecase(mockDateService)
+	todayUsecase := usecaseapi.NewTodayUsecase(mockDateService)
 	return NewTodayHandler(todayUsecase)
 }
 

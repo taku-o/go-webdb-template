@@ -16,22 +16,29 @@ go-webdb-template/
 │   │   │   └── router/         # ルーティング
 │   │   │       └── router.go
 │   │   ├── usecase/            # ビジネスロジック層
-│   │   │   ├── dm_user_usecase.go
-│   │   │   ├── dm_post_usecase.go
-│   │   │   ├── email_usecase.go
+│   │   │   ├── api/            # API用usecase層
+│   │   │   │   ├── dm_user_usecase.go
+│   │   │   │   ├── dm_user_usecase_test.go
+│   │   │   │   ├── dm_post_usecase.go
+│   │   │   │   ├── dm_post_usecase_test.go
+│   │   │   │   ├── dm_jobqueue_usecase.go
+│   │   │   │   ├── dm_jobqueue_usecase_test.go
+│   │   │   │   ├── email_usecase.go
+│   │   │   │   ├── email_usecase_test.go
+│   │   │   │   ├── today_usecase.go
+│   │   │   │   └── today_usecase_test.go
 │   │   │   ├── admin/          # Admin用usecase層
 │   │   │   │   ├── dm_user_register_usecase.go
 │   │   │   │   ├── dm_user_register_usecase_test.go
 │   │   │   │   ├── api_key_usecase.go
 │   │   │   │   └── api_key_usecase_test.go
-│   │   │   ├── cli/            # CLI用usecase層
-│   │   │   │   ├── list_dm_users_usecase.go
-│   │   │   │   ├── list_dm_users_usecase_test.go
-│   │   │   │   ├── generate_secret_usecase.go
-│   │   │   │   ├── generate_secret_usecase_test.go
-│   │   │   │   ├── generate_sample_usecase.go
-│   │   │   │   └── generate_sample_usecase_test.go
-│   │   │   └── ...
+│   │   │   └── cli/            # CLI用usecase層
+│   │   │       ├── list_dm_users_usecase.go
+│   │   │       ├── list_dm_users_usecase_test.go
+│   │   │       ├── generate_secret_usecase.go
+│   │   │       ├── generate_secret_usecase_test.go
+│   │   │       ├── generate_sample_usecase.go
+│   │   │       └── generate_sample_usecase_test.go
 │   │   ├── service/            # ドメインロジック層
 │   │   │   ├── dm_user_service.go
 │   │   │   ├── dm_post_service.go

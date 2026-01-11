@@ -5,16 +5,16 @@ import (
 	"fmt"
 
 	"github.com/taku-o/go-webdb-template/internal/model"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // DmUserRegisterUsecase はdm_user登録のビジネスロジックを担当
 type DmUserRegisterUsecase struct {
-	dmUserService usecase.DmUserServiceInterface
+	dmUserService usecaseapi.DmUserServiceInterface
 }
 
 // NewDmUserRegisterUsecase は新しいDmUserRegisterUsecaseを作成
-func NewDmUserRegisterUsecase(dmUserService usecase.DmUserServiceInterface) *DmUserRegisterUsecase {
+func NewDmUserRegisterUsecase(dmUserService usecaseapi.DmUserServiceInterface) *DmUserRegisterUsecase {
 	return &DmUserRegisterUsecase{
 		dmUserService: dmUserService,
 	}

@@ -5,16 +5,16 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // DmJobqueueHandler はジョブキューAPIのハンドラー
 type DmJobqueueHandler struct {
-	dmJobqueueUsecase *usecase.DmJobqueueUsecase
+	dmJobqueueUsecase *usecaseapi.DmJobqueueUsecase
 }
 
 // NewDmJobqueueHandler は新しいDmJobqueueHandlerを作成
-func NewDmJobqueueHandler(dmJobqueueUsecase *usecase.DmJobqueueUsecase) *DmJobqueueHandler {
+func NewDmJobqueueHandler(dmJobqueueUsecase *usecaseapi.DmJobqueueUsecase) *DmJobqueueHandler {
 	return &DmJobqueueHandler{
 		dmJobqueueUsecase: dmJobqueueUsecase,
 	}

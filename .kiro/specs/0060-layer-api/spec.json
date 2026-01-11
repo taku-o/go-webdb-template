@@ -1,0 +1,11 @@
+{
+  "feature": "0060-layer-api",
+  "description": "APIサーバーのusecaseのソースコードの位置を変更する",
+  "language": "ja",
+  "createdAt": "2026-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

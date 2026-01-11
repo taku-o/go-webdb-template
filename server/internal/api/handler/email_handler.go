@@ -9,16 +9,16 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
 	"github.com/taku-o/go-webdb-template/internal/auth"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // EmailHandler はメール送信APIのハンドラー
 type EmailHandler struct {
-	emailUsecase *usecase.EmailUsecase
+	emailUsecase *usecaseapi.EmailUsecase
 }
 
 // NewEmailHandler は新しいEmailHandlerを作成
-func NewEmailHandler(emailUsecase *usecase.EmailUsecase) *EmailHandler {
+func NewEmailHandler(emailUsecase *usecaseapi.EmailUsecase) *EmailHandler {
 	return &EmailHandler{
 		emailUsecase: emailUsecase,
 	}

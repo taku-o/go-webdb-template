@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/taku-o/go-webdb-template/internal/auth"
 	humaapi "github.com/taku-o/go-webdb-template/internal/api/huma"
-	"github.com/taku-o/go-webdb-template/internal/usecase"
+	"github.com/taku-o/go-webdb-template/internal/auth"
+	usecaseapi "github.com/taku-o/go-webdb-template/internal/usecase/api"
 )
 
 // TodayHandler は今日の日付APIのハンドラー
 type TodayHandler struct {
-	todayUsecase *usecase.TodayUsecase
+	todayUsecase *usecaseapi.TodayUsecase
 }
 
 // NewTodayHandler は新しいTodayHandlerを作成
-func NewTodayHandler(todayUsecase *usecase.TodayUsecase) *TodayHandler {
+func NewTodayHandler(todayUsecase *usecaseapi.TodayUsecase) *TodayHandler {
 	return &TodayHandler{
 		todayUsecase: todayUsecase,
 	}

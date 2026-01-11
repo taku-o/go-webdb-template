@@ -19,8 +19,17 @@ go-webdb-template/
 │   │   │   │   └── user_handler_test.go
 │   │   │   └── router/         # ルーティング
 │   │   ├── usecase/            # ビジネスロジック層
-│   │   │   ├── user_usecase.go
-│   │   │   ├── user_usecase_test.go
+│   │   │   ├── api/            # API用usecase層
+│   │   │   │   ├── dm_user_usecase.go
+│   │   │   │   ├── dm_user_usecase_test.go
+│   │   │   │   ├── dm_post_usecase.go
+│   │   │   │   ├── dm_post_usecase_test.go
+│   │   │   │   ├── dm_jobqueue_usecase.go
+│   │   │   │   ├── dm_jobqueue_usecase_test.go
+│   │   │   │   ├── email_usecase.go
+│   │   │   │   ├── email_usecase_test.go
+│   │   │   │   ├── today_usecase.go
+│   │   │   │   └── today_usecase_test.go
 │   │   │   ├── admin/          # Admin用usecase層
 │   │   │   │   ├── dm_user_register_usecase.go
 │   │   │   │   ├── dm_user_register_usecase_test.go
