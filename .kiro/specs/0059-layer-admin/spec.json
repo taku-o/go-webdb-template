@@ -1,0 +1,11 @@
+{
+  "feature": "0059-layer-admin",
+  "description": "Adminアプリのカスタムページの実装の仕組みを変更する",
+  "language": "ja",
+  "createdAt": "2026-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
