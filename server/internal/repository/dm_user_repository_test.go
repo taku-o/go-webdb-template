@@ -215,3 +215,89 @@ func TestDmUserRepository_CreateAndRetrieve(t *testing.T) {
 	assert.Equal(t, user2.ID, retrieved2.ID)
 	assert.Equal(t, "User 2", retrieved2.Name)
 }
+
+func TestDmUserRepository_InsertDmUsersBatch(t *testing.T) {
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
+
+	dmUserRepo := repository.NewDmUserRepository(groupManager)
+	ctx := context.Background()
+
+	tests := []struct {
+		name      string
+		tableName string
+		dmUsers   []*model.DmUser
+		wantErr   bool
+	}{
+		{
+			name:      "empty slice",
+			tableName: "dm_users_000",
+			dmUsers:   []*model.DmUser{},
+			wantErr:   false,
+		},
+		{
+			name:      "single user",
+			tableName: "dm_users_000",
+			dmUsers: func() []*model.DmUser {
+				id, _ := idgen.GenerateUUIDv7()
+				return []*model.DmUser{
+					{
+						ID:    id,
+						Name:  "Batch User 1",
+						Email: fmt.Sprintf("batch1-%s@example.com", id),
+					},
+				}
+			}(),
+			wantErr: false,
+		},
+		{
+			name:      "multiple users",
+			tableName: "dm_users_000",
+			dmUsers: func() []*model.DmUser {
+				var users []*model.DmUser
+				for i := 0; i < 3; i++ {
+					id, _ := idgen.GenerateUUIDv7()
+					users = append(users, &model.DmUser{
+						ID:    id,
+						Name:  fmt.Sprintf("Batch User %d", i+1),
+						Email: fmt.Sprintf("batch%d-%s@example.com", i+1, id),
+					})
+				}
+				return users
+			}(),
+			wantErr: false,
+		},
+		{
+			name:      "invalid table name",
+			tableName: "invalid_table",
+			dmUsers: func() []*model.DmUser {
+				id, _ := idgen.GenerateUUIDv7()
+				return []*model.DmUser{
+					{
+						ID:    id,
+						Name:  "Test User",
+						Email: fmt.Sprintf("test-%s@example.com", id),
+					},
+				}
+			}(),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := dmUserRepo.InsertDmUsersBatch(ctx, tt.tableName, tt.dmUsers)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				// クリーンアップ: 挿入されたデータを削除
+				for _, u := range tt.dmUsers {
+					_ = dmUserRepo.Delete(ctx, u.ID)
+				}
+			}
+		})
+	}
+}

@@ -316,3 +316,96 @@ func TestDmPostRepository_GetUserPosts(t *testing.T) {
 	}
 	assert.True(t, found, "Created user post should be found in the list")
 }
+
+func TestDmPostRepository_InsertDmPostsBatch(t *testing.T) {
+	groupManager := testutil.SetupTestGroupManager(t, 4, 8)
+	defer testutil.CleanupTestGroupManager(groupManager)
+
+	dmPostRepo := repository.NewDmPostRepository(groupManager)
+	ctx := context.Background()
+
+	// テスト用のユーザーIDを生成
+	userID, err := idgen.GenerateUUIDv7()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		tableName string
+		dmPosts   []*model.DmPost
+		wantErr   bool
+	}{
+		{
+			name:      "empty slice",
+			tableName: "dm_posts_000",
+			dmPosts:   []*model.DmPost{},
+			wantErr:   false,
+		},
+		{
+			name:      "single post",
+			tableName: "dm_posts_000",
+			dmPosts: func() []*model.DmPost {
+				id, _ := idgen.GenerateUUIDv7()
+				return []*model.DmPost{
+					{
+						ID:      id,
+						UserID:  userID,
+						Title:   "Batch Post 1",
+						Content: "Batch content 1",
+					},
+				}
+			}(),
+			wantErr: false,
+		},
+		{
+			name:      "multiple posts",
+			tableName: "dm_posts_000",
+			dmPosts: func() []*model.DmPost {
+				var posts []*model.DmPost
+				for i := 0; i < 3; i++ {
+					id, _ := idgen.GenerateUUIDv7()
+					posts = append(posts, &model.DmPost{
+						ID:      id,
+						UserID:  userID,
+						Title:   fmt.Sprintf("Batch Post %d", i+1),
+						Content: fmt.Sprintf("Batch content %d", i+1),
+					})
+				}
+				return posts
+			}(),
+			wantErr: false,
+		},
+		{
+			name:      "invalid table name",
+			tableName: "invalid_table",
+			dmPosts: func() []*model.DmPost {
+				id, _ := idgen.GenerateUUIDv7()
+				return []*model.DmPost{
+					{
+						ID:      id,
+						UserID:  userID,
+						Title:   "Test Post",
+						Content: "Test content",
+					},
+				}
+			}(),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := dmPostRepo.InsertDmPostsBatch(ctx, tt.tableName, tt.dmPosts)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				// クリーンアップ: 挿入されたデータを削除
+				for _, p := range tt.dmPosts {
+					_ = dmPostRepo.Delete(ctx, p.ID, p.UserID)
+				}
+			}
+		})
+	}
+}
