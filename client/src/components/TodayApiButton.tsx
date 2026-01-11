@@ -2,9 +2,10 @@
 
 import { useUser } from '@auth0/nextjs-auth0'
 import { useState } from 'react'
+import { apiClient } from '@/lib/api'
 
 export default function TodayApiButton() {
-  const { user, isLoading } = useUser()
+  const { user: auth0user, isLoading } = useUser()
   const [date, setDate] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -15,35 +16,7 @@ export default function TodayApiButton() {
     setDate(null)
 
     try {
-      // JWTの取得
-      let token: string
-      if (user) {
-        // ログイン中: Auth0 JWTを取得
-        const response = await fetch('/auth/token')
-        if (!response.ok) {
-          throw new Error('Failed to get access token')
-        }
-        const data = await response.json()
-        token = data.accessToken
-      } else {
-        // 未ログイン: Public API Keyを使用
-        token = process.env.NEXT_PUBLIC_API_KEY!
-      }
-
-      // API呼び出し
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
-      const response = await fetch(`${apiBaseUrl}/api/today`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || response.statusText)
-      }
-
-      const data = await response.json()
+      const data = await apiClient.getToday(auth0user || undefined)
       setDate(data.date)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

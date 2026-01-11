@@ -1,0 +1,11 @@
+{
+  "feature": "0062-client-struct",
+  "description": "クライアントアプリケーション設計改善",
+  "language": "ja",
+  "createdAt": "2026-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}

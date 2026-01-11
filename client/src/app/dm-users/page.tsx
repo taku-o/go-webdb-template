@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
-import { User } from '@/types/user'
+import { DmUser } from '@/types/dm_user'
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([])
+  const [dmUsers, setDmUsers] = useState<DmUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState('')
@@ -18,8 +18,8 @@ export default function UsersPage() {
   const loadUsers = async () => {
     try {
       setLoading(true)
-      const data = await apiClient.getUsers()
-      setUsers(data)
+      const data = await apiClient.getDmUsers()
+      setDmUsers(data)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users')
@@ -38,7 +38,7 @@ export default function UsersPage() {
 
     try {
       setCreating(true)
-      await apiClient.createUser({ name, email })
+      await apiClient.createDmUser({ name, email })
       setName('')
       setEmail('')
       await loadUsers()
@@ -53,7 +53,7 @@ export default function UsersPage() {
     if (!confirm('本当に削除しますか？')) return
 
     try {
-      await apiClient.deleteUser(id)
+      await apiClient.deleteDmUser(id)
       await loadUsers()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user')
@@ -64,7 +64,7 @@ export default function UsersPage() {
     try {
       setDownloading(true)
       setDownloadError(null)
-      await apiClient.downloadUsersCSV()
+      await apiClient.downloadDmUsersCSV()
     } catch (err) {
       setDownloadError(err instanceof Error ? err.message : 'Failed to download CSV')
     } finally {
@@ -142,19 +142,19 @@ export default function UsersPage() {
           )}
           {loading ? (
             <p>読み込み中...</p>
-          ) : users.length === 0 ? (
+          ) : dmUsers.length === 0 ? (
             <p className="text-gray-500">ユーザーがいません。上のフォームから作成してください。</p>
           ) : (
             <div className="space-y-2">
-              {users.map((user, index) => (
+              {dmUsers.map((dmUser, index) => (
                 <div key={index} className="p-4 border rounded-lg flex justify-between items-center">
                   <div>
-                    <div className="font-medium">{user.name}</div>
-                    <div className="text-sm text-gray-600">{user.email}</div>
-                    <div className="text-xs text-gray-400">ID: {user.id}</div>
+                    <div className="font-medium">{dmUser.name}</div>
+                    <div className="text-sm text-gray-600">{dmUser.email}</div>
+                    <div className="text-xs text-gray-400">ID: {dmUser.id}</div>
                   </div>
                   <button
-                    onClick={() => handleDelete(user.id)}
+                    onClick={() => handleDelete(dmUser.id)}
                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                   >
                     削除

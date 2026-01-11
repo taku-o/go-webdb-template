@@ -3,18 +3,18 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
-import { UserPost } from '@/types/post'
+import { DmUserPost } from '@/types/dm_post'
 
 export default function UserPostsPage() {
-  const [userPosts, setUserPosts] = useState<UserPost[]>([])
+  const [dmUserPosts, setDmUserPosts] = useState<DmUserPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const loadUserPosts = async () => {
     try {
       setLoading(true)
-      const data = await apiClient.getUserPosts()
-      setUserPosts(data)
+      const data = await apiClient.getDmUserPosts()
+      setDmUserPosts(data)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load user posts')
@@ -54,7 +54,7 @@ export default function UserPostsPage() {
 
         {loading ? (
           <p>読み込み中...</p>
-        ) : userPosts.length === 0 ? (
+        ) : dmUserPosts.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">表示する投稿がありません。</p>
             <div className="space-x-4">
@@ -69,7 +69,7 @@ export default function UserPostsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {userPosts.map((item, index) => (
+            {dmUserPosts.map((item, index) => (
               <div key={index} className="p-6 border rounded-lg hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">

@@ -1,4 +1,4 @@
-export interface Post {
+export interface DmPost {
   id: string
   user_id: string
   title: string
@@ -7,18 +7,18 @@ export interface Post {
   updated_at: string
 }
 
-export interface CreatePostRequest {
+export interface CreateDmPostRequest {
   user_id: string
   title: string
   content: string
 }
 
-export interface UpdatePostRequest {
+export interface UpdateDmPostRequest {
   title?: string
   content?: string
 }
 
-export interface UserPost {
+export interface DmUserPost {
   post_id: string
   post_title: string
   post_content: string

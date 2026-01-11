@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
-import { Post } from '@/types/post'
-import { User } from '@/types/user'
+import { DmPost } from '@/types/dm_post'
+import { DmUser } from '@/types/dm_user'
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [users, setUsers] = useState<User[]>([])
+  const [dmPosts, setPosts] = useState<DmPost[]>([])
+  const [dmUsers, setDmUsers] = useState<DmUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState('')
@@ -19,7 +19,7 @@ export default function PostsPage() {
   const loadPosts = async () => {
     try {
       setLoading(true)
-      const data = await apiClient.getPosts()
+      const data = await apiClient.getDmPosts()
       setPosts(data)
       setError(null)
     } catch (err) {
@@ -31,8 +31,8 @@ export default function PostsPage() {
 
   const loadUsers = async () => {
     try {
-      const data = await apiClient.getUsers()
-      setUsers(data)
+      const data = await apiClient.getDmUsers()
+      setDmUsers(data)
     } catch (err) {
       console.error('Failed to load users:', err)
     }
@@ -49,7 +49,7 @@ export default function PostsPage() {
 
     try {
       setCreating(true)
-      await apiClient.createPost({
+      await apiClient.createDmPost({
         user_id: userId,
         title,
         content,
@@ -65,11 +65,11 @@ export default function PostsPage() {
     }
   }
 
-  const handleDelete = async (post: Post) => {
+  const handleDelete = async (dmPost: DmPost) => {
     if (!confirm('本当に削除しますか？')) return
 
     try {
-      await apiClient.deletePost(post.id, post.user_id)
+      await apiClient.deleteDmPost(dmPost.id, dmPost.user_id)
       await loadPosts()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete post')
@@ -106,15 +106,15 @@ export default function PostsPage() {
                 required
               >
                 <option value="">選択してください</option>
-                {users.map((user, index) => (
-                  <option key={index} value={user.id}>
-                    {user.name} ({user.email})
+                {dmUsers.map((dmUser, index) => (
+                  <option key={index} value={dmUser.id}>
+                    {dmUser.name} ({dmUser.email})
                   </option>
                 ))}
               </select>
-              {users.length === 0 && (
+              {dmUsers.length === 0 && (
                 <p className="text-sm text-gray-500 mt-1">
-                  先に<Link href="/users" className="text-blue-500 hover:underline">ユーザー</Link>を作成してください
+                  先に<Link href="/dm-users" className="text-blue-500 hover:underline">ユーザー</Link>を作成してください
                 </p>
               )}
             </div>
@@ -140,7 +140,7 @@ export default function PostsPage() {
             </div>
             <button
               type="submit"
-              disabled={creating || users.length === 0}
+              disabled={creating || dmUsers.length === 0}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
             >
               {creating ? '作成中...' : '作成'}
@@ -153,25 +153,25 @@ export default function PostsPage() {
           <h2 className="text-xl font-semibold mb-4">投稿一覧</h2>
           {loading ? (
             <p>読み込み中...</p>
-          ) : posts.length === 0 ? (
+          ) : dmPosts.length === 0 ? (
             <p className="text-gray-500">投稿がありません。上のフォームから作成してください。</p>
           ) : (
             <div className="space-y-4">
-              {posts.map((post, index) => (
+              {dmPosts.map((dmPost, index) => (
                 <div key={index} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg">{post.title}</h3>
+                    <h3 className="font-bold text-lg">{dmPost.title}</h3>
                     <button
-                      onClick={() => handleDelete(post)}
+                      onClick={() => handleDelete(dmPost)}
                       className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                     >
                       削除
                     </button>
                   </div>
-                  <p className="text-gray-700 mb-2">{post.content}</p>
+                  <p className="text-gray-700 mb-2">{dmPost.content}</p>
                   <div className="text-xs text-gray-400">
-                    <div>投稿ID: {post.id} | ユーザーID: {post.user_id}</div>
-                    <div>作成日: {new Date(post.created_at).toLocaleString('ja-JP')}</div>
+                    <div>投稿ID: {dmPost.id} | ユーザーID: {dmPost.user_id}</div>
+                    <div>作成日: {new Date(dmPost.created_at).toLocaleString('ja-JP')}</div>
                   </div>
                 </div>
               ))}
