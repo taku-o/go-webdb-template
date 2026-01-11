@@ -1,25 +1,31 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/base64"
+	"context"
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/usecase/cli"
 )
 
 func main() {
-	// 32バイト（256ビット）のランダムな秘密鍵を生成
-	secretKey := make([]byte, 32)
-	if _, err := rand.Read(secretKey); err != nil {
+	// Service層の初期化
+	secretService := service.NewSecretService()
+
+	// Usecase層の初期化
+	generateSecretUsecase := cli.NewGenerateSecretUsecase(secretService)
+
+	// 秘密鍵の生成
+	ctx := context.Background()
+	secretKey, err := generateSecretUsecase.GenerateSecret(ctx)
+	if err != nil {
 		log.Fatalf("Failed to generate secret key: %v", err)
 	}
 
-	// Base64エンコード
-	encoded := base64.StdEncoding.EncodeToString(secretKey)
-
 	// 標準出力に表示
-	fmt.Println(encoded)
+	fmt.Println(secretKey)
 
 	os.Exit(0)
 }

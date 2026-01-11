@@ -21,11 +21,15 @@ go-webdb-template/
 │   │   │   ├── email_usecase.go
 │   │   │   ├── cli/            # CLI用usecase層
 │   │   │   │   ├── list_dm_users_usecase.go
-│   │   │   │   └── list_dm_users_usecase_test.go
+│   │   │   │   ├── list_dm_users_usecase_test.go
+│   │   │   │   ├── generate_secret_usecase.go
+│   │   │   │   └── generate_secret_usecase_test.go
 │   │   │   └── ...
 │   │   ├── service/            # ドメインロジック層
 │   │   │   ├── dm_user_service.go
 │   │   │   ├── dm_post_service.go
+│   │   │   ├── secret_service.go
+│   │   │   ├── secret_service_test.go
 │   │   │   ├── email/          # メール送信サービス
 │   │   │   │   ├── email_sender.go
 │   │   │   │   ├── email_service.go
@@ -52,6 +56,10 @@ go-webdb-template/
 │   │   │   ├── manager.go      # DBマネージャー
 │   │   │   ├── sharding.go     # Sharding戦略
 │   │   │   └── sharding_test.go
+│   │   ├── auth/               # 認証・秘密鍵管理
+│   │   │   ├── jwt.go          # JWT検証・生成
+│   │   │   ├── secret.go       # 秘密鍵生成処理
+│   │   │   └── secret_test.go  # 秘密鍵生成テスト
 │   │   └── config/             # 設定読み込み
 │   │       └── config.go       # 設定構造体と読み込み処理
 │   ├── test/                   # テストユーティリティ

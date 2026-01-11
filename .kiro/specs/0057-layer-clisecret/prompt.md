@@ -27,10 +27,6 @@ _serena_indexing
 
 /kiro:spec-impl 0057-layer-clisecret
 
-server/list-dm-users でなくて、
-server/bin/list-dm-users にビルドを出力して欲しい。
-
-
 commitした後、
 https://github.com/taku-o/go-webdb-template/issues/118
 に対してpull requestを発行してください。

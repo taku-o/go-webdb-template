@@ -438,6 +438,18 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 - `validateLimit()`: Input validation
 - `printDmUsersTSV()`: Output formatting
 
+### CLI Layer (`cmd/generate-secret`)
+
+**Location**: `cmd/generate-secret/main.go`
+
+**Responsibilities**:
+- Layer initialization (Service → Usecase)
+- Usecase layer invocation
+- Output to stdout
+
+**Key Components**:
+- `main()`: Entry point and output control
+
 ### CLI Usecase Layer (`internal/usecase/cli`)
 
 **Location**: `internal/usecase/cli/`
@@ -448,12 +460,29 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
 
 **Key Components**:
 - `ListDmUsersUsecase`: User list retrieval for CLI
+- `GenerateSecretUsecase`: Secret key generation for CLI
 
 **Constraints**:
 - Uses existing service layer interfaces
 - Does not contain domain logic (delegates to service layer)
 
+### Secret Key Generation (`internal/auth/secret.go`)
+
+**Location**: `internal/auth/secret.go`
+
+**Responsibilities**:
+- Generate cryptographically secure random secret keys
+- Base64 encode the generated keys
+
+**Key Components**:
+- `GenerateSecretKey()`: Generates a 32-byte (256-bit) random secret key and returns it as a Base64-encoded string
+
+**Security**:
+- Uses `crypto/rand` for secure random number generation
+
 ### CLI Architecture Diagram
+
+#### list-dm-users
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -503,6 +532,40 @@ See [Testing.md](./Testing.md) for comprehensive testing documentation.
     ┌─────────┐                    ┌─────────┐
     │ Shard 1 │                    │ Shard 2 │
     └─────────┘                    └─────────┘
+```
+
+#### generate-secret
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│          CLI Layer (cmd/generate-secret/main.go)             │
+│  • エントリーポイント                                        │
+│  • レイヤーの初期化（Service → Usecase）                    │
+│  • usecase層の呼び出し                                       │
+│  • 結果の出力（標準出力）                                    │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│      Usecase Layer (internal/usecase/cli)                    │
+│  • GenerateSecretUsecase                                    │
+│  • ビジネスロジックの調整（CLI用）                           │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Service Layer (internal/service)                      │
+│  • SecretService                                            │
+│  • ドメインロジック                                          │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│         Auth Layer (internal/auth)                            │
+│  • GenerateSecretKey()                                       │
+│  • 秘密鍵生成処理（共通ライブラリ）                          │
+│  • crypto/rand + encoding/base64                            │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Admin Panel (GoAdmin)
