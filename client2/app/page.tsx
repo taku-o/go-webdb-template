@@ -42,69 +42,86 @@ export default async function Home() {
   ]
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">Go DB Project Sample</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8">Go DB Project Sample</h1>
 
         {/* プロジェクト説明 */}
-        <p className="mb-8 text-gray-600">
+        <p className="mb-6 sm:mb-8 text-muted-foreground text-sm sm:text-base">
           Go + Next.js + Sharding対応のサンプルプロジェクトです。
         </p>
 
-        <Separator className="my-8" />
+        <Separator className="my-6 sm:my-8" />
 
         {/* データ操作機能 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {features.map((feature) => (
-            <Link key={feature.href} href={feature.href}>
-              <Card className="h-full hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-2xl">{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <section aria-label="機能一覧">
+          <h2 className="sr-only">利用可能な機能</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {features.map((feature) => (
+              <Link key={feature.href} href={feature.href} aria-label={`${feature.title}: ${feature.description}`}>
+                <Card className="h-full hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-ring">
+                  <CardHeader>
+                    <CardTitle className="text-xl sm:text-2xl">{feature.title}</CardTitle>
+                    <CardDescription className="text-sm">{feature.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-        <Separator className="my-8" />
+        <Separator className="my-6 sm:my-8" />
 
         {/* 認証状態の表示 */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>認証状態</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {session?.user ? (
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">ログイン中: {session.user.name}</p>
-                  {session.user.email && (
-                    <p className="text-sm text-gray-600">{session.user.email}</p>
-                  )}
+        <section aria-label="認証状態">
+          <Card className="mb-6 sm:mb-8">
+            <CardHeader>
+              <CardTitle>認証状態</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {session?.user ? (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-sm sm:text-base">
+                      <span className="sr-only">現在のログイン状態: </span>
+                      ログイン中: {session.user.name}
+                    </p>
+                    {session.user.email && (
+                      <p className="text-xs sm:text-sm text-muted-foreground" aria-label="メールアドレス">
+                        {session.user.email}
+                      </p>
+                    )}
+                  </div>
+                  <form action={async () => {
+                    "use server"
+                    await signOut()
+                  }}>
+                    <Button type="submit" variant="destructive" size="sm" className="w-full sm:w-auto" aria-label="ログアウト">
+                      ログアウト
+                    </Button>
+                  </form>
                 </div>
-                <form action={async () => {
-                  "use server"
-                  await signOut()
-                }}>
-                  <Button type="submit" variant="destructive">ログアウト</Button>
-                </form>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <p className="text-gray-600">ログインしていません</p>
-                <form action={async () => {
-                  "use server"
-                  await signIn()
-                }}>
-                  <Button type="submit">ログイン</Button>
-                </form>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    <span className="sr-only">現在のログイン状態: </span>
+                    ログインしていません
+                  </p>
+                  <form action={async () => {
+                    "use server"
+                    await signIn()
+                  }}>
+                    <Button type="submit" size="sm" className="w-full sm:w-auto" aria-label="ログイン">
+                      ログイン
+                    </Button>
+                  </form>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
 
-        <Separator className="my-8" />
+        <Separator className="my-6 sm:my-8" />
 
         {/* Today API (Private Endpoint) */}
         <TodayApiButton />

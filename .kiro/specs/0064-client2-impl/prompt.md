@@ -110,7 +110,11 @@ think.
 
 いったんcommitしてください。
 
+/kiro:spec-impl 0064-client2-impl 4.1
+/kiro:spec-impl 0064-client2-impl 4.2
+/kiro:spec-impl 0064-client2-impl 4.3
 
+いったんcommitしてください。
 
 
 

@@ -84,33 +84,35 @@ export default function UsersPage() {
   }
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            トップページに戻る
-          </Link>
-        </div>
+        <nav aria-label="パンくずリスト">
+          <div className="mb-4 sm:mb-6">
+            <Link href="/" className="inline-flex items-center text-primary hover:underline text-sm sm:text-base" aria-label="トップページに戻る">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              トップページに戻る
+            </Link>
+          </div>
+        </nav>
 
-        <h1 className="text-3xl font-bold mb-8">ユーザー管理</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">ユーザー管理</h1>
 
         {error && (
-          <div className="mb-4">
+          <div className="mb-4" role="alert" aria-live="assertive">
             <ErrorAlert message={error} />
           </div>
         )}
 
         {/* 作成フォーム */}
-        <Card className="mb-8">
+        <Card className="mb-6 sm:mb-8">
           <CardHeader>
-            <CardTitle>新規ユーザー作成</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">新規ユーザー作成</CardTitle>
+            <CardDescription className="text-sm">
               新しいユーザーを追加します
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleCreate} className="space-y-4" aria-label="新規ユーザー作成フォーム">
               <div className="space-y-2">
                 <Label htmlFor="name">名前</Label>
                 <Input
@@ -120,6 +122,9 @@ export default function UsersPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="ユーザー名を入力"
                   required
+                  aria-required="true"
+                  aria-invalid={error ? "true" : "false"}
+                  aria-describedby={error ? "name-error" : undefined}
                 />
               </div>
               <div className="space-y-2">
@@ -131,12 +136,17 @@ export default function UsersPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@example.com"
                   required
+                  aria-required="true"
+                  aria-invalid={error ? "true" : "false"}
+                  aria-describedby={error ? "email-error" : undefined}
                 />
               </div>
               <Button
                 type="submit"
                 disabled={creating}
                 className="w-full"
+                aria-label={creating ? "ユーザー作成中" : "ユーザーを作成"}
+                aria-busy={creating}
               >
                 {creating ? (
                   <>
@@ -154,10 +164,10 @@ export default function UsersPage() {
         {/* ユーザー一覧 */}
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <CardTitle>ユーザー一覧</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg sm:text-xl">ユーザー一覧</CardTitle>
+                <CardDescription className="text-sm">
                   {dmUsers.length}件のユーザーが登録されています
                 </CardDescription>
               </div>
@@ -165,6 +175,10 @@ export default function UsersPage() {
                 onClick={handleDownloadCSV}
                 disabled={downloading}
                 variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                aria-label={downloading ? "CSVダウンロード中" : "ユーザー一覧をCSV形式でダウンロード"}
+                aria-busy={downloading}
               >
                 {downloading ? (
                   <>
@@ -173,7 +187,7 @@ export default function UsersPage() {
                   </>
                 ) : (
                   <>
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className="mr-2 h-4 w-4" aria-hidden="true" />
                     CSVダウンロード
                   </>
                 )}
@@ -182,39 +196,46 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent>
             {downloadError && (
-              <div className="mb-4">
+              <div className="mb-4" role="alert" aria-live="assertive">
                 <ErrorAlert message={downloadError} />
               </div>
             )}
             {loading ? (
-              <LoadingOverlay message="読み込み中..." />
+              <div role="status" aria-live="polite" aria-label="ユーザー一覧を読み込み中">
+                <LoadingOverlay message="読み込み中..." />
+              </div>
             ) : dmUsers.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center text-muted-foreground py-8 text-sm sm:text-base" role="status">
                 ユーザーがいません。上のフォームから作成してください。
               </p>
             ) : (
-              <div className="rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-x-auto">
+                <Table role="table" aria-label="ユーザー一覧">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
+                      <TableHead className="hidden sm:table-cell">ID</TableHead>
                       <TableHead>名前</TableHead>
-                      <TableHead>メールアドレス</TableHead>
-                      <TableHead>作成日時</TableHead>
-                      <TableHead>更新日時</TableHead>
+                      <TableHead className="hidden md:table-cell">メールアドレス</TableHead>
+                      <TableHead className="hidden lg:table-cell">作成日時</TableHead>
+                      <TableHead className="hidden lg:table-cell">更新日時</TableHead>
                       <TableHead className="text-right">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {dmUsers.map((dmUser) => (
                       <TableRow key={dmUser.id}>
-                        <TableCell className="font-mono text-xs">{dmUser.id}</TableCell>
-                        <TableCell className="font-medium">{dmUser.name}</TableCell>
-                        <TableCell>{dmUser.email}</TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="hidden sm:table-cell font-mono text-xs">{dmUser.id}</TableCell>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div>{dmUser.name}</div>
+                            <div className="text-xs text-muted-foreground sm:hidden">{dmUser.email}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{dmUser.email}</TableCell>
+                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                           {new Date(dmUser.created_at).toLocaleString('ja-JP')}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                           {new Date(dmUser.updated_at).toLocaleString('ja-JP')}
                         </TableCell>
                         <TableCell className="text-right">
@@ -222,9 +243,10 @@ export default function UsersPage() {
                             onClick={() => handleDelete(dmUser.id)}
                             variant="destructive"
                             size="sm"
+                            aria-label={`${dmUser.name}を削除`}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            削除
+                            <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                            <span className="hidden sm:inline">削除</span>
                           </Button>
                         </TableCell>
                       </TableRow>

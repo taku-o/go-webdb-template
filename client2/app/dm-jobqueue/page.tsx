@@ -37,34 +37,36 @@ export default function DmJobqueuePage() {
   }
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            トップページに戻る
-          </Link>
-        </div>
+        <nav aria-label="パンくずリスト">
+          <div className="mb-4 sm:mb-6">
+            <Link href="/" className="inline-flex items-center text-primary hover:underline text-sm sm:text-base" aria-label="トップページに戻る">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              トップページに戻る
+            </Link>
+          </div>
+        </nav>
 
-        <h1 className="text-3xl font-bold mb-4 flex items-center gap-2">
-          <Clock className="h-8 w-8" />
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+          <Clock className="h-6 w-6 sm:h-8 sm:w-8" />
           ジョブキュー (参考コード)
         </h1>
 
-        <p className="mb-6 text-gray-600">
+        <p className="mb-4 sm:mb-6 text-muted-foreground text-sm sm:text-base">
           このページは参考コードです。ボタンをクリックすると、3分後に標準出力にメッセージが出力されるジョブが登録されます。
         </p>
 
         {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
+          <Alert variant="destructive" className="mb-4" role="alert" aria-live="assertive">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {success && (
-          <Alert className="mb-4 border-green-200 bg-green-50 text-green-800">
-            <CheckCircle2 className="h-4 w-4" />
+          <Alert className="mb-4 border-green-200 bg-green-50 text-green-800" role="status" aria-live="polite">
+            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
             <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
@@ -77,7 +79,7 @@ export default function DmJobqueuePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" aria-label="ジョブ登録フォーム">
               <div className="space-y-2">
                 <Label htmlFor="message">メッセージ (オプション)</Label>
                 <Input
@@ -86,12 +88,18 @@ export default function DmJobqueuePage() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="出力するメッセージを入力"
+                  aria-describedby="message-description"
                 />
+                <p id="message-description" className="sr-only">
+                  ジョブ実行時に標準出力に出力されるメッセージ（省略可能）
+                </p>
               </div>
               <Button
                 type="submit"
                 disabled={loading}
                 className="w-full"
+                aria-label={loading ? "ジョブ登録中" : "ジョブを登録"}
+                aria-busy={loading}
               >
                 {loading ? (
                   <>
@@ -100,7 +108,7 @@ export default function DmJobqueuePage() {
                   </>
                 ) : (
                   <>
-                    <Clock className="mr-2 h-4 w-4" />
+                    <Clock className="mr-2 h-4 w-4" aria-hidden="true" />
                     ジョブを登録
                   </>
                 )}

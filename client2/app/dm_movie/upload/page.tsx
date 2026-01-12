@@ -49,24 +49,26 @@ export default function MovieUploadPage() {
   }, [])
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            トップページに戻る
-          </Link>
-        </div>
+        <nav aria-label="パンくずリスト">
+          <div className="mb-4 sm:mb-6">
+            <Link href="/" className="inline-flex items-center text-primary hover:underline text-sm sm:text-base" aria-label="トップページに戻る">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              トップページに戻る
+            </Link>
+          </div>
+        </nav>
 
-        <h1 className="text-3xl font-bold mb-4 flex items-center gap-2">
-          <Upload className="h-8 w-8" />
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+          <Upload className="h-6 w-6 sm:h-8 sm:w-8" />
           動画ファイルアップロード
         </h1>
 
-        <Card className="mb-6">
+        <Card className="mb-4 sm:mb-6">
           <CardHeader>
-            <CardTitle>動画アップロード</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">動画アップロード</CardTitle>
+            <CardDescription className="text-sm">
               MP4形式の動画ファイルをアップロードできます。最大ファイルサイズは2GBです。
             </CardDescription>
           </CardHeader>
@@ -75,33 +77,33 @@ export default function MovieUploadPage() {
               <Dashboard
                 uppy={uppy}
                 proudlyDisplayPoweredByUppy={false}
-                height={400}
+                height={300}
                 width="100%"
               />
             )}
 
             {uploadStatus === 'uploading' && (
               <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-4">
+                <div className="w-full bg-muted rounded-full h-4">
                   <div
-                    className="bg-blue-600 h-4 rounded-full transition-all duration-300"
+                    className="bg-primary h-4 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">{uploadProgress}% アップロード済み</p>
+                <p className="text-sm text-muted-foreground mt-2">{uploadProgress}% アップロード済み</p>
               </div>
             )}
 
             {uploadStatus === 'success' && (
-              <Alert className="mt-4 border-green-200 bg-green-50 text-green-800">
-                <CheckCircle2 className="h-4 w-4" />
+              <Alert className="mt-4 border-green-200 bg-green-50 text-green-800" role="status" aria-live="polite">
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 <AlertDescription>アップロードが完了しました。</AlertDescription>
               </Alert>
             )}
 
             {uploadStatus === 'error' && errorMessage && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertCircle className="h-4 w-4" />
+              <Alert variant="destructive" className="mt-4" role="alert" aria-live="assertive">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             )}

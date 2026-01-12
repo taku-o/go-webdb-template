@@ -96,33 +96,35 @@ export default function PostsPage() {
   }
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            トップページに戻る
-          </Link>
-        </div>
+        <nav aria-label="パンくずリスト">
+          <div className="mb-4 sm:mb-6">
+            <Link href="/" className="inline-flex items-center text-primary hover:underline text-sm sm:text-base" aria-label="トップページに戻る">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              トップページに戻る
+            </Link>
+          </div>
+        </nav>
 
-        <h1 className="text-3xl font-bold mb-8">投稿管理</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">投稿管理</h1>
 
         {error && (
-          <div className="mb-4">
+          <div className="mb-4" role="alert" aria-live="assertive">
             <ErrorAlert message={error} />
           </div>
         )}
 
         {/* 作成フォーム */}
-        <Card className="mb-8">
+        <Card className="mb-6 sm:mb-8">
           <CardHeader>
-            <CardTitle>新規投稿作成</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">新規投稿作成</CardTitle>
+            <CardDescription className="text-sm">
               新しい投稿を作成します
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleCreate} className="space-y-4" aria-label="新規投稿作成フォーム">
               <div className="space-y-2">
                 <Label htmlFor="userId">ユーザー</Label>
                 <Select value={userId} onValueChange={setUserId} required>
@@ -138,8 +140,8 @@ export default function PostsPage() {
                   </SelectContent>
                 </Select>
                 {dmUsers.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    先に<Link href="/dm-users" className="text-blue-600 hover:underline">ユーザー</Link>を作成してください
+                  <p className="text-sm text-muted-foreground">
+                    先に<Link href="/dm-users" className="text-primary hover:underline">ユーザー</Link>を作成してください
                   </p>
                 )}
               </div>
@@ -169,6 +171,9 @@ export default function PostsPage() {
                 type="submit"
                 disabled={creating || dmUsers.length === 0}
                 className="w-full"
+                aria-label={creating ? "投稿作成中" : "投稿を作成"}
+                aria-busy={creating}
+                aria-disabled={dmUsers.length === 0}
               >
                 {creating ? (
                   <>
@@ -186,43 +191,50 @@ export default function PostsPage() {
         {/* 投稿一覧 */}
         <Card>
           <CardHeader>
-            <CardTitle>投稿一覧</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">投稿一覧</CardTitle>
+            <CardDescription className="text-sm">
               {dmPosts.length}件の投稿が登録されています
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <LoadingOverlay message="読み込み中..." />
+              <div role="status" aria-live="polite" aria-label="投稿一覧を読み込み中">
+                <LoadingOverlay message="読み込み中..." />
+              </div>
             ) : dmPosts.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center text-muted-foreground py-8 text-sm sm:text-base" role="status">
                 投稿がありません。上のフォームから作成してください。
               </p>
             ) : (
-              <div className="rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-x-auto">
+                <Table role="table" aria-label="投稿一覧">
                   <TableHeader>
                     <TableRow>
                       <TableHead>タイトル</TableHead>
-                      <TableHead>本文</TableHead>
-                      <TableHead>ユーザーID</TableHead>
-                      <TableHead>作成日時</TableHead>
-                      <TableHead>更新日時</TableHead>
+                      <TableHead className="hidden md:table-cell">本文</TableHead>
+                      <TableHead className="hidden sm:table-cell">ユーザーID</TableHead>
+                      <TableHead className="hidden lg:table-cell">作成日時</TableHead>
+                      <TableHead className="hidden lg:table-cell">更新日時</TableHead>
                       <TableHead className="text-right">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {dmPosts.map((dmPost) => (
                       <TableRow key={dmPost.id}>
-                        <TableCell className="font-medium">{dmPost.title}</TableCell>
-                        <TableCell className="max-w-md">
+                        <TableCell className="font-medium">
+                          <div>
+                            <div>{dmPost.title}</div>
+                            <div className="text-xs text-muted-foreground md:hidden mt-1 line-clamp-2">{dmPost.content}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell max-w-md">
                           <p className="truncate">{dmPost.content}</p>
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{dmPost.user_id}</TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="hidden sm:table-cell font-mono text-xs">{dmPost.user_id}</TableCell>
+                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                           {new Date(dmPost.created_at).toLocaleString('ja-JP')}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                           {new Date(dmPost.updated_at).toLocaleString('ja-JP')}
                         </TableCell>
                         <TableCell className="text-right">
@@ -230,9 +242,10 @@ export default function PostsPage() {
                             onClick={() => handleDelete(dmPost)}
                             variant="destructive"
                             size="sm"
+                            aria-label={`${dmPost.title}を削除`}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            削除
+                            <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                            <span className="hidden sm:inline">削除</span>
                           </Button>
                         </TableCell>
                       </TableRow>

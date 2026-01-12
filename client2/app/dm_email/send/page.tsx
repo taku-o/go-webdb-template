@@ -48,30 +48,32 @@ export default function SendEmailPage() {
   }
 
   return (
-    <main className="min-h-screen p-8">
+    <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            トップページに戻る
-          </Link>
-        </div>
+        <nav aria-label="パンくずリスト">
+          <div className="mb-4 sm:mb-6">
+            <Link href="/" className="inline-flex items-center text-primary hover:underline text-sm sm:text-base" aria-label="トップページに戻る">
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+              トップページに戻る
+            </Link>
+          </div>
+        </nav>
 
-        <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
-          <Mail className="h-8 w-8" />
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2">
+          <Mail className="h-6 w-6 sm:h-8 sm:w-8" />
           メール送信
         </h1>
 
         {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
+          <Alert variant="destructive" className="mb-4" role="alert" aria-live="assertive">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {success && (
-          <Alert className="mb-4 border-green-200 bg-green-50 text-green-800">
-            <CheckCircle2 className="h-4 w-4" />
+          <Alert className="mb-4 border-green-200 bg-green-50 text-green-800" role="status" aria-live="polite">
+            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
             <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
@@ -84,7 +86,7 @@ export default function SendEmailPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" aria-label="メール送信フォーム">
               <div className="space-y-2">
                 <Label htmlFor="toEmail">送信先メールアドレス</Label>
                 <Input
@@ -94,6 +96,9 @@ export default function SendEmailPage() {
                   onChange={(e) => setToEmail(e.target.value)}
                   placeholder="example@example.com"
                   required
+                  aria-required="true"
+                  aria-invalid={error ? "true" : "false"}
+                  aria-describedby={error ? "toEmail-error" : undefined}
                 />
               </div>
               <div className="space-y-2">
@@ -105,12 +110,17 @@ export default function SendEmailPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="山田 太郎"
                   required
+                  aria-required="true"
+                  aria-invalid={error ? "true" : "false"}
+                  aria-describedby={error ? "name-error" : undefined}
                 />
               </div>
               <Button
                 type="submit"
                 disabled={sending}
                 className="w-full"
+                aria-label={sending ? "メール送信中" : "メールを送信"}
+                aria-busy={sending}
               >
                 {sending ? (
                   <>
@@ -119,7 +129,7 @@ export default function SendEmailPage() {
                   </>
                 ) : (
                   <>
-                    <Mail className="mr-2 h-4 w-4" />
+                    <Mail className="mr-2 h-4 w-4" aria-hidden="true" />
                     メールを送信
                   </>
                 )}
