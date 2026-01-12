@@ -189,5 +189,19 @@ OKです。
 commitしてください。
 
 
+現在、feature/0063-client2ブランチで作業しています。
+修正作業が一通り終わったので、
+https://github.com/taku-o/go-webdb-template/issues/130
+に対してpull requestを発行してください。
+
+/review 131
+
+
+  2. Clerk依存の残存 (client2/package.json:15)
+  "@clerk/nextjs": "^5.6.2",
+  - precedentテンプレート由来のClerk依存が残っている
+  - NextAuthを使用するため、Clerkは不要
+
+
 
 
