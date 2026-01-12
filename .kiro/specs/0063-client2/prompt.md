@@ -197,11 +197,15 @@ https://github.com/taku-o/go-webdb-template/issues/130
 /review 131
 
 
-  2. Clerk依存の残存 (client2/package.json:15)
-  "@clerk/nextjs": "^5.6.2",
-  - precedentテンプレート由来のClerk依存が残っている
-  - NextAuthを使用するため、Clerkは不要
+レビューしてもらいました。
+これに対応してください。
+>  2. Clerk依存の残存 (client2/package.json:15)
+>  "@clerk/nextjs": "^5.6.2",
+>  - precedentテンプレート由来のClerk依存が残っている
+>  - NextAuthを使用するため、Clerkは不要
 
+git push origin HEAD
 
+/review 131
 
 
