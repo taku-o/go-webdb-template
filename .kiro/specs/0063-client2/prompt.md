@@ -155,5 +155,32 @@ digest: "1717026850"
 ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
 
 OKです。
+ここでいったんcommitしましょう。
+
+/kiro:spec-impl 0063-client2 5.2
+/kiro:spec-impl 0063-client2 5.3
+
+cd client2
+npx tsc --noEmit
+npm run type-check
+
+
+タスクリストには
+npm run type-checkって書いてあるけど、
+
+cd client2
+npm run type-check
+では動かないの？
+
+/kiro:spec-impl 0063-client2 5.4
+
+cd client2
+npm run build
+
+
+
+
+
+
 
 
