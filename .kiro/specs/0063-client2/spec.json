@@ -1,0 +1,11 @@
+{
+  "feature": "0063-client2",
+  "description": "新clientアプリの作成（client2ディレクトリ）",
+  "language": "ja",
+  "createdAt": "2026-01-27",
+  "approvals": {
+    "requirements": true,
+    "design": true,
+    "tasks": true
+  }
+}
