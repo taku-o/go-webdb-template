@@ -66,7 +66,94 @@ client2/.env.local は設定済みだった。
 
 /kiro:spec-impl 0063-client2 4.1
 /kiro:spec-impl 0063-client2 4.2
+/kiro:spec-impl 0063-client2 4.3
+
+ここでいったんcommitしましょう。
+
+/kiro:spec-impl 0063-client2 5.1
+
+npm run client2
+
+起動してアクセスしたらエラーが出た
+ ⨯ ./app/globals.css:1:1
+Syntax error: /Users/taku-o/Documents/workspaces/go-webdb-template/client2/app/globals.css The `border-border` class does not exist. If `border-border` is a custom class, make sure it is defined within a `@layer` directive.
+
+> 1 | @tailwind base;
+    | ^
+  2 | @tailwind components;
+  3 | @tailwind utilities;
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/Users/taku-o/Documents/workspaces/go-webdb-template/client2/app/globals.css': No serializer registered for PostCSSSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> PostCSSSyntaxError
+ ⨯ ./app/globals.css:1:1
+Syntax error: /Users/taku-o/Documents/workspaces/go-webdb-template/client2/app/globals.css The `border-border` class does not exist. If `border-border` is a custom class, make sure it is defined within a `@layer` directive.
+
+まだClerkProviderが取り除き切れていない。
+ ⨯ node_modules/@clerk/shared/dist/chunk-T4WHYQYX.mjs (164:1) @ Object.throwMissingClerkProviderError
+ ⨯ Internal error: Error: @clerk/nextjs: SignedOut can only be used within the <ClerkProvider /> component. Learn more: https://clerk.com/docs/components/clerk-provider
+    at Object.throwMissingClerkProviderError (./node_modules/@clerk/shared/dist/chunk-T4WHYQYX.mjs:185:13)
+    at eval (./node_modules/@clerk/clerk-react/dist/chunk-LVLBRUHJ.mjs:101:18)
+    at useAssertWrappedByClerkProvider (./node_modules/@clerk/shared/dist/react/index.mjs:109:7)
+    at useAssertWrappedByClerkProvider (./node_modules/@clerk/clerk-react/dist/chunk-LVLBRUHJ.mjs:100:87)
+    at SignedOut (./node_modules/@clerk/clerk-react/dist/chunk-LVLBRUHJ.mjs:305:3)
+    at o6 (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:10648)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:20918
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:21646)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at aa (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:58318)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55368)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:47561
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:48047)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:47561
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:48047)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:48143)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at at (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:11134)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:21609
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:21646)
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:51745)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:49161
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:49842)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at aa (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:58318)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55368)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:47561
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:48047)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at /Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:47561
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:48047)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55049)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55340)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at aa (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:58318)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55368)
+    at as (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:59237)
+    at aa (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:58318)
+    at ao (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:55368)
+    at ar (/Users/taku-o/Documents/workspaces/go-webdb-template/client2/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:20518)
+digest: "1717026850"
+  162 |     },
+  163 |     throwMissingClerkProviderError(params) {
+> 164 |       throw new Error(buildMessage(messages.MissingClerkProvider, params));
+      | ^
+  165 |     },
+  166 |     throw(message) {
+  167 |       throw new Error(buildMessage(message));
 
 
+こんなアラートがでてる。なるべく対応したい。
+なにか分かる？
+⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+
+OKです。
 
 
