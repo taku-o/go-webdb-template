@@ -85,6 +85,10 @@ client/src/app/page.tsx に
 いったんcommitしてください。
 
 /kiro:spec-impl 0064-client2-impl 2.1
+/kiro:spec-impl 0064-client2-impl 2.2
+/kiro:spec-impl 0064-client2-impl 2.3
+
+いったんcommitしてください。
 
 
 
