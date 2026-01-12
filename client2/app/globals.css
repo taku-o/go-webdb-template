@@ -55,5 +55,26 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* デザインシステム: 統一されたカラーパレットとタイポグラフィ */
+/* 
+ * カラーパレット:
+ * - テキスト: text-foreground (メイン), text-muted-foreground (サブ)
+ * - 背景: bg-background (メイン), bg-card (カード), bg-muted (控えめな背景)
+ * - アクセント: text-primary, bg-primary (主要アクション)
+ * - 警告: text-destructive, bg-destructive (削除・エラー)
+ * 
+ * タイポグラフィ:
+ * - 見出し: text-2xl, text-3xl, text-4xl (font-bold)
+ * - 本文: text-base (デフォルト), text-sm (小さいテキスト)
+ * - 説明文: text-muted-foreground
+ * 
+ * スペーシング:
+ * - コンテナ: max-w-4xl, max-w-6xl (中央揃え)
+ * - パディング: p-8 (ページ), p-4, p-6 (カード)
+ * - マージン: mb-4, mb-6, mb-8 (要素間)
+ * - ギャップ: gap-4, gap-6 (グリッド・フレックス)
+ */
