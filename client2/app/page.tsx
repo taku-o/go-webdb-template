@@ -1,168 +1,114 @@
-import Card from "@/components/home/card";
-import { DEPLOY_URL } from "@/lib/constants";
-import { Github, Twitter } from "@/components/shared/icons";
-import WebVitals from "@/components/home/web-vitals";
-import ComponentGrid from "@/components/home/component-grid";
-import Image from "next/image";
-import { nFormatter } from "@/lib/utils";
+import Link from 'next/link'
+import { auth, signIn, signOut } from '@/auth'
+import TodayApiButton from '@/components/TodayApiButton'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 export default async function Home() {
-  const { stargazers_count: stars } = await fetch(
-    "https://api.github.com/repos/steven-tey/precedent",
+  const session = await auth()
+
+  const features = [
     {
-      ...(process.env.GITHUB_OAUTH_TOKEN && {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }),
-      // data will revalidate every 24 hours
-      next: { revalidate: 86400 },
+      title: 'ユーザー管理',
+      description: 'ユーザーの一覧・作成・編集・削除',
+      href: '/dm-users',
     },
-  )
-    .then((res) => res.json())
-    .catch((e) => console.log(e));
+    {
+      title: '投稿管理',
+      description: '投稿の一覧・作成・編集・削除',
+      href: '/dm-posts',
+    },
+    {
+      title: 'ユーザーと投稿',
+      description: 'ユーザーと投稿をJOINして表示（クロスシャードクエリ）',
+      href: '/dm-user-posts',
+    },
+    {
+      title: '動画アップロード',
+      description: '動画ファイルのアップロード（TUSプロトコル）',
+      href: '/dm_movie/upload',
+    },
+    {
+      title: 'メール送信',
+      description: 'ウェルカムメールの送信',
+      href: '/dm_email/send',
+    },
+    {
+      title: 'ジョブキュー',
+      description: '遅延ジョブの登録（参考実装）',
+      href: '/dm-jobqueue',
+    },
+  ]
 
   return (
-    <>
-      <div className="z-10 w-full max-w-xl px-5 xl:px-0">
-        <a
-          href="https://twitter.com/steventey/status/1613928948915920896"
-          target="_blank"
-          rel="noreferrer"
-          className="mx-auto mb-5 flex max-w-fit animate-fade-up items-center justify-center space-x-2 overflow-hidden rounded-full bg-blue-100 px-7 py-2 transition-colors hover:bg-blue-200"
-        >
-          <Twitter className="h-5 w-5 text-[#1d9bf0]" />
-          <p className="text-sm font-semibold text-[#1d9bf0]">
-            Introducing Precedent
-          </p>
-        </a>
-        <h1
-          className="animate-fade-up bg-gradient-to-br from-black to-stone-500 bg-clip-text text-center font-display text-4xl font-bold tracking-[-0.02em] text-transparent opacity-0 drop-shadow-sm [text-wrap:balance] md:text-7xl md:leading-[5rem]"
-          style={{ animationDelay: "0.15s", animationFillMode: "forwards" }}
-        >
-          Building blocks for your Next project
-        </h1>
-        <p
-          className="mt-6 animate-fade-up text-center text-gray-500 opacity-0 [text-wrap:balance] md:text-xl"
-          style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
-        >
-          An opinionated collection of components, hooks, and utilities for your
-          Next.js project.
-        </p>
-        <div
-          className="mx-auto mt-6 flex animate-fade-up items-center justify-center space-x-5 opacity-0"
-          style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
-        >
-          <a
-            className="group flex max-w-fit items-center justify-center space-x-2 rounded-full border border-black bg-black px-5 py-2 text-sm text-white transition-colors hover:bg-white hover:text-black"
-            href={DEPLOY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg
-              className="h-4 w-4 group-hover:text-black"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 4L20 20H4L12 4Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <p>Deploy to Vercel</p>
-          </a>
-          <a
-            className="flex max-w-fit items-center justify-center space-x-2 rounded-full border border-gray-300 bg-white px-5 py-2 text-sm text-gray-600 shadow-md transition-colors hover:border-gray-800"
-            href="https://github.com/steven-tey/precedent"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Github />
-            <p>
-              <span className="hidden sm:inline-block">Star on</span> GitHub{" "}
-              <span className="font-semibold">{nFormatter(stars)}</span>
-            </p>
-          </a>
-        </div>
-      </div>
-      <div className="my-10 grid w-full max-w-screen-xl animate-fade-up grid-cols-1 gap-5 px-5 md:grid-cols-3 xl:px-0">
-        {features.map(({ title, description, demo, large }) => (
-          <Card
-            key={title}
-            title={title}
-            description={description}
-            demo={
-              title === "Beautiful, reusable components" ? (
-                <ComponentGrid />
-              ) : (
-                demo
-              )
-            }
-            large={large}
-          />
-        ))}
-      </div>
-    </>
-  );
-}
+    <main className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold mb-8">Go DB Project Sample</h1>
 
-const features = [
-  {
-    title: "Beautiful, reusable components",
-    description:
-      "Pre-built beautiful, a11y-first components, powered by [Tailwind CSS](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com), and [Framer Motion](https://framer.com/motion). Used in production on [Dub.co](https://dub.co).",
-    large: true,
-  },
-  {
-    title: "Performance first",
-    description:
-      "Built on [Next.js](https://nextjs.org/) primitives like `@next/font` and `next/image` for stellar performance.",
-    demo: <WebVitals />,
-  },
-  {
-    title: "One-click Deploy",
-    description:
-      "Jumpstart your next project by deploying Precedent to [Vercel](https://vercel.com/) in one click.",
-    demo: (
-      <a href={DEPLOY_URL}>
-        <Image
-          src="https://vercel.com/button"
-          alt="Deploy with Vercel"
-          width={120}
-          height={30}
-          unoptimized
-        />
-      </a>
-    ),
-  },
-  {
-    title: "Built-in Auth",
-    description:
-      "Precedent comes with authentication via [Clerk](https://clerk.com/)",
-    demo: (
-      <div className="flex items-center justify-center space-x-20">
-        <Image alt="Clerk logo" src="/clerk.svg" width={50} height={50} />
+        {/* プロジェクト説明 */}
+        <p className="mb-8 text-gray-600">
+          Go + Next.js + Sharding対応のサンプルプロジェクトです。
+        </p>
+
+        <Separator className="my-8" />
+
+        {/* データ操作機能 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {features.map((feature) => (
+            <Link key={feature.href} href={feature.href}>
+              <Card className="h-full hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-2xl">{feature.title}</CardTitle>
+                  <CardDescription>{feature.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+          ))}
+        </div>
+
+        <Separator className="my-8" />
+
+        {/* 認証状態の表示 */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>認証状態</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {session?.user ? (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">ログイン中: {session.user.name}</p>
+                  {session.user.email && (
+                    <p className="text-sm text-gray-600">{session.user.email}</p>
+                  )}
+                </div>
+                <form action={async () => {
+                  "use server"
+                  await signOut()
+                }}>
+                  <Button type="submit" variant="destructive">ログアウト</Button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <p className="text-gray-600">ログインしていません</p>
+                <form action={async () => {
+                  "use server"
+                  await signIn()
+                }}>
+                  <Button type="submit">ログイン</Button>
+                </form>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Separator className="my-8" />
+
+        {/* Today API (Private Endpoint) */}
+        <TodayApiButton />
       </div>
-    ),
-  },
-  {
-    title: "Hooks, utilities, and more",
-    description:
-      "Precedent offers a collection of hooks, utilities, and `@vercel/og`",
-    demo: (
-      <div className="grid grid-flow-col grid-rows-3 gap-10 p-10">
-        <span className="font-mono font-semibold">useIntersectionObserver</span>
-        <span className="font-mono font-semibold">useLocalStorage</span>
-        <span className="font-mono font-semibold">useScroll</span>
-        <span className="font-mono font-semibold">nFormatter</span>
-        <span className="font-mono font-semibold">capitalize</span>
-        <span className="font-mono font-semibold">truncate</span>
-      </div>
-    ),
-  },
-];
+    </main>
+  )
+}

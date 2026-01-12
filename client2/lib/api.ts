@@ -3,6 +3,11 @@ import { DmPost, CreateDmPostRequest, UpdateDmPostRequest, DmUserPost } from '@/
 import { RegisterJobRequest, RegisterJobResponse } from '@/types/jobqueue'
 import { getAuthToken } from './auth'
 
+// @ts-ignore - Uppyの型定義が正しく解決されない場合があるため
+import Uppy from '@uppy/core'
+// @ts-ignore
+import Tus from '@uppy/tus'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
 
 class ApiClient {
@@ -203,3 +208,64 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)
+
+// 動画アップロード用のUppyインスタンスを作成する関数
+export interface MovieUploadCallbacks {
+  onUploadProgress?: (percent: number) => void
+  onUploadSuccess?: () => void
+  onUploadError?: (error: string) => void
+  onUploadStart?: () => void
+}
+
+export function createMovieUploader(callbacks: MovieUploadCallbacks = {}): Uppy {
+  const {
+    onUploadProgress,
+    onUploadSuccess,
+    onUploadError,
+    onUploadStart,
+  } = callbacks
+
+  const uppyInstance = new Uppy({
+    id: 'dm_movie_uploader',
+    autoProceed: false,
+    restrictions: {
+      maxFileSize: 2147483648, // 2GB
+      allowedFileTypes: ['.mp4'],
+      maxNumberOfFiles: 1,
+    },
+  })
+    .use(Tus, {
+      endpoint: `${API_BASE_URL}/api/upload/dm_movie`,
+      chunkSize: 5 * 1024 * 1024, // 5MB
+      retryDelays: [0, 1000, 3000, 5000],
+      headers: async () => {
+        const token = await getAuthToken()
+        return {
+          Authorization: `Bearer ${token}`,
+        }
+      },
+    })
+    .on('upload-progress', (file: any, progress: any) => {
+      if (progress.bytesTotal && onUploadProgress) {
+        const percent = Math.round((progress.bytesUploaded / progress.bytesTotal) * 100)
+        onUploadProgress(percent)
+      }
+    })
+    .on('upload-success', (file: any, response: any) => {
+      if (onUploadSuccess) {
+        onUploadSuccess()
+      }
+    })
+    .on('upload-error', (file: any, error: any, response: any) => {
+      if (onUploadError) {
+        onUploadError(error?.message || 'アップロードに失敗しました')
+      }
+    })
+    .on('upload', () => {
+      if (onUploadStart) {
+        onUploadStart()
+      }
+    })
+
+  return uppyInstance
+}

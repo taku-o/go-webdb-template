@@ -90,6 +90,27 @@ client/src/app/page.tsx に
 
 いったんcommitしてください。
 
+/kiro:spec-impl 0064-client2-impl 3.1
+/kiro:spec-impl 0064-client2-impl 3.2
+/kiro:spec-impl 0064-client2-impl 3.3
+/kiro:spec-impl 0064-client2-impl 3.4
+/kiro:spec-impl 0064-client2-impl 3.5
+/kiro:spec-impl 0064-client2-impl 3.6
+/kiro:spec-impl 0064-client2-impl 3.7
+/kiro:spec-impl 0064-client2-impl 3.8
+
+client2/app/dm_movie/upload/page.tsx に認証トークンをとる処理があるけど、
+この処理はここに無い方がいいんじゃない？
+共通の処理を行う箇所はないの？
+
+client2/app/dm_movie/upload/page.tsx の動画アップロードの処理は
+client2/lib/api.ts
+に移動したい。
+think.
+
+いったんcommitしてください。
+
+
 
 
 
