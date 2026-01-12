@@ -177,9 +177,16 @@ npm run type-check
 cd client2
 npm run build
 
+ここでいったんcommitしましょう。
+
+/kiro:spec-impl 0063-client2 5.5
+
+OKです。
+タスクが全部終わっているかチェックしてください。
 
 
-
+ブラウザの手動チェック、ホットリロードはOK
+commitしてください。
 
 
 
