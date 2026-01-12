@@ -9,7 +9,13 @@
     "format": "prettier \"**/*.{css,js,json,jsx,ts,tsx}\"",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "APP_ENV=test jest",
+    "test:watch": "APP_ENV=test jest --watch",
+    "test:coverage": "APP_ENV=test jest --coverage",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -53,15 +59,26 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/forms": "^0.5.6",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.10",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/ms": "^0.7.32",
     "autoprefixer": "^10.4.16",
     "concurrently": "^7.6.0",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "jest-fixed-jsdom": "^0.0.11",
+    "msw": "^2.12.7",
     "postcss": "^8.4.31",
     "prettier": "^2.8.8",
     "prettier-plugin-tailwindcss": "^0.2.8",
-    "tailwindcss": "^3.3.3"
+    "tailwindcss": "^3.3.3",
+    "undici": "^7.18.2"
   }
 }

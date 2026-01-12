@@ -43,7 +43,7 @@ export default async function NavBar() {
                   "use server"
                   await signIn()
                 }}>
-                  <Button type="submit">ログイン</Button>
+                  <Button type="submit" aria-label="ナビゲーションバーからログイン">ログイン</Button>
                 </form>
               )}
             </div>

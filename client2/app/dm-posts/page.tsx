@@ -64,6 +64,11 @@ export default function PostsPage() {
     e.preventDefault()
     if (!userId || !title || !content) return
 
+    // フォームの値を保存（loadPosts()による再レンダリング前に）
+    const savedUserId = userId
+    const savedTitle = title
+    const savedContent = content
+
     try {
       setCreating(true)
       setError(null)
@@ -72,10 +77,20 @@ export default function PostsPage() {
         title,
         content,
       })
-      setUserId('')
-      setTitle('')
-      setContent('')
+      
+      // データを再取得（この間に再レンダリングが発生する）
       await loadPosts()
+      
+      // loadPosts()の完了後、次のイベントループでフォームをクリア
+      // これにより、loadPosts()による再レンダリングが完了してからフォームをクリアできる
+      // setTimeout(0)を使うことで、現在のイベントループが完了した後に実行される
+      setTimeout(() => {
+        // 保存した値と現在の値が一致する場合のみクリア（二重送信防止）
+        // この時点では、loadPosts()による再レンダリングが完了している
+        setUserId(prev => prev === savedUserId ? '' : prev)
+        setTitle(prev => prev === savedTitle ? '' : prev)
+        setContent(prev => prev === savedContent ? '' : prev)
+      }, 0)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create post')
     } finally {
