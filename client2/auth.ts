@@ -1,4 +1,5 @@
 import NextAuth from "next-auth"
+import Auth0 from "next-auth/providers/auth0"
 
 export const {
   handlers,
@@ -8,9 +9,16 @@ export const {
 } = NextAuth({
   // 認証設定
   providers: [
-    // 必要最小限のプロバイダーを設定
-    // 既存のAuth0設定を参考に、NextAuth (Auth.js) v5のプロバイダーを設定
-    // 環境変数設定後に追加（例: Auth0プロバイダー）
+    Auth0({
+      clientId: process.env.AUTH0_CLIENT_ID,
+      clientSecret: process.env.AUTH0_CLIENT_SECRET,
+      issuer: process.env.AUTH0_ISSUER,
+      authorization: {
+        params: {
+          audience: process.env.AUTH0_AUDIENCE,
+        },
+      },
+    }),
   ],
   callbacks: {
     async session({ session, token }) {

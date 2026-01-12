@@ -238,11 +238,9 @@ export function createMovieUploader(callbacks: MovieUploadCallbacks = {}): Uppy 
       endpoint: `${API_BASE_URL}/api/upload/dm_movie`,
       chunkSize: 5 * 1024 * 1024, // 5MB
       retryDelays: [0, 1000, 3000, 5000],
-      headers: async () => {
+      onBeforeRequest: async (req: any) => {
         const token = await getAuthToken()
-        return {
-          Authorization: `Bearer ${token}`,
-        }
+        req.setHeader('Authorization', `Bearer ${token}`)
       },
     })
     .on('upload-progress', (file: any, progress: any) => {
