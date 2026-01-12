@@ -111,7 +111,7 @@ describe('UsersPage Integration', () => {
       expect(screen.getByText('User 1')).toBeInTheDocument()
     }, { timeout: 10000 })
 
-    // Find inputs by id (client2 uses id attributes)
+    // Find inputs by id (client uses id attributes)
     const nameInput = screen.getByLabelText('名前')
     const emailInput = screen.getByLabelText('メールアドレス')
     const submitButton = screen.getByRole('button', { name: /作成/ })

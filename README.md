@@ -298,12 +298,108 @@ Mailpitは http://localhost:8025 で起動します。
 
 ### 9. クライアント起動
 
+#### 依存関係のインストール
+
+```bash
+cd client
+npm install --legacy-peer-deps
+```
+
+**注意**: peer dependencyの競合がある場合は`--legacy-peer-deps`フラグを使用してください。
+
+#### 環境変数の設定
+
+**AUTH_SECRETの生成**:
+```bash
+# プロジェクトルートで実行
+npm run cli:generate-secret
+```
+このコマンドで生成された秘密鍵をコピーします。
+
+`.env.local`を作成して以下の環境変数を設定：
+```
+# NextAuth (Auth.js)
+AUTH_SECRET=<npm run cli:generate-secretで生成した秘密鍵>
+AUTH_URL=http://localhost:3000
+
+# Auth0設定
+AUTH0_ISSUER=https://your-tenant.auth0.com
+AUTH0_CLIENT_ID=your-client-id
+AUTH0_CLIENT_SECRET=your-client-secret
+AUTH0_AUDIENCE=https://your-api-audience
+
+# API設定
+NEXT_PUBLIC_API_KEY=your-api-key
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+
+# テスト環境用（テスト実行時に必要）
+APP_ENV=test
+```
+
+**注意**: 
+- `AUTH_SECRET`は`npm run cli:generate-secret`コマンドで生成します（`server/cmd/generate-secret`を使用）。
+- `APP_ENV=test`はテスト実行時に必要です（`npm test`、`npm run e2e`実行時）。
+
+#### Auth0アプリケーション設定
+
+Auth0ダッシュボード（`Applications > [対象アプリ] > Settings`）で以下のURLを設定：
+
+**Allowed Callback URLs:**
+```
+http://localhost:3000/api/auth/callback/auth0
+```
+
+**Allowed Logout URLs:**
+```
+http://localhost:3000
+```
+
+**Allowed Web Origins:**
+```
+http://localhost:3000
+```
+
+#### 開発サーバーの起動
+
 ```bash
 cd client
 npm run dev
 ```
 
 クライアントは http://localhost:3000 で起動します。
+
+#### 技術スタック
+
+- **フレームワーク**: Next.js 14+ (App Router)
+- **言語**: TypeScript 5+
+- **UIコンポーネント**: shadcn/ui
+- **認証**: NextAuth (Auth.js) v5
+- **スタイリング**: Tailwind CSS
+- **フォーム管理**: react-hook-form
+- **バリデーション**: zod
+- **ファイルアップロード**: Uppy (TUSプロトコル)
+- **テスト**: Playwright (E2E), Jest (単体・統合), MSW (APIモック)
+
+#### 利用可能なスクリプト
+
+**開発**:
+- `npm run dev` - 開発サーバーを起動（ポート3000）
+- `npm run build` - プロダクションビルドを実行
+- `npm run start` - プロダクションビルドを起動（ポート3000）
+- `npm run lint` - ESLintを実行
+- `npm run type-check` - TypeScript型チェックを実行
+- `npm run format` - Prettierでフォーマットを確認
+- `npm run format:write` - Prettierでフォーマットを適用
+
+**テスト**:
+- `npm test` - Jestテストを実行（単体・統合テスト）
+- `npm run test:watch` - Jestテストをウォッチモードで実行
+- `npm run test:coverage` - Jestテストのカバレッジを取得
+- `npm run e2e` - Playwright E2Eテストを実行
+- `npm run e2e:ui` - Playwright E2EテストをUIモードで実行
+- `npm run e2e:headed` - Playwright E2Eテストをヘッドモードで実行
+
+**注意**: テスト実行時は`APP_ENV=test`が自動的に設定されます（`package.json`のスクリプトに含まれています）。
 
 ### 10. Docker環境での起動（オプション）
 
@@ -513,6 +609,8 @@ Next.jsクライアントでは、環境変数`NEXT_PUBLIC_API_KEY`にAPIキー�
 # client/.env.local
 NEXT_PUBLIC_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
+詳細なクライアントアプリのセットアップ手順は、セクション9「クライアント起動」を参照してください。
 
 ### エラーレスポンス
 
