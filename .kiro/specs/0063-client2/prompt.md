@@ -62,8 +62,10 @@ client -> client2に移行が完成したら、docs/Temp-Client2.mdの内容をR
 
 client2/.env.local は設定済みだった。
 
+ここでいったんcommitしましょう。
 
-
+/kiro:spec-impl 0063-client2 4.1
+/kiro:spec-impl 0063-client2 4.2
 
 
 
