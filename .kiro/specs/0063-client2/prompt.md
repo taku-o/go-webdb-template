@@ -51,6 +51,12 @@ client -> client2に移行が完成したら、docs/Temp-Client2.mdの内容をR
 
 ここでいったんcommitしましょう。
 
+/kiro:spec-impl 0063-client2 2.1
+/kiro:spec-impl 0063-client2 2.2
+
+
+
+
 
 
 
