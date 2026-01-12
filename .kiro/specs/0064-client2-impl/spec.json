@@ -1,0 +1,11 @@
+{
+    "feature": "0064-client2-impl",
+    "description": "既存clientアプリの機能をclient2アプリに移植",
+    "language": "ja",
+    "createdAt": "2026-01-27",
+    "approvals": {
+        "requirements": true,
+        "design": true,
+        "tasks": true
+    }
+}
