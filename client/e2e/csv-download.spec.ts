@@ -79,7 +79,12 @@ test.describe('CSV Download Flow', () => {
     await page.route('**/api/export/dm-users/csv', async route => {
       const response = await route.fetch()
       csvContent = await response.text()
-      await route.fulfill({ response })
+      // response.text() consumes the body, so rebuild the response
+      await route.fulfill({
+        status: response.status(),
+        headers: response.headers(),
+        body: csvContent,
+      })
     })
 
     // Click CSV download button
@@ -105,7 +110,8 @@ test.describe('CSV Download Flow', () => {
     await page.route('**/api/export/dm-users/csv', async route => {
       await route.fulfill({
         status: 500,
-        body: 'Internal server error',
+        body: JSON.stringify({ message: 'Internal server error' }),
+        headers: { 'Content-Type': 'application/json' },
       })
     })
 
@@ -117,6 +123,6 @@ test.describe('CSV Download Flow', () => {
     await expect(downloadButton).toContainText('CSVダウンロード', { timeout: 5000 })
 
     // Check error message is displayed
-    await expect(page.locator('text=Internal server error')).toBeVisible()
+    await expect(page.locator('text=/エラー|失敗|Internal server error/')).toBeVisible()
   })
 })

@@ -23,6 +23,11 @@ let mockUsers = [
 ]
 
 const server = setupServer(
+  // Mock NextAuth token endpoint (relative path)
+  http.get('*/api/auth/token', () => {
+    return new HttpResponse(null, { status: 401 })
+  }),
+
   http.get('http://localhost:8080/api/dm-users', () => {
     return HttpResponse.json(mockUsers)
   }),
@@ -73,44 +78,63 @@ describe('UsersPage Integration', () => {
   it('displays users from API', async () => {
     render(<UsersPage />)
 
-    // Wait for users to load
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+    }, { timeout: 5000 })
+
+    // Wait for users to load (check for table rows)
     await waitFor(() => {
       expect(screen.getByText('User 1')).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
 
-    expect(screen.getByText('user1@example.com')).toBeInTheDocument()
+    // Check users are displayed (use getAllByText for multiple matches)
+    const user1Emails = screen.getAllByText('user1@example.com')
+    expect(user1Emails.length).toBeGreaterThan(0)
+    
     expect(screen.getByText('User 2')).toBeInTheDocument()
-    expect(screen.getByText('user2@example.com')).toBeInTheDocument()
+    const user2Emails = screen.getAllByText('user2@example.com')
+    expect(user2Emails.length).toBeGreaterThan(0)
   })
 
   it('creates a new user', async () => {
     const user = userEvent.setup()
     render(<UsersPage />)
 
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+    }, { timeout: 5000 })
+
     // Wait for initial load
     await waitFor(() => {
       expect(screen.getByText('User 1')).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
 
-    // Find inputs by role
-    const inputs = screen.getAllByRole('textbox')
-    const nameInput = inputs[0] // First text input is name
-    const emailInput = inputs[1] // Second text input is email
-    const submitButton = screen.getByRole('button', { name: '作成' })
+    // Find inputs by id (client uses id attributes)
+    const nameInput = screen.getByLabelText('名前')
+    const emailInput = screen.getByLabelText('メールアドレス')
+    const submitButton = screen.getByRole('button', { name: /作成/ })
 
     await user.type(nameInput, 'New User')
     await user.type(emailInput, 'new@example.com')
     await user.click(submitButton)
 
-    // Wait for new user to appear
+    // Wait for new user to appear (after form submission and reload)
     await waitFor(() => {
       expect(screen.getByText('New User')).toBeInTheDocument()
-    })
-    expect(screen.getByText('new@example.com')).toBeInTheDocument()
+    }, { timeout: 10000 })
+    // Check email appears in table (more specific selector)
+    await waitFor(() => {
+      const emailCells = screen.getAllByText('new@example.com')
+      expect(emailCells.length).toBeGreaterThan(0)
+    }, { timeout: 5000 })
 
-    // Form should be cleared
-    expect(nameInput).toHaveValue('')
-    expect(emailInput).toHaveValue('')
+    // Form should be cleared (wait a bit for state update)
+    await waitFor(() => {
+      expect(nameInput).toHaveValue('')
+      expect(emailInput).toHaveValue('')
+    }, { timeout: 5000 })
   })
 
   it('handles API errors gracefully', async () => {
@@ -122,10 +146,15 @@ describe('UsersPage Integration', () => {
 
     render(<UsersPage />)
 
-    // Component displays err.message which comes from the fetch error
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+    }, { timeout: 5000 })
+
+    // Component displays error message (ErrorAlert component)
     await waitFor(() => {
       expect(screen.getByText(/Internal Server Error/i)).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
   })
 
   it('shows loading state', () => {

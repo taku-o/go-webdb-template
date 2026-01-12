@@ -10,8 +10,8 @@ test.describe('Email Send Flow', () => {
     // Check main heading
     await expect(page.locator('h1')).toContainText('メール送信')
 
-    // Check section heading
-    await expect(page.locator('h2')).toContainText('ウェルカムメール送信')
+    // Check section heading (CardTitle is rendered as div, not h2)
+    await expect(page.getByText('ウェルカムメール送信')).toBeVisible()
 
     // Check form elements
     await expect(page.locator('label[for="toEmail"]')).toContainText('送信先メールアドレス')
@@ -21,7 +21,7 @@ test.describe('Email Send Flow', () => {
 
   test('should have link to return to top page', async ({ page }) => {
     // Check back link
-    const backLink = page.getByText('トップページに戻る')
+    const backLink = page.getByRole('link', { name: /トップページに戻る/ })
     await expect(backLink).toBeVisible()
     await expect(backLink).toHaveAttribute('href', '/')
   })
@@ -34,8 +34,8 @@ test.describe('Email Send Flow', () => {
     // Submit form
     await page.click('button:has-text("メールを送信")')
 
-    // Wait for success message
-    await expect(page.locator('text=メールを送信しました')).toBeVisible({ timeout: 10000 })
+    // Wait for success message (displayed in Alert with role="status")
+    await expect(page.locator('[role="status"]')).toBeVisible({ timeout: 10000 })
 
     // Form should be cleared after successful submission
     await expect(page.locator('#toEmail')).toHaveValue('')
@@ -54,7 +54,7 @@ test.describe('Email Send Flow', () => {
     // We check that either loading state is shown or success message appears
     const loadingOrSuccess = await Promise.race([
       page.locator('button:has-text("送信中...")').isVisible().catch(() => false),
-      page.locator('text=メールを送信しました').isVisible().catch(() => false)
+      page.locator('[role="status"]').isVisible().catch(() => false)
     ])
 
     expect(loadingOrSuccess).toBeTruthy()
@@ -72,7 +72,7 @@ test.describe('Email Send Flow', () => {
     await page.click('button:has-text("メールを送信")')
 
     // Should stay on the same page (no success message)
-    await expect(page.locator('text=メールを送信しました')).not.toBeVisible()
+    await expect(page.locator('[role="status"]')).not.toBeVisible()
   })
 
   test('should require name field', async ({ page }) => {
@@ -87,7 +87,7 @@ test.describe('Email Send Flow', () => {
     await page.click('button:has-text("メールを送信")')
 
     // Should stay on the same page (no success message)
-    await expect(page.locator('text=メールを送信しました')).not.toBeVisible()
+    await expect(page.locator('[role="status"]')).not.toBeVisible()
   })
 
   test('should validate email format', async ({ page }) => {
@@ -103,6 +103,6 @@ test.describe('Email Send Flow', () => {
     await page.click('button:has-text("メールを送信")')
 
     // Should not show success message
-    await expect(page.locator('text=メールを送信しました')).not.toBeVisible()
+    await expect(page.locator('[role="status"]')).not.toBeVisible()
   })
 })

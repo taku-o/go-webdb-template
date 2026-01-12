@@ -91,7 +91,7 @@ Next.jsアプリケーション（PARTNER）がAuth0と連携するために、�
 2. `Settings` タブを開く。
 3. **Allowed Callback URLs** に以下を追加:
    ```
-   http://localhost:3000/auth/callback
+   http://localhost:3000/api/auth/callback/auth0
    ```
 4. **Allowed Logout URLs** に以下を追加:
    ```
@@ -103,9 +103,9 @@ Next.jsアプリケーション（PARTNER）がAuth0と連携するために、�
 
 | 環境 | Callback URL | Logout URL |
 | --- | --- | --- |
-| 開発環境 | `http://localhost:3000/auth/callback` | `http://localhost:3000` |
-| ステージング | `https://staging.example.com/auth/callback` | `https://staging.example.com` |
-| 本番 | `https://example.com/auth/callback` | `https://example.com` |
+| 開発環境 | `http://localhost:3000/api/auth/callback/auth0` | `http://localhost:3000` |
+| ステージング | `https://staging.example.com/api/auth/callback/auth0` | `https://staging.example.com` |
+| 本番 | `https://example.com/api/auth/callback/auth0` | `https://example.com` |
 
 **注意**: 複数のURLを設定する場合は、カンマ区切りで追加できます。
 
@@ -133,7 +133,7 @@ Auth0からJWT形式のアクセストークンを取得するために、APIを
 
 作成したAPIのIdentifierを環境変数に設定します。
 
-`client/.env.local` に以下を追加:
+`client/.env.local` に以下を追加（NextAuth (Auth.js) v5を使用する場合）:
 ```
 AUTH0_AUDIENCE=https://go-webdb-template/api
 AUTH0_SCOPE='openid profile email offline_access'

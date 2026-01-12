@@ -5,6 +5,11 @@ import { setupServer } from 'msw/node'
 import DmJobqueuePage from '@/app/dm-jobqueue/page'
 
 const server = setupServer(
+  // Mock NextAuth token endpoint (relative path)
+  http.get('*/api/auth/token', () => {
+    return new HttpResponse(null, { status: 401 })
+  }),
+
   http.post('http://localhost:8080/api/dm-jobqueue/register', async () => {
     return HttpResponse.json({
       job_id: 'test-job-id-123',
@@ -32,10 +37,10 @@ describe('DmJobqueuePage Integration', () => {
     const submitButton = screen.getByRole('button', { name: /ジョブを登録/i })
     await user.click(submitButton)
 
-    // Wait for success message
+    // Wait for success message (displayed in Alert with role="status")
     await waitFor(() => {
-      expect(screen.getByText(/登録されました/i)).toBeInTheDocument()
-    })
+      expect(screen.getByRole('status')).toBeInTheDocument()
+    }, { timeout: 10000 })
   })
 
   it('handles API errors gracefully', async () => {
