@@ -77,7 +77,16 @@ client/src/app/page.tsx に
 
 /sdd-fix-plan
 
-/kiro:spec-impl 0064-client2-impl
+/kiro:spec-impl 0064-client2-impl 1.1
+/kiro:spec-impl 0064-client2-impl 1.2
+/kiro:spec-impl 0064-client2-impl 1.3
+/kiro:spec-impl 0064-client2-impl 1.4
+
+いったんcommitしてください。
+
+/kiro:spec-impl 0064-client2-impl 2.1
+
+
 
 
 

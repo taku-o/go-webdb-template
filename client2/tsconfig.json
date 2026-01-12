@@ -10,6 +10,7 @@
       "@/pages/*": ["pages/*"],
       "@/app/*": ["app/*"],
       "@/lib/*": ["lib/*"],
+      "@/types/*": ["types/*"],
       "@/styles/*": ["styles/*"],
       "@/auth": ["./auth.ts"]
     },
