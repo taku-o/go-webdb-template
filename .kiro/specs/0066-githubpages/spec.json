@@ -1,0 +1,22 @@
+{
+    "feature": "0066-githubpages",
+    "description": "GitHub Pages対応 - プロジェクトのドキュメントサイトを構築",
+    "language": "ja",
+    "createdAt": "2026-01-27",
+    "phase": "tasks-generated",
+    "approvals": {
+        "requirements": {
+            "generated": true,
+            "approved": true
+        },
+        "design": {
+            "generated": true,
+            "approved": true
+        },
+        "tasks": {
+            "generated": true,
+            "approved": true
+        }
+    },
+    "updated_at": "2026-01-27T00:00:00Z"
+}
