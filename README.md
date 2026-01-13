@@ -2,6 +2,8 @@
 
 Go + Next.js + Database Sharding対応のサンプルプロジェクトです。大規模プロジェクト向けの構成を採用しています。
 
+**GitHub Pages**: [https://taku-o.github.io/go-webdb-template/](https://taku-o.github.io/go-webdb-template/)
+
 ## プロジェクト概要
 
 - **サーバー**: Go言語、レイヤードアーキテクチャ、Database Sharding対応

@@ -1,0 +1,26 @@
+# サイト設定
+title: "Go WebDB Template"
+description: "Go + Next.js + Database Sharding対応のサンプルプロジェクト"
+url: "https://taku-o.github.io"
+baseurl: "/go-webdb-template"
+
+# テーマ設定
+theme: minima
+
+# プラグイン設定
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Markdown設定
+markdown: kramdown
+kramdown:
+  syntax_highlighter: rouge
+
+# 除外ファイル
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
