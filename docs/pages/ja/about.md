@@ -74,6 +74,6 @@ Go WebDB Templateは、Go + Next.js + Database Sharding対応のサンプルプ�
 
 ## ナビゲーション
 
-- [ホーム]({{ site.baseurl }}/ja/)
-- [セットアップ手順]({{ site.baseurl }}/ja/setup)
-- [English]({{ site.baseurl }}/en/about)
+- [ホーム]({{ site.baseurl }}/pages/ja/)
+- [セットアップ手順]({{ site.baseurl }}/pages/ja/setup)
+- [English]({{ site.baseurl }}/pages/en/about)

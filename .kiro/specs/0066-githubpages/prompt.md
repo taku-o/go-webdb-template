@@ -44,6 +44,9 @@ GitHubだと、pagesを選べない？反映が遅いだけ？
 申し訳ない。docsに戻しましょう。
 
 
+https://taku-o.github.io/go-webdb-template/
+のページにデザインが入ってない。
+
 
 
 

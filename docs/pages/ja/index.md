@@ -12,8 +12,8 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 
 ## ナビゲーション
 
-- [プロジェクト概要]({{ site.baseurl }}/ja/about) - プロジェクトの概要・目的・技術スタック
-- [セットアップ手順]({{ site.baseurl }}/ja/setup) - 開発環境のセットアップ手順
+- [プロジェクト概要]({{ site.baseurl }}/pages/ja/about) - プロジェクトの概要・目的・技術スタック
+- [セットアップ手順]({{ site.baseurl }}/pages/ja/setup) - 開発環境のセットアップ手順
 
 ---
 
@@ -21,4 +21,4 @@ Go + Next.js + Database Sharding対応のサンプルプロジェクトです。
 
 - [GitHub リポジトリ](https://github.com/taku-o/go-webdb-template)
 - [トップページに戻る]({{ site.baseurl }}/)
-- [English]({{ site.baseurl }}/en/)
+- [English]({{ site.baseurl }}/pages/en/)

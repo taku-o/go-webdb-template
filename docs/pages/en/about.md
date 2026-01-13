@@ -74,6 +74,6 @@ This project was created for the following purposes:
 
 ## Navigation
 
-- [Home]({{ site.baseurl }}/en/)
-- [Setup Guide]({{ site.baseurl }}/en/setup)
-- [日本語]({{ site.baseurl }}/ja/about)
+- [Home]({{ site.baseurl }}/pages/en/)
+- [Setup Guide]({{ site.baseurl }}/pages/en/setup)
+- [日本語]({{ site.baseurl }}/pages/ja/about)

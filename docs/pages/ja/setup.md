@@ -271,6 +271,6 @@ npm run dev
 
 ## ナビゲーション
 
-- [ホーム]({{ site.baseurl }}/ja/)
-- [プロジェクト概要]({{ site.baseurl }}/ja/about)
-- [English]({{ site.baseurl }}/en/setup)
+- [ホーム]({{ site.baseurl }}/pages/ja/)
+- [プロジェクト概要]({{ site.baseurl }}/pages/ja/about)
+- [English]({{ site.baseurl }}/pages/en/setup)

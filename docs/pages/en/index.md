@@ -12,8 +12,8 @@ A sample project with Go + Next.js + Database Sharding support. Adopts a configu
 
 ## Navigation
 
-- [Project Overview]({{ site.baseurl }}/en/about) - Project overview, purpose, and technology stack
-- [Setup Guide]({{ site.baseurl }}/en/setup) - Development environment setup instructions
+- [Project Overview]({{ site.baseurl }}/pages/en/about) - Project overview, purpose, and technology stack
+- [Setup Guide]({{ site.baseurl }}/pages/en/setup) - Development environment setup instructions
 
 ---
 
@@ -21,4 +21,4 @@ A sample project with Go + Next.js + Database Sharding support. Adopts a configu
 
 - [GitHub Repository](https://github.com/taku-o/go-webdb-template)
 - [Back to Top Page]({{ site.baseurl }}/)
-- [日本語]({{ site.baseurl }}/ja/)
+- [日本語]({{ site.baseurl }}/pages/ja/)

@@ -271,6 +271,6 @@ npm run dev
 
 ## Navigation
 
-- [Home]({{ site.baseurl }}/en/)
-- [Project Overview]({{ site.baseurl }}/en/about)
-- [日本語]({{ site.baseurl }}/ja/setup)
+- [Home]({{ site.baseurl }}/pages/en/)
+- [Project Overview]({{ site.baseurl }}/pages/en/about)
+- [日本語]({{ site.baseurl }}/pages/ja/setup)
