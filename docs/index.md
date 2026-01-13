@@ -3,8 +3,6 @@ layout: default
 title: Go WebDB Template
 ---
 
-<div style="text-align: center; padding: 60px 20px;">
-
 # Go WebDB Template
 
 Go + Next.js + Database Sharding対応のサンプルプロジェクト
@@ -25,4 +23,3 @@ English
 
 </div>
 
-</div>
