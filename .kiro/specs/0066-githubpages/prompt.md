@@ -62,8 +62,16 @@ rubyインストールが発生するなら止めておこう。
 rubyの環境構築は慎重にやりたいので。
 
 
-Auth0のアプリ設定
-NEXT_PUBLIC_API_KEY
+GitHub Pages用のドキュメントをdocs/pages以下に移動しました。
+docs/pages/ja/setup.md は大幅に書き換えたので、
+これの英語版 docs/pages/en/setup.md を作成してください。
+think.
+
+commitして、
+https://github.com/taku-o/go-webdb-template/issues/136 に向けた
+pull requestを作成してください。
+
+
 
 
 
