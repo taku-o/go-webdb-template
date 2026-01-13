@@ -71,6 +71,7 @@ commitして、
 https://github.com/taku-o/go-webdb-template/issues/136 に向けた
 pull requestを作成してください。
 
+/review 137
 
 
 
