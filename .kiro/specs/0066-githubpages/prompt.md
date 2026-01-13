@@ -26,4 +26,24 @@ _serena_indexing
 
 /kiro:spec-impl 0066-githubpages
 
+commitして、originにpushしてください。
+
+GitHub Pagesで画面を確認している。
+ヘッダーにdocsディレクトリのドキュメントへのリンクが大量に表示されている。
+これを消したい。
+
+
+GitHub Pagesのテーマを
+jekyll-theme-architect にしたい。
+
+docs以下にGitHub Pages用のファイルを置いていたが、
+既存のDocumentと混在するので、
+これを pagesディレクトリを作って、そこに移動したい。
+
+GitHubだと、pagesを選べない？反映が遅いだけ？
+申し訳ない。docsに戻しましょう。
+
+
+
+
 

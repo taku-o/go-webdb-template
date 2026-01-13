@@ -7,6 +7,9 @@ baseurl: "/go-webdb-template"
 # テーマ設定
 theme: jekyll-theme-architect
 
+# ヘッダーナビゲーション設定（既存ドキュメントを非表示）
+header_pages: []
+
 # プラグイン設定
 plugins:
   - jekyll-feed
