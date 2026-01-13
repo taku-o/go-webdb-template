@@ -47,6 +47,23 @@ GitHubだと、pagesを選べない？反映が遅いだけ？
 https://taku-o.github.io/go-webdb-template/
 のページにデザインが入ってない。
 
+それはそういうものとして、大した問題ではないが、
+メッセージのフォーマットが崩れている。
+こちらは困る。
+↓ こう表示されている。markdownのテキストがそのまま表示されているような感じ
+# Go WebDB Template Go + Next.js + Database Sharding対応のサンプルプロジェクト --- ## Select Language / 言語を選択
+
+
+試行錯誤したい。
+commitが多数発生するのは気分が良くないので、
+手元でビルドできるようにできますか？
+
+rubyインストールが発生するなら止めておこう。
+rubyの環境構築は慎重にやりたいので。
+
+
+Auth0のアプリ設定
+NEXT_PUBLIC_API_KEY
 
 
 

@@ -10,21 +10,7 @@ lang: ja
 
 ---
 
-## 1. 前提条件
-
-以下のソフトウェアがインストールされている必要があります：
-
-| ソフトウェア | バージョン | 備考 |
-|-------------|-----------|------|
-| Go | 1.21+ | サーバー開発用 |
-| Node.js | 18+ | クライアント開発用 |
-| Docker | 最新版 | PostgreSQLコンテナ用 |
-| Atlas CLI | 最新版 | データベースマイグレーション管理用 |
-| Redis | 最新版 | ジョブキュー機能使用時（オプション） |
-
----
-
-## 2. 初期セットアップ
+## 1. 初期セットアップ
 
 ### パッケージアプリケーションのインストール
 
@@ -39,7 +25,7 @@ lang: ja
 eval "$(/opt/homebrew/bin/brew shellenv)"
 ```
 
-### GitHub CLIのインストール
+#### GitHub CLIのインストール
 
 ```bash
 brew install gh
@@ -47,7 +33,7 @@ gh auth login
 gh auth status
 ```
 
-### Atlasのインストール
+#### Atlasのインストール
 
 ```bash
 brew install ariga/tap/atlas
@@ -72,7 +58,7 @@ then
 fi
 ```
 
-### Claude Codeのインストール
+#### Claude Codeのインストール
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -84,7 +70,7 @@ npm install -g @anthropic-ai/claude-code
 brew install uv
 ```
 
-### Serenaの設定
+#### Serenaの設定
 
 プロジェクトディレクトリで以下を実行：
 
@@ -92,7 +78,7 @@ brew install uv
 claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --enable-web-dashboard false --project $(pwd)
 ```
 
-Serenaインデックスの更新（必要に応じて）：
+Serenaインデックスの更新：
 
 ```bash
 uvx --from git+https://github.com/oraios/serena index-project
@@ -100,7 +86,7 @@ uvx --from git+https://github.com/oraios/serena index-project
 
 ---
 
-## 3. 依存関係のインストール
+## 2. 依存関係のインストール
 
 ### サーバー側
 
@@ -116,11 +102,9 @@ cd client
 npm install --legacy-peer-deps
 ```
 
-**注意**: peer dependencyの競合がある場合は`--legacy-peer-deps`フラグを使用してください。
-
 ---
 
-## 4. データベースのセットアップ
+## 3. データベースのセットアップ
 
 ### PostgreSQLの起動
 
@@ -128,7 +112,7 @@ npm install --legacy-peer-deps
 ./scripts/start-postgres.sh start
 ```
 
-**接続情報**（開発環境）:
+**接続情報**
 
 | データベース | ホスト | ポート | ユーザー | パスワード | データベース名 |
 |------------|--------|--------|---------|-----------|--------------|
@@ -144,90 +128,42 @@ npm install --legacy-peer-deps
 ./scripts/migrate.sh all
 ```
 
-### PostgreSQLの停止
-
-```bash
-./scripts/start-postgres.sh stop
-```
-
 ---
 
-## 5. Redisの起動（オプション）
-
-ジョブキュー機能を使用する場合はRedisを起動します。
+## 4. Redisの起動
 
 ```bash
 # Redisを起動
 ./scripts/start-redis.sh start
-
-# Redis Insightを起動（オプション、データビューワ）
-./scripts/start-redis-insight.sh start
 ```
 
 - Redis: http://localhost:6379
-- Redis Insight: http://localhost:8001
 
 ---
 
-## 6. Auth0アカウントの設定
+## 5. Auth0アカウントの設定
 
-Auth0ダッシュボード（`Applications > [対象アプリ] > Settings`）で以下のURLを設定：
-
-### Allowed Callback URLs
-
-```
-http://localhost:3000/api/auth/callback/auth0
-```
-
-### Allowed Logout URLs
-
-```
-http://localhost:3000
-```
-
-### Allowed Web Origins
-
-```
-http://localhost:3000
-```
+次の資料を参考にAuth0アカウントをセットアップします。
+- [Auth0 外部ID連携 導入・開発ガイド](https://github.com/taku-o/go-webdb-template/blob/master/docs/Partner-Idp-Auth0-Login.md)
 
 ---
 
-## 7. クライアント環境変数の設定
-
-### AUTH_SECRETの生成
-
-```bash
-# プロジェクトルートで実行
-npm run cli:generate-secret
-```
+## 6. クライアント環境変数の設定
 
 ### .env.localの作成
 
-`client/.env.local`を作成して以下の環境変数を設定：
+`client/.env.develop`を`client/.env.local`にリネームして以下の環境変数を設定：
 
 ```
-# NextAuth (Auth.js)
-AUTH_SECRET=<npm run cli:generate-secretで生成した秘密鍵>
-AUTH_URL=http://localhost:3000
-
 # Auth0設定
 AUTH0_ISSUER=https://your-tenant.auth0.com
 AUTH0_CLIENT_ID=your-client-id
 AUTH0_CLIENT_SECRET=your-client-secret
-AUTH0_AUDIENCE=https://your-api-audience
-
-# API設定
-NEXT_PUBLIC_API_KEY=your-api-key
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-
-# テスト環境用（テスト実行時に必要）
-APP_ENV=test
 ```
 
 ---
 
-## 8. サーバーの起動
+## 7. サーバーの起動
 
 ### APIサーバーの起動
 
@@ -252,7 +188,7 @@ npm run dev
 
 ---
 
-## 9. 各種URL情報
+## 8. 各種URL情報
 
 | サービス | URL | 備考 |
 |---------|-----|------|
