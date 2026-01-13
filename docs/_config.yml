@@ -7,6 +7,9 @@ baseurl: "/go-webdb-template"
 # テーマ設定
 theme: minima
 
+# ヘッダーナビゲーションに表示するページを制限（空で非表示）
+header_pages: []
+
 # プラグイン設定
 plugins:
   - jekyll-feed
