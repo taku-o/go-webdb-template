@@ -102,6 +102,24 @@ _serena_indexing
 
 /kiro:spec-impl 0069-feed-component 3
 
+いったんgit commitしてください。
+
+/kiro:spec-impl 0069-feed-component 4.1
+/kiro:spec-impl 0069-feed-component 4.2
+/kiro:spec-impl 0069-feed-component 4.3
+/kiro:spec-impl 0069-feed-component 4.4
+/kiro:spec-impl 0069-feed-component 4.5
+
+/kiro:spec-impl 0069-feed-component 4.6
+/kiro:spec-impl 0069-feed-component 4.7
+/kiro:spec-impl 0069-feed-component 4.8
+/kiro:spec-impl 0069-feed-component 4.9
+/kiro:spec-impl 0069-feed-component 4.10
+
+いったんgit commitしてください。
+
+
+
 
 
 
