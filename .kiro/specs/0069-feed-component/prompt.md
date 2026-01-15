@@ -118,6 +118,30 @@ _serena_indexing
 
 いったんgit commitしてください。
 
+/kiro:spec-impl 0069-feed-component 5.1
+/kiro:spec-impl 0069-feed-component 5.2
+/kiro:spec-impl 0069-feed-component 5.3
+/kiro:spec-impl 0069-feed-component 5.4
+
+
+ここなんだけど、これは投稿を書いた直後に
+データを取得しようとしている？
+client/app/feed/[userId]/[postId]/page.tsx
+  // ページ読み込み時に返信元の投稿を取得
+  useEffect(() => {
+    loadPost()
+  }, [userId, postId])
+
+消えたのか。ならOK。
+
+/kiro:spec-impl 0069-feed-component 5.5
+/kiro:spec-impl 0069-feed-component 5.6
+/kiro:spec-impl 0069-feed-component 5.7
+/kiro:spec-impl 0069-feed-component 5.8
+/kiro:spec-impl 0069-feed-component 5.9
+
+いったんgit commitしてください。
+
 
 
 

@@ -373,6 +373,14 @@ class ApiClient {
     return allPosts.slice(fromIndex + 1, fromIndex + 1 + limit)
   }
 
+  async getDmFeedPostById(userId: string, postId: string): Promise<DmFeedPost | null> {
+    // 初期データの生成
+    initializeFeedData(userId)
+
+    // 指定されたIDの投稿を取得
+    return feedDataStore.dmFeedPosts.get(postId) || null
+  }
+
   async createDmFeedPost(userId: string, content: string): Promise<DmFeedPost> {
     // 初期データの生成
     initializeFeedData(userId)
