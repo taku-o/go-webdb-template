@@ -144,7 +144,7 @@ npm install --legacy-peer-deps
 ## 5. Auth0 Account Configuration
 
 Refer to the following documentation to set up your Auth0 account:
-- [Auth0 External ID Integration Setup Guide](https://github.com/taku-o/go-webdb-template/blob/master/docs/Partner-Idp-Auth0-Login.md)
+- [Auth0 External ID Integration Setup Guide](https://github.com/taku-o/go-webdb-template/blob/master/docs/en/Partner-Idp-Auth0-Login.md)
 
 ---
 

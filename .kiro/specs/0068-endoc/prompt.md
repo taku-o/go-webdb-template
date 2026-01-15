@@ -38,3 +38,20 @@ _serena_indexing
 /kiro:spec-impl 0068-endoc
 
 
+このルールがあるのに、コメントが英語に変えられちゃってる。
+>日英で差分が生じたときのマスターのドキュメントは日本語版で、
+>内部コメントは今までと変わらず日本語を使用する。
+docs/_config.yml
+
+
+このルールをどこかに記録したい。
+>日英で差分が生じたときのマスターのドキュメントは日本語版で、
+>内部コメントは今までと変わらず日本語を使用する。
+
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/140
+にpull requestを発行してください。
+
+/review 141
+

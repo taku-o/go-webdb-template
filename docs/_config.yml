@@ -1,6 +1,6 @@
 # サイト設定
 title: "Go WebDB Template"
-description: "大量ユーザー、大量アクセスの運用に耐えうるGo APIサーバー、データベース構成のテンプレートプロジェクト"
+description: "A template project for Go API servers and database configurations designed to handle high volumes of users and traffic"
 url: "https://taku-o.github.io"
 baseurl: "/go-webdb-template"
 
