@@ -142,7 +142,9 @@ client/app/feed/[userId]/[postId]/page.tsx
 
 いったんgit commitしてください。
 
+/kiro:spec-impl 0069-feed-component 6
 
+いったんgit commitしてください。
 
 
 
