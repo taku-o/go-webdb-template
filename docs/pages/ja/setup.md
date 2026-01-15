@@ -144,7 +144,7 @@ npm install --legacy-peer-deps
 ## 5. Auth0アカウントの設定
 
 次の資料を参考にAuth0アカウントをセットアップします。
-- [Auth0 外部ID連携 導入・開発ガイド](https://github.com/taku-o/go-webdb-template/blob/master/docs/Partner-Idp-Auth0-Login.md)
+- [Auth0 外部ID連携 導入・開発ガイド](https://github.com/taku-o/go-webdb-template/blob/master/docs/ja/Partner-Idp-Auth0-Login.md)
 
 ---
 

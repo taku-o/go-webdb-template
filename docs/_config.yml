@@ -1,6 +1,6 @@
 # サイト設定
 title: "Go WebDB Template"
-description: "Go + Next.js + Database Sharding対応のサンプルプロジェクト"
+description: "A template project for Go API servers and database configurations designed to handle high volumes of users and traffic"
 url: "https://taku-o.github.io"
 baseurl: "/go-webdb-template"
 

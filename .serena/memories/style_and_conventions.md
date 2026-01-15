@@ -42,6 +42,13 @@
 - 日本語で記述
 - Markdownを使用
 
+### 多言語ドキュメント運用ルール
+- 日英で差分が生じたときのマスターのドキュメントは日本語版
+- 内部コメント（設定ファイルのコメント等）は今までと変わらず日本語を使用する
+- 言語切替リンク形式:
+  - 日本語版: `**[日本語]** | [English](../en/{filename})`
+  - 英語版: `**[日本語](../ja/{filename}) | [English]**`
+
 ## Sharding規約
 - Shard Key: `user_id` を使用
 - Hash-based sharding: `shard_id = hash(user_id) % shard_count + 1`

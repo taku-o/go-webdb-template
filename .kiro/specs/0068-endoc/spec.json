@@ -1,0 +1,22 @@
+{
+    "feature": "0068-endoc",
+    "description": "英語ドキュメントの用意 - プロジェクトに英語版ドキュメントを追加",
+    "language": "ja",
+    "createdAt": "2026-01-27",
+    "phase": "tasks-generated",
+    "approvals": {
+        "requirements": {
+            "generated": true,
+            "approved": true
+        },
+        "design": {
+            "generated": true,
+            "approved": true
+        },
+        "tasks": {
+            "generated": true,
+            "approved": true
+        }
+    },
+    "updated_at": "2026-01-27T00:00:00Z"
+}

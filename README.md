@@ -1,354 +1,357 @@
+**[日本語](README.ja.md) | [English]**
+
 # Go DB Project Sample
 
-大量ユーザー、大量アクセスの運用に耐えうるGo APIサーバー、データベース構成の
-大規模プロジェクト向けのテンプレートプロジェクトです。
+A template project for Go API server and database configuration designed to handle large-scale users and high-traffic operations.
 
-ナンバー付きDBテーブルでデータベース分割への配慮。APIサーバー、Webサーバーを増やして負荷に耐えられるサーバー構成。
-保守しやすいソースコード構成に、レートリミット、各種ログ、データベースのスキーマ管理など各種運用向け機能。
+Database partitioning with numbered DB tables. Server architecture scalable by adding API servers and web servers.
+Maintainable source code structure with rate limiting, various logging, database schema management and other operational features.
 
-**GitHub Pages**: [https://taku-o.github.io/go-webdb-template/pages/ja/](https://taku-o.github.io/go-webdb-template/pages/ja/)
+**GitHub Pages**: [https://taku-o.github.io/go-webdb-template/pages/en/](https://taku-o.github.io/go-webdb-template/pages/en/)
 
-## プロジェクト概要
+## Project Overview
 
-- **サーバー**: Go言語、レイヤードアーキテクチャ、Database Sharding対応
-- **クライアント**: Next.js 14 (App Router)、TypeScript
-- **データベース**: PostgreSQL/MySQL（全環境）
-- **テスト**: Go testing、Jest、Playwright
+- **Server**: Go language, Layered Architecture, Database Sharding support
+- **Client**: Next.js 14 (App Router), TypeScript
+- **Database**: PostgreSQL/MySQL (all environments)
+- **Testing**: Go testing, Jest, Playwright
 
-## 特徴
+## Features
 
-- ✅ **Sharding対応**: テーブルベースシャーディング（32分割）で複数DBへデータ分散
-- ✅ **GORM対応**: Writer/Reader分離をサポート (GORM v1.25.12)
-- ✅ **GoAdmin管理画面**: Webベースの管理画面でデータ管理
-- ✅ **レイヤー分離**: API層、Usecase層、Service層、Repository層、DB層で責務を明確化
-- ✅ **環境別設定**: develop/staging/production環境で設定切り替え
-- ✅ **型安全**: TypeScriptによる型定義
-- ✅ **テスト**: ユニット/統合/E2Eテスト対応
-- ✅ **レートリミット**: IPアドレス単位でのAPI呼び出し制限（ulule/limiter使用）
-- ✅ **ジョブキュー**: Redis + Asynqを使用したバックグラウンドジョブ処理
-- ✅ **メール送信**: 標準出力、Mailpit、AWS SES対応のメール送信機能
-- ✅ **ファイルアップロード**: TUSプロトコルによる大容量ファイルアップロード（ローカル/S3ストレージ対応）
-- ✅ **ログ機能**: アクセスログ、メール送信ログ、SQLログの出力
-- ✅ **Docker対応**: APIサーバー、Adminサーバー、クライアントサーバーのDocker化
+- ✅ **Sharding Support**: Table-based sharding (32 partitions) for data distribution across multiple DBs
+- ✅ **GORM Support**: Writer/Reader separation supported (GORM v1.25.12)
+- ✅ **GoAdmin Dashboard**: Web-based admin panel for data management
+- ✅ **Layer Separation**: Clear responsibility separation with API, Usecase, Service, Repository, and DB layers
+- ✅ **Environment-specific Config**: Configuration switching for develop/staging/production environments
+- ✅ **Type Safety**: Type definitions with TypeScript
+- ✅ **Testing**: Unit/Integration/E2E test support
+- ✅ **Rate Limiting**: API call restriction by IP address (using ulule/limiter)
+- ✅ **Job Queue**: Background job processing using Redis + Asynq
+- ✅ **Email Sending**: Email functionality supporting stdout, Mailpit, and AWS SES
+- ✅ **File Upload**: Large file upload via TUS protocol (local/S3 storage support)
+- ✅ **Logging**: Access logs, email logs, SQL logs output
+- ✅ **Docker Support**: Dockerized API server, Admin server, and client server
 
-## セットアップ
+## Setup
 
-### 前提条件
+### Prerequisites
 
 - Go 1.21+
 - Node.js 18+
-- Docker（PostgreSQLコンテナ用）
-- Atlas CLI（データベースマイグレーション管理用）
-  - インストール方法: `brew install ariga/tap/atlas`（macOS）
-  - インストール確認: `atlas version`
-  - 詳細: https://atlasgo.io/
-- Redis（ジョブキュー機能を使用する場合、オプション）
-  - Dockerを使用して起動可能（`./scripts/start-redis.sh`）
+- Docker (for PostgreSQL container)
+- Atlas CLI (for database migration management)
+  - Installation: `brew install ariga/tap/atlas` (macOS)
+  - Verify installation: `atlas version`
+  - Details: https://atlasgo.io/
+- Redis (optional, for job queue functionality)
+  - Can be started using Docker (`./scripts/start-redis.sh`)
 
-### 1. 依存関係のインストール
+### 1. Install Dependencies
 
-#### サーバー側
+#### Server
+
 ```bash
 cd server
 go mod download
 ```
 
-#### クライアント側
+#### Client
+
 ```bash
 cd client
 npm install
 ```
 
-### 2. データベースのセットアップ
+### 2. Database Setup
 
-本プロジェクトではPostgreSQLを使用し、[Atlas](https://atlasgo.io/) でマイグレーションを管理しています。
+This project uses PostgreSQL and manages migrations with [Atlas](https://atlasgo.io/).
 
-#### PostgreSQLの起動
+#### Start PostgreSQL
 
 ```bash
-# PostgreSQLコンテナを起動（master + sharding 4台）
+# Start PostgreSQL containers (master + 4 sharding instances)
 ./scripts/start-postgres.sh start
 ```
 
-**接続情報**（開発環境）:
+**Connection Info** (Development):
 
-| データベース | ホスト | ポート | ユーザー | パスワード | データベース名 |
-|------------|--------|--------|---------|-----------|--------------|
+| Database | Host | Port | User | Password | Database Name |
+|----------|------|------|------|----------|---------------|
 | Master | localhost | 5432 | webdb | webdb | webdb_master |
 | Sharding 1 | localhost | 5433 | webdb | webdb | webdb_sharding_1 |
 | Sharding 2 | localhost | 5434 | webdb | webdb | webdb_sharding_2 |
 | Sharding 3 | localhost | 5435 | webdb | webdb | webdb_sharding_3 |
 | Sharding 4 | localhost | 5436 | webdb | webdb | webdb_sharding_4 |
 
-#### マイグレーションの適用
+#### Apply Migrations
 
 ```bash
-# 全データベースにマイグレーションを適用（初期データも含む）
+# Apply migrations to all databases (including initial data)
 ./scripts/migrate.sh all
 ```
 
-#### PostgreSQLの停止
+#### Stop PostgreSQL
 
 ```bash
 ./scripts/start-postgres.sh stop
 ```
 
-#### MySQLの起動（オプション）
+#### Start MySQL (Optional)
 
-PostgreSQLの代わりにMySQLを使用することもできます。
+You can use MySQL instead of PostgreSQL.
 
 ```bash
-# MySQLコンテナを起動（master + sharding 4台）
+# Start MySQL containers (master + 4 sharding instances)
 ./scripts/start-mysql.sh start
 ```
 
-**接続情報**（開発環境）:
+**Connection Info** (Development):
 
-| データベース | ホスト | ポート | ユーザー | パスワード | データベース名 |
-|------------|--------|--------|---------|-----------|--------------|
+| Database | Host | Port | User | Password | Database Name |
+|----------|------|------|------|----------|---------------|
 | Master | localhost | 3306 | webdb | webdb | webdb_master |
 | Sharding 1 | localhost | 3307 | webdb | webdb | webdb_sharding_1 |
 | Sharding 2 | localhost | 3308 | webdb | webdb | webdb_sharding_2 |
 | Sharding 3 | localhost | 3309 | webdb | webdb | webdb_sharding_3 |
 | Sharding 4 | localhost | 3310 | webdb | webdb | webdb_sharding_4 |
 
-#### MySQLマイグレーションの適用
+#### Apply MySQL Migrations
 
 ```bash
-# 開発環境用マイグレーション
+# Development environment migrations
 atlas migrate apply --dir "file://db/migrations/master-mysql" --url "mysql://webdb:webdb@localhost:3306/webdb_master"
 atlas migrate apply --dir "file://db/migrations/sharding_1-mysql" --url "mysql://webdb:webdb@localhost:3307/webdb_sharding_1"
 atlas migrate apply --dir "file://db/migrations/sharding_2-mysql" --url "mysql://webdb:webdb@localhost:3308/webdb_sharding_2"
 atlas migrate apply --dir "file://db/migrations/sharding_3-mysql" --url "mysql://webdb:webdb@localhost:3309/webdb_sharding_3"
 atlas migrate apply --dir "file://db/migrations/sharding_4-mysql" --url "mysql://webdb:webdb@localhost:3310/webdb_sharding_4"
 
-# テスト環境用マイグレーション
+# Test environment migrations
 ./scripts/migrate-test-mysql.sh
 ```
 
-#### MySQLの停止
+#### Stop MySQL
 
 ```bash
 ./scripts/start-mysql.sh stop
 ```
 
-#### データベースタイプの切り替え
+#### Switching Database Type
 
-`config/{env}/config.yaml`の`DB_TYPE`でデータベースを切り替えます：
+Switch databases in `config/{env}/config.yaml` using `DB_TYPE`:
 
 ```yaml
-# PostgreSQLを使用（デフォルト）
+# Use PostgreSQL (default)
 DB_TYPE: postgresql
 
-# MySQLを使用
+# Use MySQL
 DB_TYPE: mysql
 ```
 
-MySQLを使用する場合は`database.mysql.yaml`から設定が読み込まれます。
+When using MySQL, settings are loaded from `database.mysql.yaml`.
 
-#### シャーディング構成
+#### Sharding Configuration
 
-本プロジェクトでは**8つの論理シャード**を**4つの物理データベース**に分散配置しています：
+This project distributes **8 logical shards** across **4 physical databases**:
 
-| 論理シャードID | テーブル範囲 | 物理データベース |
-|--------------|-------------|----------------|
-| 1 | _000 〜 _003 | webdb_sharding_1 (port 5433) |
-| 2 | _004 〜 _007 | webdb_sharding_1 (port 5433) |
-| 3 | _008 〜 _011 | webdb_sharding_2 (port 5434) |
-| 4 | _012 〜 _015 | webdb_sharding_2 (port 5434) |
-| 5 | _016 〜 _019 | webdb_sharding_3 (port 5435) |
-| 6 | _020 〜 _023 | webdb_sharding_3 (port 5435) |
-| 7 | _024 〜 _027 | webdb_sharding_4 (port 5436) |
-| 8 | _028 〜 _031 | webdb_sharding_4 (port 5436) |
+| Logical Shard ID | Table Range | Physical Database |
+|------------------|-------------|-------------------|
+| 1 | _000 to _003 | webdb_sharding_1 (port 5433) |
+| 2 | _004 to _007 | webdb_sharding_1 (port 5433) |
+| 3 | _008 to _011 | webdb_sharding_2 (port 5434) |
+| 4 | _012 to _015 | webdb_sharding_2 (port 5434) |
+| 5 | _016 to _019 | webdb_sharding_3 (port 5435) |
+| 6 | _020 to _023 | webdb_sharding_3 (port 5435) |
+| 7 | _024 to _027 | webdb_sharding_4 (port 5436) |
+| 8 | _028 to _031 | webdb_sharding_4 (port 5436) |
 
-#### スキーマ変更時のマイグレーション生成
+#### Generating Migrations for Schema Changes
 
 ```bash
-# master.hclを変更した後
+# After modifying master.hcl
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/master \
     --to file://db/schema/master.hcl \
     --dev-url "postgres://webdb:webdb@localhost:5432/webdb_master?sslmode=disable"
 
-# sharding.hclを変更した後
+# After modifying sharding.hcl
 atlas migrate diff <migration_name> \
     --dir file://db/migrations/sharding \
     --to file://db/schema/sharding.hcl \
     --dev-url "postgres://webdb:webdb@localhost:5433/webdb_sharding_1?sslmode=disable"
 ```
 
-詳細は [docs/Atlas-Operations.md](docs/Atlas-Operations.md) を参照してください。
+For details, see [docs/en/Atlas-Operations.md](docs/en/Atlas-Operations.md).
 
-#### 遅延接続・自動再接続機能
+#### Lazy Connection & Auto-Reconnection
 
-本プロジェクトでは以下の機能を実装しています：
+This project implements the following features:
 
-- **遅延接続**: サーバー起動時にDB接続を行わず、最初のクエリ実行時に接続を確立
-- **自動再接続**: データベースが復旧した際に自動的に再接続
-- **リトライ機能**: 接続エラー時に最大3回、1秒間隔でリトライ
+- **Lazy Connection**: DB connection is established on first query, not at server startup
+- **Auto-Reconnection**: Automatically reconnects when database recovers
+- **Retry Functionality**: Retries up to 3 times with 1-second intervals on connection errors
 
-### 3. サーバー起動
+### 3. Start Server
 
 ```bash
 cd server
 APP_ENV=develop go run cmd/server/main.go
 ```
 
-サーバーは http://localhost:8080 で起動します。
+Server starts at http://localhost:8080.
 
-### 4. 管理画面起動
+### 4. Start Admin Panel
 
 ```bash
 cd server
 APP_ENV=develop go run cmd/admin/main.go
 ```
 
-管理画面は http://localhost:8081/admin で起動します。
+Admin panel starts at http://localhost:8081/admin.
 
-**認証情報**（開発環境）:
-- ユーザー名: `admin`
-- パスワード: `admin123`
+**Credentials** (Development):
+- Username: `admin`
+- Password: `admin123`
 
-**データベース接続**:
-GoAdminサーバーはPostgreSQLを利用します。設定ファイル（`config/{env}/database.yaml`）から接続情報を読み込み、masterデータベース（`webdb_master`）に接続します。
+**Database Connection**:
+The GoAdmin server uses PostgreSQL. It reads connection info from the config file (`config/{env}/database.yaml`) and connects to the master database (`webdb_master`).
 
-起動前に以下を確認してください：
-1. PostgreSQLコンテナが起動していること（`./scripts/start-postgres.sh start`）
-2. マイグレーションが適用されていること（`./scripts/migrate.sh all`）
+Before starting, verify:
+1. PostgreSQL container is running (`./scripts/start-postgres.sh start`)
+2. Migrations are applied (`./scripts/migrate.sh all`)
 
-詳細は [Admin.md](docs/Admin.md) を参照してください。
+For details, see [docs/en/Admin.md](docs/en/Admin.md).
 
-### 5. データベースビューア起動（CloudBeaver）
+### 5. Start Database Viewer (CloudBeaver)
 
 ```bash
-# 開発環境（デフォルト）
+# Development (default)
 npm run cloudbeaver:start
 
-# 環境を指定して起動
+# Start with specific environment
 APP_ENV=develop npm run cloudbeaver:start
 APP_ENV=staging npm run cloudbeaver:start
 APP_ENV=production npm run cloudbeaver:start
 
-# 停止
+# Stop
 npm run cloudbeaver:stop
 ```
 
-データベースビューアは http://localhost:8978 で起動します。
+Database viewer starts at http://localhost:8978.
 
-**認証情報**（開発環境）:
-- ユーザー名: `cbadmin`
-- パスワード: `Admin123`
+**Credentials** (Development):
+- Username: `cbadmin`
+- Password: `Admin123`
 
-**主な機能**:
-- Webブラウザからデータベースを操作
-- テーブル構造の確認・データ閲覧
-- SQLクエリの実行
-- SQLスクリプトの保存・管理（Resource Manager）
+**Main Features**:
+- Operate database from web browser
+- View table structure and data
+- Execute SQL queries
+- Save and manage SQL scripts (Resource Manager)
 
-詳細は [Database-Viewer.md](docs/Database-Viewer.md) を参照してください。
+For details, see [docs/en/Database-Viewer.md](docs/en/Database-Viewer.md).
 
-### 6. データ可視化ツール起動（Metabase）
+### 6. Start Data Visualization Tool (Metabase)
 
 ```bash
-# 開発環境（デフォルト）
+# Development (default)
 npm run metabase:start
 
-# 環境を指定して起動
+# Start with specific environment
 APP_ENV=develop npm run metabase:start
 APP_ENV=staging npm run metabase:start
 APP_ENV=production npm run metabase:start
 
-# 停止
+# Stop
 npm run metabase:stop
 ```
 
-Metabaseは http://localhost:8970 で起動します。
+Metabase starts at http://localhost:8970.
 
-**主な機能**:
-- データの可視化・グラフ作成
-- ダッシュボードの作成・共有
-- 非エンジニア向けのデータ分析
+**Main Features**:
+- Data visualization and chart creation
+- Dashboard creation and sharing
+- Data analysis for non-engineers
 
-**CloudBeaverとMetabaseの使い分け**:
-- **CloudBeaver**: データの直接編集・操作、テーブル構造の確認
-- **Metabase**: データの可視化・分析、ダッシュボード作成
+**CloudBeaver vs Metabase**:
+- **CloudBeaver**: Direct data editing/manipulation, table structure inspection
+- **Metabase**: Data visualization/analysis, dashboard creation
 
-**注意**: CloudBeaverとMetabaseはメモリ使用量が大きいため、開発環境では片方ずつしか起動しない運用を推奨します。
+**Note**: CloudBeaver and Metabase have high memory usage, so running only one at a time is advised in development.
 
-詳細は [Metabase.md](docs/Metabase.md) を参照してください。
+For details, see [docs/en/Metabase.md](docs/en/Metabase.md).
 
-### 7. Redisの起動（ジョブキュー機能用）
+### 7. Start Redis (For Job Queue)
 
 ```bash
-# Redisを起動
+# Start Redis
 ./scripts/start-redis.sh start
 
-# Redis Insightを起動（オプション、データビューワ）
+# Start Redis Insight (optional, data viewer)
 ./scripts/start-redis-insight.sh start
 ```
 
-Redisは http://localhost:6379 で起動します。
-Redis Insightは http://localhost:8001 で起動します。
+Redis starts at http://localhost:6379.
+Redis Insight starts at http://localhost:8001.
 
-詳細は [Queue-Job.md](docs/Queue-Job.md) を参照してください。
+For details, see [docs/en/Queue-Job.md](docs/en/Queue-Job.md).
 
-### 8. Mailpitの起動（メール送信機能用、オプション）
+### 8. Start Mailpit (Optional, For Email)
 
 ```bash
 ./scripts/start-mailpit.sh start
 ```
 
-Mailpitは http://localhost:8025 で起動します。
+Mailpit starts at http://localhost:8025.
 
-詳細は [Send-Mail.md](docs/Send-Mail.md) を参照してください。
+For details, see [docs/en/Send-Mail.md](docs/en/Send-Mail.md).
 
-### 9. クライアント起動
+### 9. Start Client
 
-#### 依存関係のインストール
+#### Install Dependencies
 
 ```bash
 cd client
 npm install --legacy-peer-deps
 ```
 
-**注意**: peer dependencyの競合がある場合は`--legacy-peer-deps`フラグを使用してください。
+**Note**: Use `--legacy-peer-deps` flag if there are peer dependency conflicts.
 
-#### 環境変数の設定
+#### Set Environment Variables
 
-**AUTH_SECRETの生成**:
+**Generate AUTH_SECRET**:
 ```bash
-# プロジェクトルートで実行
+# Run from project root
 npm run cli:generate-secret
 ```
-このコマンドで生成された秘密鍵をコピーします。
+Copy the generated secret key.
 
-`.env.local`を作成して以下の環境変数を設定：
+Create `.env.local` with the following environment variables:
 ```
 # NextAuth (Auth.js)
-AUTH_SECRET=<npm run cli:generate-secretで生成した秘密鍵>
+AUTH_SECRET=<secret key generated by npm run cli:generate-secret>
 AUTH_URL=http://localhost:3000
 
-# Auth0設定
+# Auth0 Settings
 AUTH0_ISSUER=https://your-tenant.auth0.com
 AUTH0_CLIENT_ID=your-client-id
 AUTH0_CLIENT_SECRET=your-client-secret
 AUTH0_AUDIENCE=https://your-api-audience
 
-# API設定
+# API Settings
 NEXT_PUBLIC_API_KEY=your-api-key
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 
-# テスト環境用（テスト実行時に必要）
+# Test Environment (required for tests)
 APP_ENV=test
 ```
 
-**注意**: 
-- `AUTH_SECRET`は`npm run cli:generate-secret`コマンドで生成します（`server/cmd/generate-secret`を使用）。
-- `APP_ENV=test`はテスト実行時に必要です（`npm test`、`npm run e2e`実行時）。
+**Notes**:
+- `AUTH_SECRET` is generated using `npm run cli:generate-secret` (uses `server/cmd/generate-secret`).
+- `APP_ENV=test` is required for test execution (`npm test`, `npm run e2e`).
 
-#### Auth0アプリケーション設定
+#### Auth0 Application Settings
 
-Auth0ダッシュボード（`Applications > [対象アプリ] > Settings`）で以下のURLを設定：
+Configure the following URLs in Auth0 Dashboard (`Applications > [Target App] > Settings`):
 
 **Allowed Callback URLs:**
 ```
@@ -365,159 +368,159 @@ http://localhost:3000
 http://localhost:3000
 ```
 
-#### 開発サーバーの起動
+#### Start Development Server
 
 ```bash
 cd client
 npm run dev
 ```
 
-クライアントは http://localhost:3000 で起動します。
+Client starts at http://localhost:3000.
 
-#### 技術スタック
+#### Tech Stack
 
-- **フレームワーク**: Next.js 14+ (App Router)
-- **言語**: TypeScript 5+
-- **UIコンポーネント**: shadcn/ui
-- **認証**: NextAuth (Auth.js) v5
-- **スタイリング**: Tailwind CSS
-- **フォーム管理**: react-hook-form
-- **バリデーション**: zod
-- **ファイルアップロード**: Uppy (TUSプロトコル)
-- **テスト**: Playwright (E2E), Jest (単体・統合), MSW (APIモック)
+- **Framework**: Next.js 14+ (App Router)
+- **Language**: TypeScript 5+
+- **UI Components**: shadcn/ui
+- **Authentication**: NextAuth (Auth.js) v5
+- **Styling**: Tailwind CSS
+- **Form Management**: react-hook-form
+- **Validation**: zod
+- **File Upload**: Uppy (TUS protocol)
+- **Testing**: Playwright (E2E), Jest (unit/integration), MSW (API mocking)
 
-#### 利用可能なスクリプト
+#### Available Scripts
 
-**開発**:
-- `npm run dev` - 開発サーバーを起動（ポート3000）
-- `npm run build` - プロダクションビルドを実行
-- `npm run start` - プロダクションビルドを起動（ポート3000）
-- `npm run lint` - ESLintを実行
-- `npm run type-check` - TypeScript型チェックを実行
-- `npm run format` - Prettierでフォーマットを確認
-- `npm run format:write` - Prettierでフォーマットを適用
+**Development**:
+- `npm run dev` - Start development server (port 3000)
+- `npm run build` - Run production build
+- `npm run start` - Start production build (port 3000)
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
+- `npm run format` - Check formatting with Prettier
+- `npm run format:write` - Apply formatting with Prettier
 
-**テスト**:
-- `npm test` - Jestテストを実行（単体・統合テスト）
-- `npm run test:watch` - Jestテストをウォッチモードで実行
-- `npm run test:coverage` - Jestテストのカバレッジを取得
-- `npm run e2e` - Playwright E2Eテストを実行
-- `npm run e2e:ui` - Playwright E2EテストをUIモードで実行
-- `npm run e2e:headed` - Playwright E2Eテストをヘッドモードで実行
+**Testing**:
+- `npm test` - Run Jest tests (unit/integration)
+- `npm run test:watch` - Run Jest tests in watch mode
+- `npm run test:coverage` - Get Jest test coverage
+- `npm run e2e` - Run Playwright E2E tests
+- `npm run e2e:ui` - Run Playwright E2E tests in UI mode
+- `npm run e2e:headed` - Run Playwright E2E tests in headed mode
 
-**注意**: テスト実行時は`APP_ENV=test`が自動的に設定されます（`package.json`のスクリプトに含まれています）。
+**Note**: `APP_ENV=test` is automatically set during test execution (included in `package.json` scripts).
 
-### 10. Docker環境での起動（オプション）
+### 10. Docker Environment (Optional)
 
-Docker環境でサーバーを起動することもできます。
+You can start servers in Docker environment.
 
 ```bash
-# PostgreSQL、Redisコンテナの起動（先に起動が必要）
+# Start PostgreSQL and Redis containers first
 docker-compose -f docker-compose.postgres.yml up -d
 docker-compose -f docker-compose.redis.yml up -d
 
-# APIサーバーのビルドと起動
+# Build and start API server
 docker-compose -f docker-compose.api.yml build
 docker-compose -f docker-compose.api.yml up -d
 
-# Adminサーバーのビルドと起動
+# Build and start Admin server
 docker-compose -f docker-compose.admin.yml build
 docker-compose -f docker-compose.admin.yml up -d
 
-# クライアントサーバーのビルドと起動
+# Build and start client server
 docker-compose -f docker-compose.client.yml build
 docker-compose -f docker-compose.client.yml up -d
 ```
 
-**起動後のアクセス先**:
-- APIサーバー: http://localhost:8080
-- Adminサーバー: http://localhost:8081/admin
-- クライアント: http://localhost:3000
+**Access URLs after startup**:
+- API Server: http://localhost:8080
+- Admin Server: http://localhost:8081/admin
+- Client: http://localhost:3000
 
-詳細は [Docker.md](docs/Docker.md) を参照してください。
+For details, see [docs/en/Docker.md](docs/en/Docker.md).
 
-## API エンドポイント
+## API Endpoints
 
-### 基本エンドポイント
+### Basic Endpoints
 
-#### ユーザー関連
+#### User Related
 
-- `GET /api/dm-users` - ユーザー一覧取得
-- `GET /api/dm-users/{id}` - ユーザー取得
-- `POST /api/dm-users` - ユーザー作成
-- `PUT /api/dm-users/{id}` - ユーザー更新
-- `DELETE /api/dm-users/{id}` - ユーザー削除
-- `GET /api/export/dm-users/csv` - ユーザー情報をCSV形式でダウンロード
+- `GET /api/dm-users` - Get user list
+- `GET /api/dm-users/{id}` - Get user
+- `POST /api/dm-users` - Create user
+- `PUT /api/dm-users/{id}` - Update user
+- `DELETE /api/dm-users/{id}` - Delete user
+- `GET /api/export/dm-users/csv` - Download user info as CSV
 
-#### 投稿関連
+#### Post Related
 
-- `GET /api/dm-posts` - 投稿一覧取得
-- `GET /api/dm-posts/{id}` - 投稿取得
-- `POST /api/dm-posts` - 投稿作成
-- `PUT /api/dm-posts/{id}` - 投稿更新
-- `DELETE /api/dm-posts/{id}` - 投稿削除
-- `GET /api/dm-user-posts` - ユーザーと投稿をJOIN（クロスシャードクエリ）
+- `GET /api/dm-posts` - Get post list
+- `GET /api/dm-posts/{id}` - Get post
+- `POST /api/dm-posts` - Create post
+- `PUT /api/dm-posts/{id}` - Update post
+- `DELETE /api/dm-posts/{id}` - Delete post
+- `GET /api/dm-user-posts` - Join users and posts (cross-shard query)
 
-#### その他
+#### Others
 
-- `GET /api/today` - 今日の日付取得（private API、Auth0 JWT必須）
-- `GET /health` - ヘルスチェック（認証不要）
+- `GET /api/today` - Get today's date (private API, Auth0 JWT required)
+- `GET /health` - Health check (no authentication required)
 
-### 機能別エンドポイント
+### Feature Endpoints
 
-- `POST /api/email/send` - メール送信
-- `POST /api/dm-jobqueue/register` - ジョブ登録
-- `POST /api/upload/dm_movie` - ファイルアップロード（TUSプロトコル）
+- `POST /api/email/send` - Send email
+- `POST /api/dm-jobqueue/register` - Register job
+- `POST /api/upload/dm_movie` - Upload file (TUS protocol)
 
-### OpenAPI仕様
+### OpenAPI Specification
 
 - `GET /docs` - API Documentation UI (Stoplight Elements)
 - `GET /openapi.json` - OpenAPI 3.1 (JSON)
 - `GET /openapi.yaml` - OpenAPI 3.1 (YAML)
 - `GET /openapi-3.0.json` - OpenAPI 3.0.3 (JSON)
 
-※ OpenAPIドキュメントエンドポイントは認証不要でアクセス可能です。
+*OpenAPI document endpoints are accessible without authentication.
 
-詳細は [API.md](docs/API.md) を参照してください。
+For details, see [docs/en/API.md](docs/en/API.md).
 
-## 機能別ドキュメント
+## Feature Documentation
 
-以下の機能の詳細な利用手順は、各ドキュメントを参照してください：
+See the following documents for detailed usage instructions:
 
-- [ジョブキュー機能](docs/Queue-Job.md) - Redis + Asynqを使用したバックグラウンドジョブ処理
-- [メール送信機能](docs/Send-Mail.md) - 標準出力、Mailpit、AWS SES対応のメール送信
-- [ファイルアップロード機能](docs/File-Upload.md) - TUSプロトコルによる大容量ファイルアップロード
-- [ログ機能](docs/Logging.md) - アクセスログ、メール送信ログ、SQLログ
-- [レートリミット機能](docs/Rate-Limit.md) - APIレートリミットの詳細設定
-- [Docker](docs/Docker.md) - Docker環境での起動・デプロイ
+- [Job Queue](docs/en/Queue-Job.md) - Background job processing using Redis + Asynq
+- [Email Sending](docs/en/Send-Mail.md) - Email sending with stdout, Mailpit, and AWS SES support
+- [File Upload](docs/en/File-Upload.md) - Large file upload via TUS protocol
+- [Logging](docs/en/Logging.md) - Access logs, email logs, SQL logs
+- [Rate Limiting](docs/en/Rate-Limit.md) - Detailed API rate limit configuration
+- [Docker](docs/en/Docker.md) - Starting and deploying in Docker environment
 
-## APIレートリミット
+## API Rate Limiting
 
-APIエンドポイントへのリクエストはIPアドレス単位でレート制限されています。
+Requests to API endpoints are rate limited by IP address.
 
-### レスポンスヘッダー
+### Response Headers
 
-すべてのAPIレスポンスに以下のヘッダーが付与されます：
+All API responses include the following headers:
 
-**分制限（常に付与）:**
+**Per-minute limit (always included):**
 
-| ヘッダー | 説明 | 例 |
-|---------|------|-----|
-| `X-RateLimit-Limit` | 1分あたりの制限値 | `60` |
-| `X-RateLimit-Remaining` | 残りリクエスト数 | `45` |
-| `X-RateLimit-Reset` | リセット時刻（Unix timestamp） | `1706342400` |
+| Header | Description | Example |
+|--------|-------------|---------|
+| `X-RateLimit-Limit` | Limit per minute | `60` |
+| `X-RateLimit-Remaining` | Remaining requests | `45` |
+| `X-RateLimit-Reset` | Reset time (Unix timestamp) | `1706342400` |
 
-**時間制限（`requests_per_hour`が設定されている場合のみ）:**
+**Per-hour limit (only when `requests_per_hour` is configured):**
 
-| ヘッダー | 説明 | 例 |
-|---------|------|-----|
-| `X-RateLimit-Hour-Limit` | 1時間あたりの制限値 | `1000` |
-| `X-RateLimit-Hour-Remaining` | 残りリクエスト数 | `950` |
-| `X-RateLimit-Hour-Reset` | リセット時刻（Unix timestamp） | `1706346000` |
+| Header | Description | Example |
+|--------|-------------|---------|
+| `X-RateLimit-Hour-Limit` | Limit per hour | `1000` |
+| `X-RateLimit-Hour-Remaining` | Remaining requests | `950` |
+| `X-RateLimit-Hour-Reset` | Reset time (Unix timestamp) | `1706346000` |
 
-### レートリミット超過時
+### Rate Limit Exceeded
 
-制限を超過した場合、HTTP 429ステータスコードが返されます：
+When limit is exceeded, HTTP 429 status code is returned:
 
 ```json
 {
@@ -526,9 +529,9 @@ APIエンドポイントへのリクエストはIPアドレス単位でレート
 }
 ```
 
-### 設定
+### Configuration
 
-レートリミットの設定は`config/{env}/config.yaml`で管理します：
+Rate limit settings are managed in `config/{env}/config.yaml`:
 
 ```yaml
 api:
@@ -538,17 +541,17 @@ api:
     requests_per_hour: 1000
 ```
 
-### ストレージ
+### Storage
 
-レートリミットのカウンターは環境に応じて異なるストレージを使用します：
+Rate limit counters use different storage based on environment:
 
-| 環境 | ストレージ | 設定ファイル |
-|------|----------|-------------|
+| Environment | Storage | Config File |
+|-------------|---------|-------------|
 | develop | In-Memory | `config/develop/cacheserver.yaml` |
 | staging | Redis Cluster | `config/staging/cacheserver.yaml` |
 | production | Redis Cluster | `config/production/cacheserver.yaml` |
 
-Redis Clusterを使用する場合は`cacheserver.yaml`でアドレスを設定します：
+When using Redis Cluster, configure addresses in `cacheserver.yaml`:
 
 ```yaml
 redis:
@@ -559,71 +562,71 @@ redis:
       - host3:6379
 ```
 
-`addrs`が空または未設定の場合はIn-Memoryストレージが使用されます。
+In-Memory storage is used when `addrs` is empty or not configured.
 
-### 動作確認
+### Verification
 
 ```bash
-# レートリミットヘッダーの確認
+# Check rate limit headers
 curl -i -H "Authorization: Bearer <YOUR_API_KEY>" http://localhost:8080/api/users
 
-# レスポンスヘッダー例
+# Example response headers
 # X-RateLimit-Limit: 60
 # X-RateLimit-Remaining: 59
 # X-RateLimit-Reset: 1706342460
 ```
 
-詳細は [Rate-Limit.md](docs/Rate-Limit.md) を参照してください。
+For details, see [docs/en/Rate-Limit.md](docs/en/Rate-Limit.md).
 
-## API認証
+## API Authentication
 
-APIエンドポイント（`/api/*`）へのアクセスにはJWTベースのPublic APIキーが必要です。
+Access to API endpoints (`/api/*`) requires a JWT-based Public API key.
 
-### APIキーの発行
+### Issuing API Keys
 
-GoAdmin管理画面からAPIキーを発行できます。
+API keys can be issued from the GoAdmin dashboard.
 
-1. 管理画面（http://localhost:8081/admin）にログイン
-2. サイドメニューから「カスタムページ」→「APIキー発行」を選択
-3. 「APIキーを発行」ボタンをクリック
-4. 生成されたJWTトークンをダウンロードまたはコピー
+1. Login to admin panel (http://localhost:8081/admin)
+2. Select "Custom Pages" → "Issue API Key" from side menu
+3. Click "Issue API Key" button
+4. Download or copy the generated JWT token
 
-### 秘密鍵の生成
+### Generating Secret Key
 
-APIキーの署名に使用する秘密鍵を生成するツールが用意されています。
+A tool is provided to generate the secret key used for API key signing.
 
 ```bash
 cd server
 go run cmd/generate-secret/main.go
 ```
 
-生成された秘密鍵を`config/{env}/config.yaml`の`api.secret_key`に設定してください。
+Set the generated secret key in `config/{env}/config.yaml` under `api.secret_key`.
 
-### APIリクエストの認証
+### API Request Authentication
 
-APIリクエストには`Authorization`ヘッダーでJWTトークンを送信します。
+Send the JWT token in the `Authorization` header for API requests.
 
 ```bash
 curl -H "Authorization: Bearer <YOUR_API_KEY>" http://localhost:8080/api/users
 ```
 
-### クライアント側の設定
+### Client Configuration
 
-Next.jsクライアントでは、環境変数`NEXT_PUBLIC_API_KEY`にAPIキーを設定します。
+In Next.js client, set the API key in the `NEXT_PUBLIC_API_KEY` environment variable.
 
 ```bash
 # client/.env.local
 NEXT_PUBLIC_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-詳細なクライアントアプリのセットアップ手順は、セクション9「クライアント起動」を参照してください。
+For detailed client setup instructions, see section 9 "Start Client".
 
-### エラーレスポンス
+### Error Responses
 
-- `401 Unauthorized` - APIキーが無効または未設定
-- `403 Forbidden` - スコープ不足（readスコープなしでGET、writeスコープなしでPOST/PUT/DELETE）
+- `401 Unauthorized` - API key is invalid or not set
+- `403 Forbidden` - Insufficient scope (GET without read scope, POST/PUT/DELETE without write scope)
 
-エラーレスポンス形式:
+Error response format:
 ```json
 {
   "code": 401,
@@ -631,94 +634,94 @@ NEXT_PUBLIC_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 }
 ```
 
-## CLIツール
+## CLI Tools
 
-バッチ処理用のCLIツールが利用できます。
+Batch processing CLI tools are available.
 
-### サンプルデータ生成（generate-sample-data）
+### Sample Data Generation (generate-sample-data)
 
-開発用のサンプルデータを生成します。PostgreSQLを使用してmaster/shardingデータベースにデータを投入します。
+Generates sample data for development. Uses PostgreSQL to insert data into master/sharding databases.
 
-#### 前提条件
+#### Prerequisites
 
-1. PostgreSQLコンテナが起動していること
-2. マイグレーションが適用されていること
+1. PostgreSQL container is running
+2. Migrations are applied
 
 ```bash
-# PostgreSQL起動
+# Start PostgreSQL
 ./scripts/start-postgres.sh start
 
-# マイグレーション適用
+# Apply migrations
 ./scripts/migrate.sh
 ```
 
-#### 実行
+#### Execution
 
 ```bash
 cd server
 APP_ENV=develop go run cmd/generate-sample-data/main.go
 ```
 
-#### 生成されるデータ
+#### Generated Data
 
-| テーブル | データベース | 件数 |
-|---------|------------|------|
-| dm_users_000〜031 | sharding (4台に分散) | 100件 |
-| dm_posts_000〜031 | sharding (4台に分散) | 100件 |
-| dm_news | master | 100件 |
+| Table | Database | Count |
+|-------|----------|-------|
+| dm_users_000-031 | sharding (distributed across 4 instances) | 100 records |
+| dm_posts_000-031 | sharding (distributed across 4 instances) | 100 records |
+| dm_news | master | 100 records |
 
-詳細は [Generate-Sample-Data.md](docs/Generate-Sample-Data.md) を参照してください。
+For details, see [docs/en/Generate-Sample-Data.md](docs/en/Generate-Sample-Data.md).
 
-### 秘密鍵生成（generate-secret）
+### Secret Key Generation (generate-secret)
 
-APIキー署名用の秘密鍵を生成します。
+Generates a secret key for API key signing.
 
-#### 実行
+#### Execution
 
 ```bash
 cd server
 go run cmd/generate-secret/main.go
 ```
 
-#### 出力
+#### Output
 
-Base64エンコードされた32バイト（256ビット）のランダムな秘密鍵が標準出力に表示されます。
+A Base64-encoded 32-byte (256-bit) random secret key is displayed on standard output.
 
-### ユーザー一覧出力（list-users）
+### User List Output (list-users)
 
-ユーザー一覧をTSV形式で出力します。
+Outputs user list in TSV format.
 
-#### ビルド
+#### Build
 
 ```bash
 cd server
 go build -o bin/list-users ./cmd/list-users
 ```
 
-#### 実行
+#### Execution
 
 ```bash
-# デフォルト（20件）
+# Default (20 records)
 APP_ENV=develop ./bin/list-users
 
-# 件数を指定（最大100件）
+# Specify count (max 100)
 APP_ENV=develop ./bin/list-users --limit 50
 ```
 
-#### オプション
+#### Options
 
-| オプション | 説明 | デフォルト | 範囲 |
-|-----------|------|----------|------|
-| `--limit` | 出力件数 | 20 | 1-100 |
+| Option | Description | Default | Range |
+|--------|-------------|---------|-------|
+| `--limit` | Output count | 20 | 1-100 |
 
-#### 出力形式
+#### Output Format
 
-TSV（タブ区切り）形式で、以下の項目を出力します：
+TSV (tab-separated) format with the following fields:
 - ID, Name, Email, CreatedAt, UpdatedAt
 
-## Sharding戦略
+## Sharding Strategy
 
-テーブルベースシャーディング（32分割、8論理シャード）を採用しています。
+Uses table-based sharding (32 partitions, 8 logical shards).
 
 ```
 table_number = id % 32      # 0-31
@@ -726,78 +729,78 @@ table_name = "dm_users_" + sprintf("%03d", table_number)  # dm_users_000 ~ dm_us
 logical_shard_id = (table_number / 4) + 1  # 1-8
 ```
 
-**データベースグループ**:
-- **Master グループ**: 共有テーブル（dm_news）を格納（PostgreSQL、port 5432）
-- **Sharding グループ**: 32分割されたテーブル（dm_users_000〜031, dm_posts_000〜031）を8論理シャード→4物理DBに分散
+**Database Groups**:
+- **Master Group**: Stores shared tables (dm_news) (PostgreSQL, port 5432)
+- **Sharding Group**: Distributes 32-partitioned tables (dm_users_000-031, dm_posts_000-031) across 8 logical shards → 4 physical DBs
 
-| 論理シャード | テーブル範囲 | 物理DB（PostgreSQL） |
-|------------|------------|---------------------|
-| 1 | _000 〜 _003 | webdb_sharding_1 (port 5433) |
-| 2 | _004 〜 _007 | webdb_sharding_1 (port 5433) |
-| 3 | _008 〜 _011 | webdb_sharding_2 (port 5434) |
-| 4 | _012 〜 _015 | webdb_sharding_2 (port 5434) |
-| 5 | _016 〜 _019 | webdb_sharding_3 (port 5435) |
-| 6 | _020 〜 _023 | webdb_sharding_3 (port 5435) |
-| 7 | _024 〜 _027 | webdb_sharding_4 (port 5436) |
-| 8 | _028 〜 _031 | webdb_sharding_4 (port 5436) |
+| Logical Shard | Table Range | Physical DB (PostgreSQL) |
+|---------------|-------------|--------------------------|
+| 1 | _000 to _003 | webdb_sharding_1 (port 5433) |
+| 2 | _004 to _007 | webdb_sharding_1 (port 5433) |
+| 3 | _008 to _011 | webdb_sharding_2 (port 5434) |
+| 4 | _012 to _015 | webdb_sharding_2 (port 5434) |
+| 5 | _016 to _019 | webdb_sharding_3 (port 5435) |
+| 6 | _020 to _023 | webdb_sharding_3 (port 5435) |
+| 7 | _024 to _027 | webdb_sharding_4 (port 5436) |
+| 8 | _028 to _031 | webdb_sharding_4 (port 5436) |
 
-詳細は [Sharding.md](docs/Sharding.md) を参照してください。
+For details, see [docs/en/Sharding.md](docs/en/Sharding.md).
 
-## 設定ファイル構造
+## Configuration File Structure
 
-設定ファイルは環境別ディレクトリに分割されています。
+Configuration files are organized by environment directories.
 
-### ディレクトリ構造
+### Directory Structure
 
 ```
 config/
-├── develop/                  # 開発環境設定ディレクトリ
-│   ├── config.yaml           # メイン設定（server, admin, logging, cors, api）
-│   ├── database.yaml         # データベース設定（groups構造）
-│   └── cacheserver.yaml      # キャッシュサーバー設定（Redis Cluster）
-├── production/               # 本番環境設定ディレクトリ
-│   ├── config.yaml.example   # メイン設定テンプレート
-│   ├── database.yaml.example # データベース設定テンプレート
-│   └── cacheserver.yaml.example # キャッシュサーバー設定テンプレート
-└── staging/                  # ステージング環境設定ディレクトリ
-    ├── config.yaml           # メイン設定
-    ├── database.yaml         # データベース設定
-    └── cacheserver.yaml      # キャッシュサーバー設定
+├── develop/                  # Development environment config directory
+│   ├── config.yaml           # Main config (server, admin, logging, cors, api)
+│   ├── database.yaml         # Database config (groups structure)
+│   └── cacheserver.yaml      # Cache server config (Redis Cluster)
+├── production/               # Production environment config directory
+│   ├── config.yaml.example   # Main config template
+│   ├── database.yaml.example # Database config template
+│   └── cacheserver.yaml.example # Cache server config template
+└── staging/                  # Staging environment config directory
+    ├── config.yaml           # Main config
+    ├── database.yaml         # Database config
+    └── cacheserver.yaml      # Cache server config
 
 db/
 └── migrations/
-    ├── master/               # Masterグループ用マイグレーション
-    │   └── 001_init.sql      # newsテーブル
-    └── sharding/             # Shardingグループ用マイグレーション
-        ├── templates/        # テンプレートファイル
+    ├── master/               # Master group migrations
+    │   └── 001_init.sql      # news table
+    └── sharding/             # Sharding group migrations
+        ├── templates/        # Template files
         │   ├── users.sql.template
         │   └── posts.sql.template
-        └── generated/        # 生成されたマイグレーション
+        └── generated/        # Generated migrations
 ```
 
-### 設定ファイルの読み込み順序
+### Config File Loading Order
 
-1. メイン設定ファイル（`config/{env}/config.yaml`）を読み込み
-2. データベース設定ファイル（`config/{env}/database.yaml`）をマージ
-3. キャッシュサーバー設定ファイル（`config/{env}/cacheserver.yaml`）をマージ（オプション）
-4. 統合された設定を`Config`構造体にマッピング
-5. 環境変数（`DB_PASSWORD_SHARD*`）でパスワードを上書き
+1. Load main config file (`config/{env}/config.yaml`)
+2. Merge database config file (`config/{env}/database.yaml`)
+3. Merge cache server config file (`config/{env}/cacheserver.yaml`) (optional)
+4. Map unified config to `Config` struct
+5. Override passwords with environment variables (`DB_PASSWORD_SHARD*`)
 
-### 環境切り替え
+### Environment Switching
 
-環境変数`APP_ENV`で環境を切り替えます：
+Switch environments using `APP_ENV` environment variable:
 
 ```bash
-APP_ENV=develop go run cmd/server/main.go    # 開発環境
-APP_ENV=staging go run cmd/server/main.go    # ステージング環境
-APP_ENV=production go run cmd/server/main.go # 本番環境
+APP_ENV=develop go run cmd/server/main.go    # Development
+APP_ENV=staging go run cmd/server/main.go    # Staging
+APP_ENV=production go run cmd/server/main.go # Production
 ```
 
-## GORM対応
+## GORM Support
 
-Writer/Reader分離をサポートするGORM版のRepositoryを実装しています。
+GORM-based Repository with Writer/Reader separation is implemented.
 
-### Writer/Reader分離の設定例
+### Writer/Reader Separation Example
 
 `config/production/database.yaml`:
 ```yaml
@@ -812,19 +815,19 @@ database:
       reader_policy: round_robin
 ```
 
-### 主要な依存パッケージ
+### Key Dependencies
 
 - `gorm.io/gorm` v1.25.12
 - `gorm.io/driver/postgres`
-- `gorm.io/plugin/dbresolver` (Writer/Reader分離)
-- `gorm.io/sharding` (将来使用予定)
-- `github.com/labstack/echo/v4` v4.13.3 (HTTPルーター)
-- `github.com/danielgtaylor/huma/v2` v2.34.1 (OpenAPI仕様自動生成)
-- `github.com/ulule/limiter/v3` v3.11.2 (レートリミット)
-- `github.com/redis/go-redis/v9` v9.17.2 (Redis Cluster接続)
+- `gorm.io/plugin/dbresolver` (Writer/Reader separation)
+- `gorm.io/sharding` (for future use)
+- `github.com/labstack/echo/v4` v4.13.3 (HTTP router)
+- `github.com/danielgtaylor/huma/v2` v2.34.1 (OpenAPI spec auto-generation)
+- `github.com/ulule/limiter/v3` v3.11.2 (rate limiting)
+- `github.com/redis/go-redis/v9` v9.17.2 (Redis Cluster connection)
 
-詳細は [Architecture.md](docs/Architecture.md) を参照してください。
+For details, see [docs/en/Architecture.md](docs/en/Architecture.md).
 
-## ライセンス
+## License
 
 MIT License
