@@ -146,6 +146,20 @@ client/app/feed/[userId]/[postId]/page.tsx
 
 いったんgit commitしてください。
 
+/kiro:spec-impl 0069-feed-component 7
+
+いったん、クライアントサーバーをとめてください。
+
+私も動作確認しました。
+良い感じです。
+他にタスクは残っていない？
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/142
+にpull requestを発行してください。
+
+/review 143
+
 
 
 
