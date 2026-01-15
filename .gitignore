@@ -35,7 +35,6 @@ redis/insight/*
 
 # Upload files (development environment)
 server/uploads/
-test_files/
 
 # Config files (production and staging secrets)
 config/production/config.yaml
