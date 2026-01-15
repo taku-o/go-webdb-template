@@ -1,0 +1,22 @@
+{
+    "feature": "0069-feed-component",
+    "description": "フィードUIコンポーネントの作成 - Twitter風のメッセージのエントリーが並ぶUIをNext.jsで作成",
+    "language": "ja",
+    "createdAt": "2026-01-27",
+    "phase": "tasks-approved",
+    "approvals": {
+        "requirements": {
+            "generated": true,
+            "approved": true
+        },
+        "design": {
+            "generated": true,
+            "approved": true
+        },
+        "tasks": {
+            "generated": true,
+            "approved": true
+        }
+    },
+    "updated_at": "2026-01-27T00:00:00Z"
+}
