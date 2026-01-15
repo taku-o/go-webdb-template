@@ -90,7 +90,14 @@ const [dmFeedPosts, setDmFeedPosts] = useState<DmFeedPost[]>([]);
 _serena_indexing
 /serena-initialize
 
-/kiro:spec-impl 0069-feed-component
+/kiro:spec-impl 0069-feed-component 1
+
+/kiro:spec-impl 0069-feed-component 2.1
+/kiro:spec-impl 0069-feed-component 2.2
+/kiro:spec-impl 0069-feed-component 2.3
+/kiro:spec-impl 0069-feed-component 2.4
+/kiro:spec-impl 0069-feed-component 2.5 2.6 2.7
+
 
 
 
