@@ -1,6 +1,13 @@
 # Go DB Project Sample
 
-Go + Next.js + Database Sharding対応のサンプルプロジェクトです。大規模プロジェクト向けの構成を採用しています。
+大量ユーザー、大量アクセスの運用に耐えうるGo APIサーバー、データベース構成の
+大規模プロジェクト向けのテンプレートプロジェクトです。
+
+ナンバー付きDBテーブルでデータベース分割への配慮。
+APIサーバー、Webサーバーを増やして負荷に耐えられるサーバー構成。
+
+保守しやすいソースコード構成に、
+レートリミット、各種ログ、データベースのスキーマ管理など各種運用向け機能。
 
 **GitHub Pages**: [https://taku-o.github.io/go-webdb-template/pages/ja/](https://taku-o.github.io/go-webdb-template/pages/ja/)
 
