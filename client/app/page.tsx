@@ -39,6 +39,11 @@ export default async function Home() {
       description: '遅延ジョブの登録（参考実装）',
       href: '/dm-jobqueue',
     },
+    {
+      title: 'フィード',
+      description: 'Twitter風のフィードUIコンポーネント',
+      href: '/feed',
+    },
   ]
 
   return (
