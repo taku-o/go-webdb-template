@@ -109,7 +109,7 @@ export default async function Home() {
                   </p>
                   <form action={async () => {
                     "use server"
-                    await signIn()
+                    await signIn('auth0')
                   }}>
                     <Button type="submit" size="sm" className="w-full sm:w-auto" aria-label="ログイン">
                       ログイン

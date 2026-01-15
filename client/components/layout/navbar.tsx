@@ -41,7 +41,7 @@ export default async function NavBar() {
               ) : (
                 <form action={async () => {
                   "use server"
-                  await signIn()
+                  await signIn('auth0')
                 }}>
                   <Button type="submit" aria-label="ナビゲーションバーからログイン">ログイン</Button>
                 </form>
