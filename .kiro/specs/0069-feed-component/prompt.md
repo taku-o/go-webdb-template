@@ -98,6 +98,10 @@ _serena_indexing
 /kiro:spec-impl 0069-feed-component 2.4
 /kiro:spec-impl 0069-feed-component 2.5 2.6 2.7
 
+いったんgit commitしてください。
+
+/kiro:spec-impl 0069-feed-component 3
+
 
 
 
