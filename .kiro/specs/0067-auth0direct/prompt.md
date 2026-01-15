@@ -27,6 +27,17 @@ think.
 
 /kiro:spec-tasks 0067-auth0direct
 
+タスクリストを承認します。
+
+/sdd-fix-plan
+
+/kiro:spec-impl 0067-auth0direct
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/138
+にpull requestを発行してください。
+
+/review 139
 
 
 
