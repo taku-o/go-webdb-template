@@ -29,5 +29,9 @@ _serena_indexing
 
 /kiro:spec-impl 0070-dm_feed
 
+commitして、
+https://github.com/taku-o/go-webdb-template/issues/145 に向けた
+pull requestを作成してください。
 
+/review 146
 

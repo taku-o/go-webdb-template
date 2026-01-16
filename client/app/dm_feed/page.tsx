@@ -5,5 +5,5 @@ import { redirect } from 'next/navigation'
 const DUMMY_USER_ID = 'dummy-user-001'
 
 export default function FeedRedirectPage() {
-  redirect(`/feed/${DUMMY_USER_ID}`)
+  redirect(`/dm_feed/${DUMMY_USER_ID}`)
 }
