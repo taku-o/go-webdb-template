@@ -99,6 +99,9 @@ metabase/config/**/*.trace.db
 apache-superset/data/
 !apache-superset/data/superset.db
 
+# Demo videos (not committed to git)
+client/public/demo-videos/
+
 # Misc
 *.log
 .env
