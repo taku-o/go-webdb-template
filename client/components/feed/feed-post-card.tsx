@@ -61,7 +61,7 @@ export function FeedPostCard({ post, userId, onLikeToggle }: FeedPostCardProps) 
             <div className="flex items-center gap-4 mt-3">
               {/* 返信ボタン */}
               <Link
-                href={`/feed/${userId}/${post.id}`}
+                href={`/dm_feed/${userId}/${post.id}`}
                 className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
                 aria-label="返信一覧を表示"
               >

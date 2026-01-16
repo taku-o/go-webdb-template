@@ -42,7 +42,7 @@ export default async function Home() {
     {
       title: 'フィード',
       description: 'Twitter風のフィードUIコンポーネント',
-      href: '/feed',
+      href: '/dm_feed',
     },
   ]
 

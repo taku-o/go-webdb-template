@@ -251,7 +251,7 @@ export default function ReplyPage() {
         <nav aria-label="パンくずリスト">
           <div className="mb-4 sm:mb-6">
             <Link
-              href={`/feed/${userId}`}
+              href={`/dm_feed/${userId}`}
               className="inline-flex items-center text-primary hover:underline text-sm sm:text-base"
               aria-label="フィードに戻る"
             >
