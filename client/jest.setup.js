@@ -64,10 +64,26 @@ jest.mock('@/auth', () => {
 })
 
 // Mock Uppy (ESM module, not compatible with Jest)
-jest.mock('@uppy/core', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}))
+jest.mock('@uppy/core', () => {
+  const createMockUppyInstance = () => {
+    const mockInstance = {
+      use: jest.fn(() => mockInstance),
+      on: jest.fn(() => mockInstance),
+      off: jest.fn(() => mockInstance),
+      upload: jest.fn(() => Promise.resolve()),
+      addFile: jest.fn(),
+      removeFile: jest.fn(),
+      getFiles: jest.fn(() => []),
+      close: jest.fn(),
+      destroy: jest.fn(),
+    }
+    return mockInstance
+  }
+  return {
+    __esModule: true,
+    default: jest.fn(() => createMockUppyInstance()),
+  }
+})
 
 jest.mock('@uppy/tus', () => ({
   __esModule: true,

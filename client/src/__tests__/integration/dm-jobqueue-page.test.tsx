@@ -1,26 +1,23 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
 import DmJobqueuePage from '@/app/dm-jobqueue/page'
 
-const server = setupServer(
-  // Mock NextAuth token endpoint (relative path)
-  http.get('*/api/auth/token', () => {
-    return new HttpResponse(null, { status: 401 })
-  }),
+// Mock apiClient
+const mockRegisterJob = jest.fn()
 
-  http.post('http://localhost:8080/api/dm-jobqueue/register', async () => {
-    return HttpResponse.json({
-      job_id: 'test-job-id-123',
-      status: 'registered',
-    }, { status: 201 })
+jest.mock('@/lib/api', () => ({
+  apiClient: {
+    registerJob: (...args: unknown[]) => mockRegisterJob(...args),
+  },
+}))
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  mockRegisterJob.mockResolvedValue({
+    job_id: 'test-job-id-123',
+    status: 'registered',
   })
-)
-
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+})
 
 describe('DmJobqueuePage Integration', () => {
   it('displays job registration form', async () => {
@@ -44,11 +41,7 @@ describe('DmJobqueuePage Integration', () => {
   })
 
   it('handles API errors gracefully', async () => {
-    server.use(
-      http.post('http://localhost:8080/api/dm-jobqueue/register', () => {
-        return new HttpResponse('Service Unavailable', { status: 503 })
-      })
-    )
+    mockRegisterJob.mockRejectedValue(new Error('Service Unavailable'))
 
     const user = userEvent.setup()
     render(<DmJobqueuePage />)

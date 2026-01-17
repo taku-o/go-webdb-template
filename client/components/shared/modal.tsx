@@ -52,6 +52,7 @@ export default function Modal({
           className="animate-fade-in fixed inset-0 z-40 bg-gray-100 bg-opacity-50 backdrop-blur-md"
         />
         <Dialog.Content
+          aria-describedby={undefined}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           className={cn(

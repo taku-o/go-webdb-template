@@ -17,9 +17,11 @@
     "metabase:stop": "docker-compose -f docker-compose.metabase.yml down",
     "metabase:logs": "docker-compose -f docker-compose.metabase.yml logs -f metabase",
     "metabase:restart": "npm run metabase:stop && npm run metabase:start",
-    "test": "cd server && APP_ENV=test go test ./... -count=1 -parallel=4",
+    "test": "npm run test:server; npm run test:client",
+    "test:server": "cd server && APP_ENV=test go test ./... -count=1 -parallel=4",
     "test:unit": "cd server && APP_ENV=test go test ./internal/... -count=1 -parallel=4",
     "test:integration": "cd server && APP_ENV=test go test ./test/integration/... -count=1 -parallel=4",
-    "test:e2e": "cd server && APP_ENV=test go test ./test/e2e/... -count=1 -parallel=4"
+    "test:e2e": "cd server && APP_ENV=test go test ./test/e2e/... -count=1 -parallel=4",
+    "test:client": "cd client && npm run test"
   }
 }

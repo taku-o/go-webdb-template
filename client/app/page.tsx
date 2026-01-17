@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { auth, signIn, signOut } from '@/auth'
+import { auth } from '@/auth'
 import TodayApiButton from '@/components/TodayApiButton'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { AuthButtons } from '@/components/auth/auth-buttons'
 
 export default async function Home() {
   const session = await auth()
@@ -89,44 +89,7 @@ export default async function Home() {
               <CardTitle>認証状態</CardTitle>
             </CardHeader>
             <CardContent>
-              {session?.user ? (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-sm sm:text-base">
-                      <span className="sr-only">現在のログイン状態: </span>
-                      ログイン中: {session.user.name}
-                    </p>
-                    {session.user.email && (
-                      <p className="text-xs sm:text-sm text-muted-foreground" aria-label="メールアドレス">
-                        {session.user.email}
-                      </p>
-                    )}
-                  </div>
-                  <form action={async () => {
-                    "use server"
-                    await signOut()
-                  }}>
-                    <Button type="submit" variant="destructive" size="sm" className="w-full sm:w-auto" aria-label="ログアウト">
-                      ログアウト
-                    </Button>
-                  </form>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <p className="text-sm sm:text-base text-muted-foreground">
-                    <span className="sr-only">現在のログイン状態: </span>
-                    ログインしていません
-                  </p>
-                  <form action={async () => {
-                    "use server"
-                    await signIn('auth0')
-                  }}>
-                    <Button type="submit" size="sm" className="w-full sm:w-auto" aria-label="ログイン">
-                      ログイン
-                    </Button>
-                  </form>
-                </div>
-              )}
+              <AuthButtons user={session?.user ?? null} />
             </CardContent>
           </Card>
         </section>
