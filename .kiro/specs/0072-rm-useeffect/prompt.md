@@ -52,7 +52,21 @@ think.
 
 いったんcommitしてください。
 
+/compact
+/kiro:spec-impl 0072-rm-useeffect 6
 
+何度かテストを実行して、必ずエラーになってしまわない事を確認してください。
+>  1. email-send.spec.ts:45:7: ローディング状態の検出タイミングの問題
+>  2. csv-download.spec.ts:43:7: ローディング状態の検出タイミングの問題
+>  3. post-flow.spec.ts:14:7: フォームクリアのタイミングの問題
+
+/kiro:spec-impl 0072-rm-useeffect 7
+
+commitして、
+https://github.com/taku-o/go-webdb-template/issues/149 に向けた
+pull requestを作成してください。
+
+/review 150
 
 
 
