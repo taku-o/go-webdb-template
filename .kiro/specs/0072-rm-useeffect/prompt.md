@@ -22,3 +22,16 @@ think.
 設計書を承認します。
 タスクリストを承認します。
 
+/kiro:spec-impl 0072-rm-useeffect 1.1
+/kiro:spec-impl 0072-rm-useeffect 1.2
+/kiro:spec-impl 0072-rm-useeffect 1.3
+
+/kiro:spec-impl 0072-rm-useeffect 1.4
+
+これはどんな警告がでてる？
+>dm_feed/[userId]/page.tsxからは警告が出ていません（警告は別のファイル[postId]/page.tsxのもの）。
+
+/kiro:spec-impl 0072-rm-useeffect 1.5
+
+いったんcommitしてください。
+

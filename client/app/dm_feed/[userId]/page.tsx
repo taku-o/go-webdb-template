@@ -42,6 +42,10 @@ export default function FeedPage() {
   const loadNewerRef = useRef<HTMLDivElement>(null)
   // 投稿一覧のコンテナref（スクロール位置維持用）
   const postsContainerRef = useRef<HTMLDivElement>(null)
+  // 初期化済みフラグ
+  const hasLoadedRef = useRef(false)
+  // 前回のuserId
+  const currentUserIdRef = useRef<string | null>(null)
 
   // 初期データの読み込み
   const loadInitialPosts = async () => {
@@ -156,6 +160,28 @@ export default function FeedPage() {
     }
   }
 
+  // 初期化処理
+  const loadInitialData = async () => {
+    if (hasLoadedRef.current && currentUserIdRef.current === userId) return
+    hasLoadedRef.current = true
+    currentUserIdRef.current = userId
+    await loadInitialPosts()
+  }
+
+  // refコールバック関数
+  const setContainerRef = (node: HTMLElement | null) => {
+    if (node && (!hasLoadedRef.current || currentUserIdRef.current !== userId)) {
+      loadInitialData()
+    }
+  }
+
+  // userIdが変更された場合の処理
+  if (currentUserIdRef.current !== null && currentUserIdRef.current !== userId) {
+    currentUserIdRef.current = userId
+    hasLoadedRef.current = false
+    loadInitialPosts()
+  }
+
   // いいねのトグル処理
   const handleLikeToggle = async (postId: string) => {
     try {
@@ -173,11 +199,6 @@ export default function FeedPage() {
       setError(err instanceof Error ? err.message : 'いいねに失敗しました')
     }
   }
-
-  // ページ読み込み時に初期データを取得
-  useEffect(() => {
-    loadInitialPosts()
-  }, [userId])
 
   // Intersection Observer で下方向スクロールを検知
   useEffect(() => {
@@ -226,7 +247,7 @@ export default function FeedPage() {
   }, [isLoadingNewer, loadNewerPosts, dmFeedPosts.length])
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-8">
+    <main ref={setContainerRef} className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-2xl mx-auto">
         <nav aria-label="パンくずリスト">
           <div className="mb-4 sm:mb-6">

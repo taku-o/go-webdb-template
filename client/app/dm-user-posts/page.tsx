@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
 import { DmUserPost } from '@/types/dm_post'
@@ -13,6 +13,7 @@ export default function UserPostsPage() {
   const [dmUserPosts, setDmUserPosts] = useState<DmUserPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const hasLoadedRef = useRef(false)
 
   const loadUserPosts = async () => {
     try {
@@ -27,12 +28,20 @@ export default function UserPostsPage() {
     }
   }
 
-  useEffect(() => {
-    loadUserPosts()
-  }, [])
+  const loadInitialData = async () => {
+    if (hasLoadedRef.current) return
+    hasLoadedRef.current = true
+    await loadUserPosts()
+  }
+
+  const setContainerRef = (node: HTMLElement | null) => {
+    if (node && !hasLoadedRef.current) {
+      loadInitialData()
+    }
+  }
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-8">
+    <main ref={setContainerRef} className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         <nav aria-label="パンくずリスト">
           <div className="mb-4 sm:mb-6">
