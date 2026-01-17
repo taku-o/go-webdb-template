@@ -1,11 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
 import UsersPage from '@/app/dm-users/page'
 
-// Mock user data that can be modified during tests
-let mockUsers = [
+// Mock user data
+const mockUsers = [
   {
     id: '1',
     name: 'User 1',
@@ -22,61 +20,37 @@ let mockUsers = [
   },
 ]
 
-const server = setupServer(
-  // Mock NextAuth token endpoint (relative path)
-  http.get('*/api/auth/token', () => {
-    return new HttpResponse(null, { status: 401 })
-  }),
+// Mock apiClient
+const mockGetDmUsers = jest.fn()
+const mockCreateDmUser = jest.fn()
+const mockDeleteDmUser = jest.fn()
 
-  http.get('http://localhost:8080/api/dm-users', () => {
-    return HttpResponse.json(mockUsers)
-  }),
+jest.mock('@/lib/api', () => ({
+  apiClient: {
+    getDmUsers: (...args: unknown[]) => mockGetDmUsers(...args),
+    createDmUser: (...args: unknown[]) => mockCreateDmUser(...args),
+    deleteDmUser: (...args: unknown[]) => mockDeleteDmUser(...args),
+  },
+}))
 
-  http.post('http://localhost:8080/api/dm-users', async ({ request }) => {
-    const body = (await request.json()) as { name: string; email: string }
-    const newUser = {
-      id: '3',
-      name: body.name,
-      email: body.email,
-      created_at: '2024-01-15T12:00:00Z',
-      updated_at: '2024-01-15T12:00:00Z',
-    }
-    // Add to mock users so next GET returns it
-    mockUsers = [...mockUsers, newUser]
-    return HttpResponse.json(newUser, { status: 201 })
-  }),
-
-  http.delete('http://localhost:8080/api/dm-users/:id', () => {
-    return new HttpResponse(null, { status: 204 })
+beforeEach(() => {
+  jest.clearAllMocks()
+  mockGetDmUsers.mockResolvedValue(mockUsers)
+  mockCreateDmUser.mockResolvedValue({
+    id: '3',
+    name: 'New User',
+    email: 'new@example.com',
+    created_at: '2024-01-15T12:00:00Z',
+    updated_at: '2024-01-15T12:00:00Z',
   })
-)
-
-beforeAll(() => server.listen())
-afterEach(() => {
-  server.resetHandlers()
-  // Reset mock users
-  mockUsers = [
-    {
-      id: '1',
-      name: 'User 1',
-      email: 'user1@example.com',
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-    },
-    {
-      id: '2',
-      name: 'User 2',
-      email: 'user2@example.com',
-      created_at: '2024-01-15T11:00:00Z',
-      updated_at: '2024-01-15T11:00:00Z',
-    },
-  ]
+  mockDeleteDmUser.mockResolvedValue({})
 })
-afterAll(() => server.close())
 
 describe('UsersPage Integration', () => {
   it('displays users from API', async () => {
-    render(<UsersPage />)
+    await act(async () => {
+      render(<UsersPage />)
+    })
 
     // Wait for loading to complete
     await waitFor(() => {
@@ -91,15 +65,33 @@ describe('UsersPage Integration', () => {
     // Check users are displayed (use getAllByText for multiple matches)
     const user1Emails = screen.getAllByText('user1@example.com')
     expect(user1Emails.length).toBeGreaterThan(0)
-    
+
     expect(screen.getByText('User 2')).toBeInTheDocument()
     const user2Emails = screen.getAllByText('user2@example.com')
     expect(user2Emails.length).toBeGreaterThan(0)
   })
 
   it('creates a new user', async () => {
+    const newUser = {
+      id: '3',
+      name: 'New User',
+      email: 'new@example.com',
+      created_at: '2024-01-15T12:00:00Z',
+      updated_at: '2024-01-15T12:00:00Z',
+    }
+
+    // Setup mock to return updated users list after creation
+    let usersData = [...mockUsers]
+    mockGetDmUsers.mockImplementation(() => Promise.resolve(usersData))
+    mockCreateDmUser.mockImplementation(() => {
+      usersData = [...usersData, newUser]
+      return Promise.resolve(newUser)
+    })
+
     const user = userEvent.setup()
-    render(<UsersPage />)
+    await act(async () => {
+      render(<UsersPage />)
+    })
 
     // Wait for loading to complete
     await waitFor(() => {
@@ -138,13 +130,11 @@ describe('UsersPage Integration', () => {
   })
 
   it('handles API errors gracefully', async () => {
-    server.use(
-      http.get('http://localhost:8080/api/dm-users', () => {
-        return new HttpResponse(null, { status: 500, statusText: 'Internal Server Error' })
-      })
-    )
+    mockGetDmUsers.mockRejectedValue(new Error('Internal Server Error'))
 
-    render(<UsersPage />)
+    await act(async () => {
+      render(<UsersPage />)
+    })
 
     // Wait for loading to complete
     await waitFor(() => {
@@ -157,9 +147,14 @@ describe('UsersPage Integration', () => {
     }, { timeout: 10000 })
   })
 
-  it('shows loading state', () => {
+  it('shows loading state', async () => {
     render(<UsersPage />)
 
     expect(screen.getByText('読み込み中...')).toBeInTheDocument()
+
+    // Wait for async operations to complete to avoid act() warning
+    await waitFor(() => {
+      expect(screen.queryByText('読み込み中...')).not.toBeInTheDocument()
+    })
   })
 })
