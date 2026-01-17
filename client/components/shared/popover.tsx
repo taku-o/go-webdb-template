@@ -19,10 +19,11 @@ export default function Popover({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
   mobileOnly?: boolean;
 }) {
-  const { isMobile } = useMediaQuery();
+  const { isMobile, setMediaQueryRef } = useMediaQuery();
 
   if (isMobile) {
     return (
+      <div ref={setMediaQueryRef}>
       <Drawer.Root open={openPopover} onOpenChange={setOpenPopover}>
         <div className="sm:hidden">{children}</div>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
@@ -38,10 +39,12 @@ export default function Popover({
           <Drawer.Overlay />
         </Drawer.Portal>
       </Drawer.Root>
+      </div>
     );
   }
 
   return (
+    <div ref={setMediaQueryRef}>
     <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
       <PopoverPrimitive.Trigger className="hidden sm:inline-flex" asChild>
         {children}
@@ -56,5 +59,6 @@ export default function Popover({
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Portal>
     </PopoverPrimitive.Root>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
 import { DmUser } from '@/types/dm_user'
@@ -23,6 +23,7 @@ export default function UsersPage() {
   const [creating, setCreating] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const hasLoadedRef = useRef(false)
 
   const loadUsers = async () => {
     try {
@@ -37,9 +38,17 @@ export default function UsersPage() {
     }
   }
 
-  useEffect(() => {
-    loadUsers()
-  }, [])
+  const loadInitialData = async () => {
+    if (hasLoadedRef.current) return
+    hasLoadedRef.current = true
+    await loadUsers()
+  }
+
+  const setContainerRef = (node: HTMLElement | null) => {
+    if (node && !hasLoadedRef.current) {
+      loadInitialData()
+    }
+  }
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,7 +93,7 @@ export default function UsersPage() {
   }
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-8">
+    <main ref={setContainerRef} className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         <nav aria-label="パンくずリスト">
           <div className="mb-4 sm:mb-6">

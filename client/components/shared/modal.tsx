@@ -17,10 +17,11 @@ export default function Modal({
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { isMobile } = useMediaQuery();
+  const { isMobile, setMediaQueryRef } = useMediaQuery();
 
   if (isMobile) {
     return (
+      <div ref={setMediaQueryRef}>
       <Drawer.Root open={showModal} onOpenChange={setShowModal}>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-gray-100 bg-opacity-10 backdrop-blur" />
         <Drawer.Portal>
@@ -38,9 +39,11 @@ export default function Modal({
           <Drawer.Overlay />
         </Drawer.Portal>
       </Drawer.Root>
+      </div>
     );
   }
   return (
+    <div ref={setMediaQueryRef}>
     <Dialog.Root open={showModal} onOpenChange={setShowModal}>
       <Dialog.Portal>
         <Dialog.Overlay
@@ -60,5 +63,6 @@ export default function Modal({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+    </div>
   );
 }

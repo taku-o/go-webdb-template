@@ -8,10 +8,11 @@ interface NavBarClientProps {
 }
 
 export default function NavBarClient({ children }: NavBarClientProps) {
-  const scrolled = useScroll(50);
+  const { scrolled, setScrollRef } = useScroll(50);
 
   return (
     <div
+      ref={setScrollRef}
       className={`w-full ${
         scrolled
           ? "border-b border-gray-200 bg-white/50 backdrop-blur-xl"

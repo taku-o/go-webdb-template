@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export default function useMediaQuery() {
   const [device, setDevice] = useState<"mobile" | "tablet" | "desktop" | null>(
@@ -8,32 +8,36 @@ export default function useMediaQuery() {
     width: number;
     height: number;
   } | null>(null);
+  const listenerRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    const checkDevice = () => {
-      if (window.matchMedia("(max-width: 640px)").matches) {
-        setDevice("mobile");
-      } else if (
-        window.matchMedia("(min-width: 641px) and (max-width: 1024px)").matches
-      ) {
-        setDevice("tablet");
-      } else {
-        setDevice("desktop");
-      }
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
-    };
-
-    // Initial detection
-    checkDevice();
-
-    // Listener for windows resize
-    window.addEventListener("resize", checkDevice);
-
-    // Cleanup listener
-    return () => {
-      window.removeEventListener("resize", checkDevice);
-    };
+  const checkDevice = useCallback(() => {
+    if (window.matchMedia("(max-width: 640px)").matches) {
+      setDevice("mobile");
+    } else if (
+      window.matchMedia("(min-width: 641px) and (max-width: 1024px)").matches
+    ) {
+      setDevice("tablet");
+    } else {
+      setDevice("desktop");
+    }
+    setDimensions({ width: window.innerWidth, height: window.innerHeight });
   }, []);
+
+  const setMediaQueryRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (node && !listenerRef.current) {
+        checkDevice();
+        window.addEventListener("resize", checkDevice);
+        listenerRef.current = () => {
+          window.removeEventListener("resize", checkDevice);
+        };
+      } else if (!node && listenerRef.current) {
+        listenerRef.current();
+        listenerRef.current = null;
+      }
+    },
+    [checkDevice]
+  );
 
   return {
     device,
@@ -42,5 +46,6 @@ export default function useMediaQuery() {
     isMobile: device === "mobile",
     isTablet: device === "tablet",
     isDesktop: device === "desktop",
+    setMediaQueryRef,
   };
 }
