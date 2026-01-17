@@ -1,30 +1,3 @@
-video player コンポーネントの作成
-
-クライアントアプリにページを作って、そこにvideo playerコンポーネントを表示する。
-ページ名には他のページの命名規則とあわせて、dmプレフィックスをつける。
-
-動画の再生方法はvideoタグをベースに、
-HLSでの配信が想定されているので、HLS.jsを利用する。
-HLSをサポートするブラウザではそのまま動画を表示して、
-HLSをさぽーとしないブラウザではHLS.jsを利用して動画を表示する。
-
-video playerコンポーネントには、hls or mp4のURLと、サムネイル画像のURLを渡すことになります。
-動画は再生ボタンを押すまで、ダウンロード開始しないようにする。
-
-このコンポーネントはTwitterのようなフィードのUIで、
-いくつか並べて設定される予定です。
-その想定でコンポーネントを作って。
-
-UIも少し凝りたい。plyr-reactを利用したい。
-
-デモページの関して言うと、
-そのデモ用の動画ファイルとサムネイル画像ファイルは
-~/Desktop/movie/mini-movie-m.mp4
-~/Desktop/movie/mini-movie-m.png
-があるから、これをどこかにコピーして動画プレイヤーで表示する。
-これらのファイルはgitにコミットしない。
-
-
 /kiro:spec-requirements "https://github.com/taku-o/go-webdb-template/issues/147
 のissueの条件で動画プレイヤーコンポーネントと、
 それを表示するデモページを作る要件定義書を作成してください。
@@ -230,14 +203,74 @@ client/app/dm_videoplayer/page.tsx にトップページに戻るためのリン
 
 いったんgit commitしてください。
 
+/kiro:spec-impl 0071-videoplayer 6.1
+
+動画プレイヤーで再生ボタンを押しても再生が始まらない。
+http://localhost:3000/dm_videoplayer
+
+Chromeで見た時、動画プレイヤーにダウンロードボタンが表示されてしまうので消したい。
+controlslist="nodownload"
+
+videoタグって他にどんなオプションパラメータがある？
+
+/kiro:spec-impl 0071-videoplayer 6.2
+
+Safariは問題無いが、Chromeで動画が再生されない。
+再生ボタンが有効にならない。
+
+動作確認した。
+HLS再生から、mp4再生に戻して。
+
+/kiro:spec-impl 0071-videoplayer 6.3
+/kiro:spec-impl 0071-videoplayer 6.4
+/kiro:spec-impl 0071-videoplayer 6.5
 
 
+画面にエラーメッセージが表示されないみたい。
+>  1. DevTools > Console を開く
+>  2. 以下のコードを実行して存在しないURLでテスト：
+>  document.querySelector('video source').src = '/demo-videos/not-found.mp4';
+>  document.querySelector('video').load();
+>  document.querySelector('video').play();
+
+一時的に動画ファイルのURLを変更して、存在しない動画ファイルにしてくれる？
+
+
+エラーになった時、どう表示される？
+
+動画の読み込みに失敗しましたのメッセージが表示されない。
+HTMLソースにもその文字列が入っていないみたい。
+
+メッセージが表示されるようになった。
+実装を修正したので、HLSファイルにした時に動作するかを確認する。
+
+こんなエラーがでてた
+Unhandled Runtime Error
+
+Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used
+See more info here: https://nextjs.org/docs/messages/react-hydration-error
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+
+直りました。
+次に読み込む動画ファイルを存在しないファイルパスに修正してください。
+
+次は読み込む動画ファイルを存在しないmp4のファイルパスに修正してください。
+
+/kiro:spec-impl 0071-videoplayer 6.6
 
 commitして、
-https://github.com/taku-o/go-webdb-template/issues/145 に向けた
+https://github.com/taku-o/go-webdb-template/issues/147 に向けた
 pull requestを作成してください。
 
-/review 146
+/review 148
 
 
 
