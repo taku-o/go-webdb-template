@@ -1,4 +1,4 @@
-import { signIn, signOut } from '@/auth'
+import { signInAction, signOutAction } from '@/lib/actions/auth-actions'
 import { Button } from '@/components/ui/button'
 
 interface AuthButtonsProps {
@@ -23,10 +23,7 @@ export function AuthButtons({ user }: AuthButtonsProps) {
             </p>
           )}
         </div>
-        <form action={async () => {
-          "use server"
-          await signOut()
-        }}>
+        <form action={signOutAction}>
           <Button type="submit" variant="destructive" size="sm" className="w-full sm:w-auto" aria-label="ログアウト">
             ログアウト
           </Button>
@@ -41,10 +38,7 @@ export function AuthButtons({ user }: AuthButtonsProps) {
         <span className="sr-only">現在のログイン状態: </span>
         ログインしていません
       </p>
-      <form action={async () => {
-        "use server"
-        await signIn('auth0')
-      }}>
+      <form action={signInAction}>
         <Button type="submit" size="sm" className="w-full sm:w-auto" aria-label="ログイン">
           ログイン
         </Button>

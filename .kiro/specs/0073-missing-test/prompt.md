@@ -247,6 +247,20 @@ pull requestを発行してください。
 /review 152
 
 
+これは良い修正ができるなら対応したい。
+>  2. auth-buttons.tsxのServer Actions
+>    - Server Actions（"use server"）をインラインで定義している
+>    - 分離した関数として定義するとテストしやすくなる
+think.
+
+なるほど。いいね。
+修正お願いします。
+
+stagingに上がっている修正をcommitしてから、
+pull requestを更新してください。
+
+/review 152
+
 
 
 
