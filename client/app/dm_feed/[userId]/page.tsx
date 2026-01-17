@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -37,9 +37,9 @@ export default function FeedPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // 下方向スクロール検知用のref
-  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const loadMoreObserverRef = useRef<IntersectionObserver | null>(null)
   // 上方向スクロール検知用のref
-  const loadNewerRef = useRef<HTMLDivElement>(null)
+  const loadNewerObserverRef = useRef<IntersectionObserver | null>(null)
   // 投稿一覧のコンテナref（スクロール位置維持用）
   const postsContainerRef = useRef<HTMLDivElement>(null)
   // 初期化済みフラグ
@@ -182,6 +182,50 @@ export default function FeedPage() {
     loadInitialPosts()
   }
 
+  // 下方向スクロール検知用のrefコールバック関数
+  const setLoadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    // 既存のObserverをクリーンアップ
+    if (loadMoreObserverRef.current) {
+      loadMoreObserverRef.current.disconnect()
+      loadMoreObserverRef.current = null
+    }
+
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+            loadOlderPosts()
+          }
+        },
+        { threshold: 0.1 }
+      )
+      observer.observe(node)
+      loadMoreObserverRef.current = observer
+    }
+  }, [hasMore, isLoadingMore, loadOlderPosts])
+
+  // 上方向スクロール検知用のrefコールバック関数
+  const setLoadNewerRef = useCallback((node: HTMLDivElement | null) => {
+    // 既存のObserverをクリーンアップ
+    if (loadNewerObserverRef.current) {
+      loadNewerObserverRef.current.disconnect()
+      loadNewerObserverRef.current = null
+    }
+
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !isLoadingNewer && dmFeedPosts.length > 0) {
+            loadNewerPosts()
+          }
+        },
+        { threshold: 0.1 }
+      )
+      observer.observe(node)
+      loadNewerObserverRef.current = observer
+    }
+  }, [isLoadingNewer, loadNewerPosts, dmFeedPosts.length])
+
   // いいねのトグル処理
   const handleLikeToggle = async (postId: string) => {
     try {
@@ -199,52 +243,6 @@ export default function FeedPage() {
       setError(err instanceof Error ? err.message : 'いいねに失敗しました')
     }
   }
-
-  // Intersection Observer で下方向スクロールを検知
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          loadOlderPosts()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    const currentRef = loadMoreRef.current
-    if (currentRef) {
-      observer.observe(currentRef)
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef)
-      }
-    }
-  }, [hasMore, isLoadingMore, loadOlderPosts])
-
-  // Intersection Observer で上方向スクロールを検知
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoadingNewer && dmFeedPosts.length > 0) {
-          loadNewerPosts()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    const currentRef = loadNewerRef.current
-    if (currentRef) {
-      observer.observe(currentRef)
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef)
-      }
-    }
-  }, [isLoadingNewer, loadNewerPosts, dmFeedPosts.length])
 
   return (
     <main ref={setContainerRef} className="min-h-screen p-4 sm:p-6 md:p-8">
@@ -290,7 +288,7 @@ export default function FeedPage() {
           ) : (
             <div ref={postsContainerRef} className="space-y-4">
               {/* 上方向スクロール検知用の要素 */}
-              <div ref={loadNewerRef} className="py-2">
+              <div ref={setLoadNewerRef} className="py-2">
                 {isLoadingNewer && (
                   <div className="flex justify-center" role="status" aria-live="polite">
                     <LoadingSpinner size="md" />
@@ -309,7 +307,7 @@ export default function FeedPage() {
               ))}
 
               {/* 下方向スクロール検知用の要素 */}
-              <div ref={loadMoreRef} className="py-4">
+              <div ref={setLoadMoreRef} className="py-4">
                 {isLoadingMore ? (
                   <div className="flex justify-center" role="status" aria-live="polite">
                     <LoadingSpinner size="md" />

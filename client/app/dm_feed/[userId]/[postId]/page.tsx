@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -40,10 +40,10 @@ export default function ReplyPage() {
   // 返信投稿中かどうか
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
-  // 下方向スクロール検知用のref（新しい返信読み込み）
-  const loadNewerRef = useRef<HTMLDivElement>(null)
-  // 上方向スクロール検知用のref（古い返信読み込み）
-  const loadOlderRef = useRef<HTMLDivElement>(null)
+  // 下方向スクロール検知用のObserverのref（新しい返信読み込み）
+  const loadNewerObserverRef = useRef<IntersectionObserver | null>(null)
+  // 上方向スクロール検知用のObserverのref（古い返信読み込み）
+  const loadOlderObserverRef = useRef<IntersectionObserver | null>(null)
   // 返信一覧のコンテナref（スクロール位置維持用）
   const repliesContainerRef = useRef<HTMLDivElement>(null)
   // 初期化済みフラグ
@@ -224,51 +224,49 @@ export default function ReplyPage() {
     }
   }, [userId, postId, oldestReplyId, isLoadingOlder, hasMore])
 
-  // Intersection Observer で下方向スクロールを検知（新しい返信読み込み）
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoadingNewer && dmFeedReplies.length > 0) {
-          loadNewerReplies()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    const currentRef = loadNewerRef.current
-    if (currentRef) {
-      observer.observe(currentRef)
+  // 上方向スクロール検知用のrefコールバック関数（古い返信読み込み）
+  const setLoadOlderRef = useCallback((node: HTMLDivElement | null) => {
+    // 既存のObserverをクリーンアップ
+    if (loadOlderObserverRef.current) {
+      loadOlderObserverRef.current.disconnect()
+      loadOlderObserverRef.current = null
     }
 
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef)
-      }
-    }
-  }, [isLoadingNewer, loadNewerReplies, dmFeedReplies.length])
-
-  // Intersection Observer で上方向スクロールを検知（古い返信読み込み）
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingOlder) {
-          loadOlderReplies()
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    const currentRef = loadOlderRef.current
-    if (currentRef) {
-      observer.observe(currentRef)
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef)
-      }
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore && !isLoadingOlder) {
+            loadOlderReplies()
+          }
+        },
+        { threshold: 0.1 }
+      )
+      observer.observe(node)
+      loadOlderObserverRef.current = observer
     }
   }, [hasMore, isLoadingOlder, loadOlderReplies])
+
+  // 下方向スクロール検知用のrefコールバック関数（新しい返信読み込み）
+  const setLoadNewerRef = useCallback((node: HTMLDivElement | null) => {
+    // 既存のObserverをクリーンアップ
+    if (loadNewerObserverRef.current) {
+      loadNewerObserverRef.current.disconnect()
+      loadNewerObserverRef.current = null
+    }
+
+    if (node) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !isLoadingNewer && dmFeedReplies.length > 0) {
+            loadNewerReplies()
+          }
+        },
+        { threshold: 0.1 }
+      )
+      observer.observe(node)
+      loadNewerObserverRef.current = observer
+    }
+  }, [isLoadingNewer, loadNewerReplies, dmFeedReplies.length])
 
   return (
     <main ref={setContainerRef} className="min-h-screen p-4 sm:p-6 md:p-8">
@@ -328,7 +326,7 @@ export default function ReplyPage() {
               ) : (
                 <div ref={repliesContainerRef} className="space-y-4">
                   {/* 上方向スクロール検知用の要素（古い返信読み込み） */}
-                  <div ref={loadOlderRef} className="py-2">
+                  <div ref={setLoadOlderRef} className="py-2">
                     {isLoadingOlder ? (
                       <div className="flex justify-center" role="status" aria-live="polite">
                         <LoadingSpinner size="md" />
@@ -346,7 +344,7 @@ export default function ReplyPage() {
                   ))}
 
                   {/* 下方向スクロール検知用の要素（新しい返信読み込み） */}
-                  <div ref={loadNewerRef} className="py-4">
+                  <div ref={setLoadNewerRef} className="py-4">
                     {isLoadingNewer && (
                       <div className="flex justify-center" role="status" aria-live="polite">
                         <LoadingSpinner size="md" />

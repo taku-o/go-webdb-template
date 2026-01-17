@@ -35,3 +35,18 @@ think.
 
 いったんcommitしてください。
 
+/kiro:spec-impl 0072-rm-useeffect 2.1
+/kiro:spec-impl 0072-rm-useeffect 2.2
+/kiro:spec-impl 0072-rm-useeffect 2.3
+/kiro:spec-impl 0072-rm-useeffect 2.4
+/kiro:spec-impl 0072-rm-useeffect 2.5
+
+/kiro:spec-impl 0072-rm-useeffect 3.1
+/kiro:spec-impl 0072-rm-useeffect 3.2
+/kiro:spec-impl 0072-rm-useeffect 4
+
+いったんcommitしてください。
+
+/kiro:spec-impl 0072-rm-useeffect 5
+
+

@@ -14,10 +14,11 @@ export default function Tooltip({
   content: ReactNode | string;
   fullWidth?: boolean;
 }) {
-  const { isMobile } = useMediaQuery();
+  const { isMobile, setMediaQueryRef } = useMediaQuery();
 
   if (isMobile) {
     return (
+      <div ref={setMediaQueryRef}>
       <Drawer.Root>
         <Drawer.Trigger
           className={`${fullWidth ? "w-full" : "inline-flex"} md:hidden`}
@@ -46,9 +47,11 @@ export default function Tooltip({
           <Drawer.Overlay />
         </Drawer.Portal>
       </Drawer.Root>
+      </div>
     );
   }
   return (
+    <div ref={setMediaQueryRef}>
     <TooltipPrimitive.Provider delayDuration={100}>
       <TooltipPrimitive.Root>
         <TooltipPrimitive.Trigger className="hidden md:inline-flex" asChild>
@@ -73,5 +76,6 @@ export default function Tooltip({
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Root>
     </TooltipPrimitive.Provider>
+    </div>
   );
 }

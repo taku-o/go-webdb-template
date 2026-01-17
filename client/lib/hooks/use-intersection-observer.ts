@@ -1,43 +1,49 @@
-import { RefObject, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 interface Args extends IntersectionObserverInit {
   freezeOnceVisible?: boolean;
 }
 
-function useIntersectionObserver(
-  elementRef: RefObject<Element>,
-  {
-    threshold = 0,
-    root = null,
-    rootMargin = "0%",
-    freezeOnceVisible = false,
-  }: Args,
-): IntersectionObserverEntry | undefined {
+interface UseIntersectionObserverReturn {
+  entry: IntersectionObserverEntry | undefined;
+  setElementRef: (node: Element | null) => void;
+}
+
+function useIntersectionObserver({
+  threshold = 0,
+  root = null,
+  rootMargin = "0%",
+  freezeOnceVisible = false,
+}: Args): UseIntersectionObserverReturn {
   const [entry, setEntry] = useState<IntersectionObserverEntry>();
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const frozen = entry?.isIntersecting && freezeOnceVisible;
 
-  const updateEntry = ([entry]: IntersectionObserverEntry[]): void => {
-    setEntry(entry);
-  };
+  const setElementRef = useCallback(
+    (node: Element | null) => {
+      // 既存のObserverをクリーンアップ
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
 
-  useEffect(() => {
-    const node = elementRef?.current; // DOM Ref
-    const hasIOSupport = !!window.IntersectionObserver;
+      const hasIOSupport = !!window.IntersectionObserver;
 
-    if (!hasIOSupport || frozen || !node) return;
+      if (!hasIOSupport || frozen || !node) return;
 
-    const observerParams = { threshold, root, rootMargin };
-    const observer = new IntersectionObserver(updateEntry, observerParams);
+      const observerParams = { threshold, root, rootMargin };
+      const observer = new IntersectionObserver(([entry]) => {
+        setEntry(entry);
+      }, observerParams);
 
-    observer.observe(node);
+      observer.observe(node);
+      observerRef.current = observer;
+    },
+    [threshold, root, rootMargin, frozen]
+  );
 
-    return () => observer.disconnect();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [threshold, root, rootMargin, frozen]);
-
-  return entry;
+  return { entry, setElementRef };
 }
 
 export default useIntersectionObserver;
