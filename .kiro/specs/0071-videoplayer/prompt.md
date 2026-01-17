@@ -210,8 +210,35 @@ do
 done
 
 
+復旧しました。
 
-masterから作業ブランチを作成してください。
+1. masterから作業ブランチを作成してください。
+2. 作成した作業ブランチに、stagingに上がっている修正をcommitしてください。
+
+_serena_indexing
+/serena-initialize
+
+/kiro:spec-impl 0071-videoplayer 1
+/kiro:spec-impl 0071-videoplayer 2
+/kiro:spec-impl 0071-videoplayer 3
+/kiro:spec-impl 0071-videoplayer 4
+/kiro:spec-impl 0071-videoplayer 5
+
+client/app/dm_email/send/page.tsx や client/app/dm_movie/upload/page.tsx を見て貰うと分かるんだけど、
+client/app/dm_videoplayer/page.tsx にトップページに戻るためのリンクがない。
+追加して欲しい。
+
+いったんgit commitしてください。
+
+
+
+
+commitして、
+https://github.com/taku-o/go-webdb-template/issues/145 に向けた
+pull requestを作成してください。
+
+/review 146
+
 
 
 
