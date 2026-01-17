@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 // @ts-ignore - Uppyの型定義が正しく解決されない場合があるため
 import Uppy from '@uppy/core'
@@ -18,38 +18,38 @@ export default function MovieUploadPage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const uppyRef = useRef<Uppy | null>(null)
 
-  useEffect(() => {
-    // uppyインスタンスの作成
-    const uppyInstance = createMovieUploader({
-      onUploadProgress: (percent) => {
-        setUploadProgress(percent)
-      },
-      onUploadSuccess: () => {
-        setUploadStatus('success')
-        setUploadProgress(100)
-      },
-      onUploadError: (error) => {
-        setUploadStatus('error')
-        setErrorMessage(error)
-      },
-      onUploadStart: () => {
-        setUploadStatus('uploading')
-        setUploadProgress(0)
-        setErrorMessage(null)
-      },
-    })
-
-    setUppy(uppyInstance)
-
-    // クリーンアップ
-    return () => {
-      uppyInstance.destroy()
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    if (node && !uppyRef.current) {
+      const uppyInstance = createMovieUploader({
+        onUploadProgress: (percent) => {
+          setUploadProgress(percent)
+        },
+        onUploadSuccess: () => {
+          setUploadStatus('success')
+          setUploadProgress(100)
+        },
+        onUploadError: (error) => {
+          setUploadStatus('error')
+          setErrorMessage(error)
+        },
+        onUploadStart: () => {
+          setUploadStatus('uploading')
+          setUploadProgress(0)
+          setErrorMessage(null)
+        },
+      })
+      uppyRef.current = uppyInstance
+      setUppy(uppyInstance)
+    } else if (!node && uppyRef.current) {
+      uppyRef.current.destroy()
+      uppyRef.current = null
     }
   }, [])
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-8">
+    <main ref={setContainerRef} className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
         <nav aria-label="パンくずリスト">
           <div className="mb-4 sm:mb-6">

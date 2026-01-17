@@ -47,6 +47,12 @@ think.
 
 いったんcommitしてください。
 
-/kiro:spec-impl 0072-rm-useeffect 5
+/kiro:spec-impl 0072-rm-useeffect 5.1
+/kiro:spec-impl 0072-rm-useeffect 5.2
+
+いったんcommitしてください。
+
+
+
 
 
