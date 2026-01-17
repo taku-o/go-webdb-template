@@ -44,6 +44,11 @@ export default async function Home() {
       description: 'Twitter風のフィードUIコンポーネント',
       href: '/dm_feed',
     },
+    {
+      title: '動画プレイヤー',
+      description: '動画プレイヤーコンポーネントのデモ',
+      href: '/dm_videoplayer',
+    },
   ]
 
   return (

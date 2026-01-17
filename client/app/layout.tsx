@@ -6,7 +6,7 @@ import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import Navbar from "@/components/layout/navbar";
 
 export const metadata = {
-  title: "Client2 App",
+  title: "Client App",
   description: "New client application",
   metadataBase: new URL("https://precedent.dev"),
 };
