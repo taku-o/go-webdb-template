@@ -68,5 +68,32 @@ pull requestを作成してください。
 
 /review 150
 
+これ対応出来る？
+>  1. useCallbackの使用
+>    - dm_feed/のページではuseCallbackでrefコールバックをメモ化
+>    - 他のページでは通常の関数として定義
+>    - 一貫性の観点から統一を検討
+
+逆では？
+useCallbackを使わない方向では？
+
+なら対応しなくていい。
+
+Reactの推奨パターンってどういうものかわかる？
+>  3. counting-numbers.tsx
+>    - render中でpreviousValueRef.current !== valueをチェックしstartAnimationを呼び出し
+>    - Reactの推奨パターンではないが、動作上は問題なし
+
+これはuseEffectを使わないと駄目なケースでない？
+render中に処理しちゃUIに関わる処理しちゃだめでしょ。
+
+ここは直して。
+> 元のuseEffectパターンに戻しますか？
+
+commitして、
+pull requestを更新してください。
+
+/review 150
+
 
 

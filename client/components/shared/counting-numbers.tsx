@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function CountingNumbers({
   value,
@@ -15,9 +15,8 @@ export default function CountingNumbers({
 }) {
   const [count, setCount] = useState(start);
   const animationRef = useRef<number | null>(null);
-  const previousValueRef = useRef(value);
 
-  const startAnimation = () => {
+  useEffect(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -36,13 +35,13 @@ export default function CountingNumbers({
       animationRef.current = requestAnimationFrame(animateCount);
     };
     animationRef.current = requestAnimationFrame(animateCount);
-  };
 
-  // valueが変更されたときにアニメーションを開始
-  if (previousValueRef.current !== value) {
-    previousValueRef.current = value;
-    startAnimation();
-  }
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [value, start, duration]);
 
   return <p className={className}>{Intl.NumberFormat().format(count)}</p>;
 }
