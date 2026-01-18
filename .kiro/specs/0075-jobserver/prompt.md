@@ -83,6 +83,58 @@ server/cmd/jobqueue/main.go
 
 いったんgit commitしてください。
 
+/kiro:spec-impl 0075-jobserver 5.1
+/kiro:spec-impl 0075-jobserver 5.2
+
+多分だけど、さっきkillした時に、いろいろ余計なものを止めた。
+いろんなアプリが不正終了した。Dockerも。
+なんでちょっとクリーンにする。
+
+/kiro:spec-impl 0075-jobserver 5.2
+
+client/.env.localを確認して
+
+3分delayする実装になってるよ
+
+ループしてるからいったん止めて。
+
+APIサーバーを止めて。
+JobQueueサーバーを止めて。
+Redis Insightを起動して。
+
+キューを全部クリア
+
+npm run api
+npm run client
+
+asynq:serversが複数登録されちゃう。
+
+APIサーバーがまだ起動していないか確認して。
+
+Redisにasynq:serversを登録している
+何かが居る。
+think.
+
+Redis Insigitで消したつもりが、
+復活する。
+Asynqで使ってたデータが復活する。
+どうしたら良いかな？
+
+
+おそらく古いAsynqサーバーに処理を横取りされていたようだ。
+こちらで動作確認もした。
+タスク 5.2、5.3、5.4はOKで良い。
+
+
+/kiro:spec-impl 0075-jobserver 5.5
+
+いったんgit commitしてください。
+
+
+
+
+
+
 
 
 
