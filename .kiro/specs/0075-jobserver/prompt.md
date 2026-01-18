@@ -130,7 +130,19 @@ Asynqで使ってたデータが復活する。
 
 いったんgit commitしてください。
 
+/kiro:spec-impl 0075-jobserver 6
 
+
+docs/System-Configuration.drawio.svg のDrawioの図を修正したい。
+サーバー層、"Go API Server"の枠の横に、"Job Server"を追加したい。
+think.
+
+うまく
+docs/System-Configuration.drawio.svgを変更できていないみたい。
+
+
+こっちで対応。
+いったんgit commitしてください。
 
 
 
