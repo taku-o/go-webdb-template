@@ -207,7 +207,7 @@ cd server
 APP_ENV=develop go run cmd/jobqueue/main.go
 ```
 
-JobQueueサーバーはRedisからジョブを取得して処理します。JobQueueサーバーを起動する前に、Redisが起動していることを確認してください。
+JobQueueサーバーはHTTPサーバー（ポート8082）とAsynqサーバーを並行して起動します。HTTPサーバーは死活監視用の`/health`エンドポイントを提供します。Asynqサーバーは Redis からジョブを取得して処理します。JobQueueサーバーを起動する前に、Redisが起動していることを確認してください。
 
 ### 4. 管理画面起動
 
@@ -493,7 +493,11 @@ docker-compose -f docker-compose.client.yml up -d
 #### その他
 
 - `GET /api/today` - 今日の日付取得（private API、Auth0 JWT必須）
-- `GET /health` - ヘルスチェック（認証不要）
+- `GET /health` - ヘルスチェック（認証不要、APIサーバー）
+
+#### JobQueueサーバー
+
+- `GET http://localhost:8082/health` - ヘルスチェック（認証不要、JobQueueサーバー）
 
 ### 機能別エンドポイント
 

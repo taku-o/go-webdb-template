@@ -43,6 +43,14 @@ _serena_indexing
 
 /kiro:spec-impl 0076-jobqueue-health
 
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/155 に
+対してpull requestを作成してください。
+
+/review 156
+
+
+
 
 
 

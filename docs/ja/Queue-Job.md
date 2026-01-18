@@ -40,6 +40,27 @@ cd server
 APP_ENV=develop go run ./cmd/jobqueue/main.go
 ```
 
+JobQueueサーバーはHTTPサーバー（ポート8082）とAsynqサーバーを並行して起動します。
+
+### ヘルスチェック
+
+JobQueueサーバーには`/health`エンドポイントが用意されています。
+
+**エンドポイント**: `GET http://localhost:8082/health`
+
+**認証**: 不要
+
+**レスポンス**:
+- ステータスコード: `200 OK`
+- レスポンスボディ: `"OK"`（文字列）
+- Content-Type: `text/plain`
+
+**使用例**:
+```bash
+curl http://localhost:8082/health
+# 期待される出力: OK
+```
+
 ## API経由でのジョブ登録
 
 ### エンドポイント

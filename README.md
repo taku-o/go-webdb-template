@@ -208,7 +208,7 @@ cd server
 APP_ENV=develop go run cmd/jobqueue/main.go
 ```
 
-The JobQueue server processes jobs from Redis. Make sure Redis is running before starting the JobQueue server.
+The JobQueue server runs an HTTP server (port 8082) and an Asynq server in parallel. The HTTP server provides a `/health` endpoint for health monitoring. The Asynq server processes jobs from Redis. Make sure Redis is running before starting the JobQueue server.
 
 ### 4. Start Admin Panel
 
@@ -475,7 +475,11 @@ For details, see [docs/en/Docker.md](docs/en/Docker.md).
 #### Others
 
 - `GET /api/today` - Get today's date (private API, Auth0 JWT required)
-- `GET /health` - Health check (no authentication required)
+- `GET /health` - Health check (no authentication required, API Server)
+
+#### JobQueue Server
+
+- `GET http://localhost:8082/health` - Health check (no authentication required, JobQueue Server)
 
 ### Feature Endpoints
 

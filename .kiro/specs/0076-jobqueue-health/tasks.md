@@ -7,7 +7,7 @@ JobQueueサーバーにHTTPサーバーを追加し、`/health`エンドポイ�
 
 ### Phase 1: 設定ファイルの拡張
 
-#### - [ ] タスク 1.1: `JobQueueConfig`構造体の追加
+#### - [x] タスク 1.1: `JobQueueConfig`構造体の追加
 **目的**: 設定構造体に`JobQueueConfig`を追加し、設定ファイルから読み込めるようにする。
 
 **作業内容**:
@@ -41,7 +41,7 @@ type Config struct {
 
 ---
 
-#### - [ ] タスク 1.2: `config/develop/config.yaml`に`jobqueue`セクションを追加
+#### - [x] タスク 1.2: `config/develop/config.yaml`に`jobqueue`セクションを追加
 **目的**: 開発環境の設定ファイルに`jobqueue`セクションを追加する。
 
 **作業内容**:
@@ -67,7 +67,7 @@ jobqueue:
 
 ---
 
-#### - [ ] タスク 1.3: `config/staging/config.yaml`に`jobqueue`セクションを追加
+#### - [x] タスク 1.3: `config/staging/config.yaml`に`jobqueue`セクションを追加
 **目的**: ステージング環境の設定ファイルに`jobqueue`セクションを追加する。
 
 **作業内容**:
@@ -93,7 +93,7 @@ jobqueue:
 
 ---
 
-#### - [ ] タスク 1.4: `config/production/config.yaml.example`に`jobqueue`セクションを追加
+#### - [x] タスク 1.4: `config/production/config.yaml.example`に`jobqueue`セクションを追加
 **目的**: 本番環境の設定ファイルテンプレートに`jobqueue`セクションを追加する。
 
 **作業内容**:
@@ -121,7 +121,7 @@ jobqueue:
 
 ### Phase 2: HTTPサーバーの実装
 
-#### - [ ] タスク 2.1: `server/cmd/jobqueue/main.go`にHTTPサーバーの実装を追加
+#### - [x] タスク 2.1: `server/cmd/jobqueue/main.go`にHTTPサーバーの実装を追加
 **目的**: JobQueueサーバーにHTTPサーバーを追加し、`/health`エンドポイントを実装する。
 
 **作業内容**:
@@ -196,7 +196,7 @@ if err := httpServer.Shutdown(ctx); err != nil {
 
 ### Phase 3: 単体テストの実装
 
-#### - [ ] タスク 3.1: `server/cmd/jobqueue/main_test.go`の作成
+#### - [x] タスク 3.1: `server/cmd/jobqueue/main_test.go`の作成
 **目的**: `/health`エンドポイントの単体テストを実装する。
 
 **作業内容**:
@@ -255,7 +255,7 @@ func TestHealthEndpoint(t *testing.T) {
 
 ---
 
-#### - [ ] タスク 3.2: 単体テストの実行と確認
+#### - [x] タスク 3.2: 単体テストの実行と確認
 **目的**: 実装した単体テストが正常に動作することを確認する。
 
 **作業内容**:
@@ -281,7 +281,7 @@ go test -v -run TestHealthEndpoint
 
 ### Phase 4: 統合テストの実装（オプション）
 
-#### - [ ] タスク 4.1: 統合テストファイルの作成
+#### - [x] タスク 4.1: 統合テストファイルの作成
 **目的**: `/health`エンドポイントの統合テストを実装する（可能な場合）。
 
 **作業内容**:
@@ -401,7 +401,7 @@ APP_ENV=develop go run ./cmd/jobqueue/main.go
 
 ### Phase 6: 既存テストの確認
 
-#### - [ ] タスク 6.1: 既存テストの実行
+#### - [x] タスク 6.1: 既存テストの実行
 **目的**: 既存のテストが全て失敗しないことを確認する。
 
 **作業内容**:
@@ -432,7 +432,7 @@ APP_ENV=test go test ./test/integration/...
 
 ### Phase 7: ドキュメントの更新
 
-#### - [ ] タスク 7.1: `docs/ja/Queue-Job.md`の更新
+#### - [x] タスク 7.1: `docs/ja/Queue-Job.md`の更新
 **目的**: JobQueueサーバーの`/health`エンドポイントの情報を追加する。
 
 **作業内容**:
@@ -478,7 +478,7 @@ curl http://localhost:8082/health
 
 ---
 
-#### - [ ] タスク 7.2: `docs/en/Queue-Job.md`の更新
+#### - [x] タスク 7.2: `docs/en/Queue-Job.md`の更新
 **目的**: 英語版のジョブキュー機能の利用手順に`/health`エンドポイントの情報を追加する。
 
 **作業内容**:
@@ -495,7 +495,7 @@ curl http://localhost:8082/health
 
 ---
 
-#### - [ ] タスク 7.3: `README.ja.md`の更新
+#### - [x] タスク 7.3: `README.ja.md`の更新
 **目的**: プロジェクト概要にJobQueueサーバーの`/health`エンドポイントとポート情報を追加する。
 
 **作業内容**:
@@ -527,7 +527,7 @@ curl http://localhost:8082/health
 
 ---
 
-#### - [ ] タスク 7.4: `README.md`の更新（該当する場合）
+#### - [x] タスク 7.4: `README.md`の更新（該当する場合）
 **目的**: 英語版のプロジェクト概要にJobQueueサーバーの`/health`エンドポイントとポート情報を追加する。
 
 **作業内容**:
@@ -547,20 +547,20 @@ curl http://localhost:8082/health
 ## 実装チェックリスト
 
 ### 実装項目
-- [ ] `server/internal/config/config.go`に`JobQueueConfig`構造体を追加
-- [ ] `config/develop/config.yaml`に`jobqueue`セクションを追加
-- [ ] `config/staging/config.yaml`に`jobqueue`セクションを追加
-- [ ] `config/production/config.yaml.example`に`jobqueue`セクションを追加
-- [ ] `server/cmd/jobqueue/main.go`にHTTPサーバーの起動処理を追加
-- [ ] `server/cmd/jobqueue/main.go`に`/health`エンドポイントを追加
-- [ ] HTTPサーバーとAsynqサーバーを並行して起動する実装を追加
-- [ ] Graceful shutdownの実装を追加（HTTPサーバーとAsynqサーバーの両方）
+- [x] `server/internal/config/config.go`に`JobQueueConfig`構造体を追加
+- [x] `config/develop/config.yaml`に`jobqueue`セクションを追加
+- [x] `config/staging/config.yaml`に`jobqueue`セクションを追加
+- [x] `config/production/config.yaml.example`に`jobqueue`セクションを追加
+- [x] `server/cmd/jobqueue/main.go`にHTTPサーバーの起動処理を追加
+- [x] `server/cmd/jobqueue/main.go`に`/health`エンドポイントを追加
+- [x] HTTPサーバーとAsynqサーバーを並行して起動する実装を追加
+- [x] Graceful shutdownの実装を追加（HTTPサーバーとAsynqサーバーの両方）
 
 ### テスト項目
-- [ ] 単体テストを実装（`server/cmd/jobqueue/main_test.go`）
-- [ ] 単体テストが正常に実行できる
-- [ ] 統合テストを実装（可能な場合）（`server/test/integration/jobqueue_health_test.go`）
-- [ ] 既存のテストが全て失敗しないことを確認
+- [x] 単体テストを実装（`server/cmd/jobqueue/main_test.go`）
+- [x] 単体テストが正常に実行できる
+- [x] 統合テストを実装（可能な場合）（`server/test/integration/jobqueue_health_test.go`）
+- [x] 既存のテストが全て失敗しないことを確認
 
 ### 動作確認項目
 - [ ] ローカル環境で`curl http://localhost:8082/health`が正常に動作する
@@ -569,10 +569,10 @@ curl http://localhost:8082/health
 - [ ] Graceful shutdownが正常に動作する（両方のサーバーが適切に停止する）
 
 ### ドキュメント更新項目
-- [ ] `docs/ja/Queue-Job.md`に`/health`エンドポイントの情報を追加
-- [ ] `docs/en/Queue-Job.md`に`/health`エンドポイントの情報を追加
-- [ ] `README.ja.md`にJobQueueサーバーのポート情報と`/health`エンドポイントを追加
-- [ ] `README.md`にJobQueueサーバーのポート情報と`/health`エンドポイントを追加（該当する場合）
+- [x] `docs/ja/Queue-Job.md`に`/health`エンドポイントの情報を追加
+- [x] `docs/en/Queue-Job.md`に`/health`エンドポイントの情報を追加
+- [x] `README.ja.md`にJobQueueサーバーのポート情報と`/health`エンドポイントを追加
+- [x] `README.md`にJobQueueサーバーのポート情報と`/health`エンドポイントを追加（該当する場合）
 
 ## 参考情報
 

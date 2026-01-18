@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/taku-o/go-webdb-template/internal/config"
 	"github.com/taku-o/go-webdb-template/internal/service/jobqueue"
@@ -30,7 +34,24 @@ func main() {
 		log.Fatalf("Failed to create job queue server: %v", err)
 	}
 
-	// 3. サーバー起動（バックグラウンド）
+	// 3. HTTPサーバーの初期化
+	mux := http.NewServeMux()
+
+	// Health check endpoint (認証不要)
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
+	httpServer := &http.Server{
+		Addr:         fmt.Sprintf(":%d", cfg.JobQueue.Port),
+		Handler:      mux,
+		ReadTimeout:  cfg.JobQueue.ReadTimeout,
+		WriteTimeout: cfg.JobQueue.WriteTimeout,
+	}
+
+	// 4. Asynqサーバーの起動（バックグラウンド）
 	go func() {
 		log.Println("Starting job queue processing...")
 		if err := jobQueueServer.Start(); err != nil {
@@ -38,9 +59,18 @@ func main() {
 			log.Printf("ERROR: Failed to start job queue server: %v", err)
 		}
 	}()
+
+	// 5. HTTPサーバーの起動（バックグラウンド）
+	go func() {
+		log.Printf("Starting HTTP server on port %d", cfg.JobQueue.Port)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server failed: %v", err)
+		}
+	}()
+
 	log.Println("JobQueue server started successfully")
 
-	// 4. Graceful shutdown
+	// 6. Graceful shutdown
 	// シグナル待機（SIGINT、SIGTERMを受信した場合、Graceful shutdownを実行）
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -48,9 +78,17 @@ func main() {
 
 	log.Println("Shutting down JobQueue server...")
 
-	// 5. サーバー停止
+	// 7. Asynqサーバーの停止
 	if err := jobQueueServer.Shutdown(); err != nil {
 		log.Printf("JobQueue server shutdown error: %v", err)
+	}
+
+	// 8. HTTPサーバーの停止（30秒のタイムアウト）
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Printf("HTTP server forced to shutdown: %v", err)
 	}
 
 	log.Println("JobQueue server exited")
