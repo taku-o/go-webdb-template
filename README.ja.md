@@ -191,12 +191,23 @@ atlas migrate diff <migration_name> \
 
 ### 3. サーバー起動
 
+#### APIサーバー
+
 ```bash
 cd server
 APP_ENV=develop go run cmd/server/main.go
 ```
 
 サーバーは http://localhost:8080 で起動します。
+
+#### JobQueueサーバー
+
+```bash
+cd server
+APP_ENV=develop go run cmd/jobqueue/main.go
+```
+
+JobQueueサーバーはRedisからジョブを取得して処理します。JobQueueサーバーを起動する前に、Redisが起動していることを確認してください。
 
 ### 4. 管理画面起動
 
@@ -294,7 +305,26 @@ Redis Insightは http://localhost:8001 で起動します。
 
 詳細は [Queue-Job.md](docs/Queue-Job.md) を参照してください。
 
-### 8. Mailpitの起動（メール送信機能用、オプション）
+### 8. JobQueueサーバーの起動（ジョブキュー機能用）
+
+```bash
+cd server
+APP_ENV=develop go run cmd/jobqueue/main.go
+```
+
+JobQueueサーバーはRedisからジョブを取得して処理します。
+
+**ジョブ処理の流れ**:
+1. APIサーバーからジョブを登録（`POST /api/dm-jobqueue/register`）
+2. Redisにジョブが登録される
+3. JobQueueサーバーがRedisからジョブを取得
+4. ジョブが処理され、標準出力に結果が出力される
+
+**注意**: ジョブを処理するには、JobQueueサーバーが起動している必要があります。
+
+詳細は [Queue-Job.md](docs/Queue-Job.md) を参照してください。
+
+### 9. Mailpitの起動（メール送信機能用、オプション）
 
 ```bash
 ./scripts/start-mailpit.sh start
@@ -304,7 +334,7 @@ Mailpitは http://localhost:8025 で起動します。
 
 詳細は [Send-Mail.md](docs/Send-Mail.md) を参照してください。
 
-### 9. クライアント起動
+### 10. クライアント起動
 
 #### 依存関係のインストール
 
@@ -409,7 +439,7 @@ npm run dev
 
 **注意**: テスト実行時は`APP_ENV=test`が自動的に設定されます（`package.json`のスクリプトに含まれています）。
 
-### 10. Docker環境での起動（オプション）
+### 11. Docker環境での起動（オプション）
 
 Docker環境でサーバーを起動することもできます。
 

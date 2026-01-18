@@ -29,7 +29,15 @@ Web UI: http://localhost:8001
 ### 3. APIサーバーの起動
 
 ```bash
+cd server
 APP_ENV=develop go run ./cmd/server/main.go
+```
+
+### 4. JobQueueサーバーの起動
+
+```bash
+cd server
+APP_ENV=develop go run ./cmd/jobqueue/main.go
 ```
 
 ## API経由でのジョブ登録
@@ -74,15 +82,21 @@ curl -X POST http://localhost:8080/api/dm-jobqueue/register \
 
 ## ジョブの実行確認
 
-登録されたジョブは、指定した遅延時間後にAPIサーバーの標準出力に出力されます。
+登録されたジョブは、指定した遅延時間後にJobQueueサーバーの標準出力に出力されます。
 
 ```
 [2026-01-02 12:34:56] Hello, World!
 ```
 
+**注意**: ジョブを処理するには、JobQueueサーバーが起動している必要があります。
+
 ## 停止手順
 
 ### APIサーバーの停止
+
+Ctrl+C または `kill <PID>` で停止します。
+
+### JobQueueサーバーの停止
 
 Ctrl+C または `kill <PID>` で停止します。
 
@@ -102,8 +116,8 @@ Ctrl+C または `kill <PID>` で停止します。
 
 ### 迷子のAsynqサーバー設定問題
 
-各APIサーバーはAsynqサーバーを内蔵しており、Redisに自身を登録します（`asynq:servers:{hostname:pid:uuid}`）。
-正しくAPIサーバーが終了しない時、Redisにサーバー設定が残ってしまう事がある。
+JobQueueサーバーはAsynqサーバーを内蔵しており、Redisに自身を登録します（`asynq:servers:{hostname:pid:uuid}`）。
+正しくJobQueueサーバーが終了しない時、Redisにサーバー設定が残ってしまう事がある。
 
 - その際、ただしくジョブを処理できないケースが観測された。
 
@@ -113,7 +127,7 @@ Ctrl+C または `kill <PID>` で停止します。
 docker exec redis redis-cli KEYS "asynq:servers:*"
 ```
 
-正常な状態では、起動中のサーバー1つにつき1エントリのみです。
+正常な状態では、起動中のJobQueueサーバー1つにつき1エントリのみです。
 
 **対処方法**:
 
@@ -121,7 +135,7 @@ docker exec redis redis-cli KEYS "asynq:servers:*"
 
 ```bash
 # PIDを確認
-ps aux | grep "go run ./cmd/server/main.go"
+ps aux | grep "go run ./cmd/jobqueue/main.go"
 
 # プロセスを終了
 kill <PID>
@@ -129,7 +143,11 @@ kill <PID>
 
 ### Redis接続エラー時の動作
 
+**APIサーバー**:
 Redisに接続できない場合でも、APIサーバーは起動します。ただし、ジョブ登録APIは503エラーを返します。
+
+**JobQueueサーバー**:
+Redisに接続できない場合でも、JobQueueサーバーは起動を継続します。警告ログを出力し、Redis接続が復旧した場合、処理を自動的に再開します。
 
 ## 関連ドキュメント
 

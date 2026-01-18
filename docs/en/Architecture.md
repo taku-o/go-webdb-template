@@ -96,7 +96,8 @@ This project implements a database-sharded web application using Go for the back
 - `DmUserUsecase`: User business logic
 - `DmPostUsecase`: Post business logic
 - `EmailUsecase`: Email business logic
-- `DmJobqueueUsecase`: Job queue business logic
+- `DmJobqueueUsecase`: Job queue business logic (for job registration)
+- `DelayPrintUsecase`: Job processing business logic (for JobQueue server)
 - `TodayUsecase`: Date business logic
 
 **Constraints**:
@@ -118,6 +119,7 @@ This project implements a database-sharded web application using Go for the back
 - `DmUserService`: User domain logic
 - `DmPostService`: Post domain logic
 - `EmailService`: Email domain logic
+- `DelayPrintService`: Job processing business utility logic (e.g., outputting strings to stdout)
 - `DateService`: Date domain logic
 
 **Constraints**:
@@ -217,6 +219,32 @@ This project implements a database-sharded web application using Go for the back
 10. API Layer → Client
    HTTP 201 Created
    Body: {"id": 1, "name": "John", "email": "john@example.com", ...}
+```
+
+### Example: Job Processing Flow (JobQueue Server)
+
+```
+1. Redis → JobQueue Server
+   Asynq Server retrieves job from Redis
+   ↓
+   Identify job type (JobTypeDelayPrint)
+
+2. Processor Layer → Usecase Layer
+   ProcessDelayPrintJob()
+   ↓
+   Parse and validate payload
+   ↓
+   DelayPrintUsecase.Execute(payload)
+
+3. Usecase Layer → Service Layer
+   Set default message
+   ↓
+   DelayPrintService.PrintMessage(message)
+
+4. Service Layer
+   Output string to stdout (with timestamp)
+   ↓
+   Flush buffer
 ```
 
 ## Configuration Management
