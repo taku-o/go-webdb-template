@@ -145,6 +145,11 @@ docs/System-Configuration.drawio.svgを変更できていないみたい。
 いったんgit commitしてください。
 
 
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/153 に
+対してpull requestを作成してください。
+
+/review 154
 
 
 
