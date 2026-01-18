@@ -55,7 +55,31 @@ README.ja.mdドキュメントも修正が必要。
 _serena_indexing
 /serena-initialize
 
-/kiro:spec-impl 0075-jobserver
+/kiro:spec-impl 0075-jobserver 1
+
+server/internal/service/jobqueue/server.go を見ると、
+エラー == "Job queue processing will be unavailable until Redis is started"
+のソースコメントは間違っていると思う。
+
+あと、実際にこの挙動が正しいとしたら受け入れ基準にも反する。
+"Redis接続エラー時でもサーバーが停止せず、起動を継続する"
+
+server/cmd/jobqueue/main.go
+>	if err != nil {
+>		// Redis接続エラーを警告ログに記録（起動処理は継続）
+>		log.Printf("WARNING: Failed to create job queue server: %v", err)
+>		log.Printf("WARNING: Job queue processing will be unavailable until Redis is started")
+>		jobQueueServer = nil
+>	}
+
+/kiro:spec-impl 0075-jobserver 2
+/kiro:spec-impl 0075-jobserver 3
+
+いったんgit commitしてください。
+
+
+/kiro:spec-impl 0075-jobserver 4
+
 
 
 

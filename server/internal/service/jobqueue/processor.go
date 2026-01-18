@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/taku-o/go-webdb-template/internal/service"
+	usecasejobqueue "github.com/taku-o/go-webdb-template/internal/usecase/jobqueue"
 )
 
 // DelayPrintPayload は遅延出力ジョブのペイロード
@@ -16,26 +16,21 @@ type DelayPrintPayload struct {
 }
 
 // ProcessDelayPrintJob は遅延出力ジョブを処理
+// 入出力制御とusecase層の呼び出しを担当
 func ProcessDelayPrintJob(ctx context.Context, t *asynq.Task) error {
 	// ペイロードの解析
 	var payload DelayPrintPayload
 	if len(t.Payload()) == 0 {
-		// ペイロードがない場合はデフォルトメッセージを使用
-		payload.Message = "Job executed successfully"
+		// ペイロードがない場合は空のメッセージを設定（usecase層でデフォルト値を設定）
+		payload.Message = ""
 	} else {
 		if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 			return fmt.Errorf("failed to unmarshal payload: %w", err)
 		}
 	}
 
-	// メッセージが空の場合はデフォルトメッセージを使用
-	if payload.Message == "" {
-		payload.Message = "Job executed successfully"
-	}
-
-	// 標準出力に文字列を出力
-	fmt.Printf("[%s] %s\n", time.Now().Format("2006-01-02 15:04:05"), payload.Message)
-	os.Stdout.Sync() // バッファをフラッシュ
-
-	return nil
+	// usecase層の呼び出し
+	delayPrintService := service.NewDelayPrintService()
+	usecase := usecasejobqueue.NewDelayPrintUsecase(delayPrintService)
+	return usecase.Execute(ctx, payload.Message)
 }
