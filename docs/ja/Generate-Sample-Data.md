@@ -109,7 +109,7 @@ $ APP_ENV=develop go run cmd/generate-sample-data/main.go
 ### CloudBeaverで確認
 
 ```bash
-./scripts/cloudbeaver-start.sh
+./scripts/start-cloudbeaver.sh
 ```
 
 ブラウザで http://localhost:8978 にアクセスして、生成されたデータを確認できます。

@@ -109,7 +109,7 @@ $ APP_ENV=develop go run cmd/generate-sample-data/main.go
 ### Verify with CloudBeaver
 
 ```bash
-./scripts/cloudbeaver-start.sh
+./scripts/start-cloudbeaver.sh
 ```
 
 Access http://localhost:8978 in your browser to verify the generated data.
