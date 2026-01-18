@@ -29,7 +29,15 @@ Web UI: http://localhost:8001
 ### 3. Start API Server
 
 ```bash
+cd server
 APP_ENV=develop go run ./cmd/server/main.go
+```
+
+### 4. Start JobQueue Server
+
+```bash
+cd server
+APP_ENV=develop go run ./cmd/jobqueue/main.go
 ```
 
 ## Registering Jobs via API
@@ -74,15 +82,21 @@ curl -X POST http://localhost:8080/api/dm-jobqueue/register \
 
 ## Verifying Job Execution
 
-Registered jobs are output to the API server's standard output after the specified delay time.
+Registered jobs are output to the JobQueue server's standard output after the specified delay time.
 
 ```
 [2026-01-02 12:34:56] Hello, World!
 ```
 
+**Note**: The JobQueue server must be running to process jobs.
+
 ## Shutdown Procedure
 
 ### Stop API Server
+
+Stop with Ctrl+C or `kill <PID>`.
+
+### Stop JobQueue Server
 
 Stop with Ctrl+C or `kill <PID>`.
 
@@ -102,8 +116,8 @@ Stop with Ctrl+C or `kill <PID>`.
 
 ### Orphaned Asynq Server Configuration Issue
 
-Each API server has a built-in Asynq server that registers itself in Redis (`asynq:servers:{hostname:pid:uuid}`).
-When the API server doesn't shut down properly, server configuration may remain in Redis.
+The JobQueue server has a built-in Asynq server that registers itself in Redis (`asynq:servers:{hostname:pid:uuid}`).
+When the JobQueue server doesn't shut down properly, server configuration may remain in Redis.
 
 - Cases have been observed where jobs cannot be processed correctly in such situations.
 
@@ -113,7 +127,7 @@ When the API server doesn't shut down properly, server configuration may remain 
 docker exec redis redis-cli KEYS "asynq:servers:*"
 ```
 
-In normal state, there should be only one entry per running server.
+In normal state, there should be only one entry per running JobQueue server.
 
 **Resolution**:
 
@@ -121,7 +135,7 @@ If old processes remain, terminate the relevant processes:
 
 ```bash
 # Check PID
-ps aux | grep "go run ./cmd/server/main.go"
+ps aux | grep "go run ./cmd/jobqueue/main.go"
 
 # Terminate process
 kill <PID>
@@ -129,7 +143,11 @@ kill <PID>
 
 ### Behavior on Redis Connection Error
 
+**API Server**:
 The API server will start even if it cannot connect to Redis. However, the job registration API will return a 503 error.
+
+**JobQueue Server**:
+The JobQueue server will continue to start even if it cannot connect to Redis. It will output a warning log and automatically resume processing when the Redis connection is restored.
 
 ## Related Documentation
 

@@ -96,7 +96,8 @@ This project implements a database-sharded web application using Go for the back
 - `DmUserUsecase`: User business logic
 - `DmPostUsecase`: Post business logic
 - `EmailUsecase`: Email business logic
-- `DmJobqueueUsecase`: Job queue business logic
+- `DmJobqueueUsecase`: Job queue business logic (ジョブ登録用)
+- `DelayPrintUsecase`: ジョブ処理のビジネスロジック（JobQueueサーバー用）
 - `TodayUsecase`: Date business logic
 
 **Constraints**:
@@ -118,6 +119,7 @@ This project implements a database-sharded web application using Go for the back
 - `DmUserService`: User domain logic
 - `DmPostService`: Post domain logic
 - `EmailService`: Email domain logic
+- `DelayPrintService`: ジョブ処理のビジネスユーティリティロジック（標準出力への文字列出力など）
 - `DateService`: Date domain logic
 
 **Constraints**:
@@ -217,6 +219,32 @@ This project implements a database-sharded web application using Go for the back
 10. API Layer → Client
    HTTP 201 Created
    Body: {"id": 1, "name": "John", "email": "john@example.com", ...}
+```
+
+### Example: Job Processing Flow (JobQueue Server)
+
+```
+1. Redis → JobQueue Server
+   Asynq ServerがRedisからジョブを取得
+   ↓
+   ジョブタイプを特定（JobTypeDelayPrint）
+
+2. Processor Layer → Usecase Layer
+   ProcessDelayPrintJob()
+   ↓
+   ペイロードの解析とバリデーション
+   ↓
+   DelayPrintUsecase.Execute(payload)
+
+3. Usecase Layer → Service Layer
+   デフォルトメッセージの設定
+   ↓
+   DelayPrintService.PrintMessage(message)
+
+4. Service Layer
+   標準出力への文字列出力（タイムスタンプ付与）
+   ↓
+   バッファのフラッシュ
 ```
 
 ## Configuration Management

@@ -86,8 +86,9 @@ func main() {
 	// EmailHandlerの初期化
 	emailHandler := handler.NewEmailHandler(emailUsecase)
 
-	// Asynqクライアントの初期化
+	// Asynqクライアントの初期化（ジョブ登録用）
 	// Redisが起動していない場合でも、APIサーバーの起動は継続する
+	// 注意: ジョブの消化処理は別プロセスのJobQueueサーバーで実行される
 	var jobQueueClient *jobqueue.Client
 	jobQueueClient, err = jobqueue.NewClient(cfg)
 	if err != nil {
@@ -97,26 +98,6 @@ func main() {
 		jobQueueClient = nil
 	} else {
 		defer jobQueueClient.Close()
-	}
-
-	// Asynqサーバーの初期化と起動
-	// Redisが起動していない場合でも、APIサーバーの起動は継続する
-	var jobQueueServer *jobqueue.Server
-	if jobQueueClient != nil {
-		jobQueueServer, err = jobqueue.NewServer(cfg)
-		if err != nil {
-			// Redis接続エラーを標準エラー出力に記録（起動処理は継続）
-			log.Printf("WARNING: Failed to create job queue server: %v", err)
-			log.Printf("WARNING: Job queue processing will be unavailable until Redis is started")
-		} else {
-			// バックグラウンドでジョブ処理サーバーを起動
-			go func() {
-				if err := jobQueueServer.Start(); err != nil {
-					// ジョブ処理サーバーの起動エラーを標準エラー出力に記録
-					log.Printf("ERROR: Failed to start job queue server: %v", err)
-				}
-			}()
-		}
 	}
 
 	// DmJobqueueUsecaseの初期化（jobQueueClientがnilの場合も許可）
@@ -178,14 +159,6 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
-
-	// ジョブキューサーバーの停止
-	if jobQueueServer != nil {
-		log.Println("Shutting down job queue server...")
-		if err := jobQueueServer.Shutdown(); err != nil {
-			log.Printf("Job queue server shutdown error: %v", err)
-		}
-	}
 
 	// Graceful shutdown (30秒のタイムアウト)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

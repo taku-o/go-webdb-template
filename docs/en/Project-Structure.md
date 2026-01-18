@@ -12,8 +12,10 @@ This document records the template creation plan for the go-webdb-template proje
 go-webdb-template/
 ├── server/                      # Golang server
 │   ├── cmd/
-│   │   └── server/
-│   │       └── main.go         # Entry point
+│   │   ├── server/
+│   │   │   └── main.go         # API server entry point
+│   │   └── jobqueue/
+│   │       └── main.go         # JobQueue server entry point
 │   ├── internal/
 │   │   ├── api/                # API definition layer
 │   │   │   ├── handler/        # HTTP handlers
@@ -32,6 +34,9 @@ go-webdb-template/
 │   │   │   │   ├── email_usecase_test.go
 │   │   │   │   ├── today_usecase.go
 │   │   │   │   └── today_usecase_test.go
+│   │   │   ├── jobqueue/       # JobQueue usecase layer
+│   │   │   │   ├── delay_print.go
+│   │   │   │   └── delay_print_test.go
 │   │   │   ├── admin/          # Admin usecase layer
 │   │   │   │   ├── dm_user_register_usecase.go
 │   │   │   │   ├── dm_user_register_usecase_test.go
@@ -52,7 +57,9 @@ go-webdb-template/
 │   │   │   ├── api_key_service.go
 │   │   │   ├── api_key_service_test.go
 │   │   │   ├── generate_sample_service.go
-│   │   │   └── generate_sample_service_test.go
+│   │   │   ├── generate_sample_service_test.go
+│   │   │   ├── delay_print_service.go
+│   │   │   └── delay_print_service_test.go
 │   │   ├── repository/         # Database processing layer
 │   │   │   ├── user_repository.go
 │   │   │   ├── user_repository_test.go

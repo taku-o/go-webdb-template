@@ -192,12 +192,23 @@ This project implements the following features:
 
 ### 3. Start Server
 
+#### API Server
+
 ```bash
 cd server
 APP_ENV=develop go run cmd/server/main.go
 ```
 
 Server starts at http://localhost:8080.
+
+#### JobQueue Server
+
+```bash
+cd server
+APP_ENV=develop go run cmd/jobqueue/main.go
+```
+
+The JobQueue server processes jobs from Redis. Make sure Redis is running before starting the JobQueue server.
 
 ### 4. Start Admin Panel
 

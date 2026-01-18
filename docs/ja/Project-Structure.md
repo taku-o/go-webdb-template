@@ -12,8 +12,10 @@
 go-webdb-template/
 ├── server/                      # Golangサーバー
 │   ├── cmd/
-│   │   └── server/
-│   │       └── main.go         # エントリーポイント
+│   │   ├── server/
+│   │   │   └── main.go         # APIサーバーのエントリーポイント
+│   │   └── jobqueue/
+│   │       └── main.go         # JobQueueサーバーのエントリーポイント
 │   ├── internal/
 │   │   ├── api/                # API定義層
 │   │   │   ├── handler/        # HTTPハンドラー
@@ -32,6 +34,9 @@ go-webdb-template/
 │   │   │   │   ├── email_usecase_test.go
 │   │   │   │   ├── today_usecase.go
 │   │   │   │   └── today_usecase_test.go
+│   │   │   ├── jobqueue/       # JobQueue用usecase層
+│   │   │   │   ├── delay_print.go
+│   │   │   │   └── delay_print_test.go
 │   │   │   ├── admin/          # Admin用usecase層
 │   │   │   │   ├── dm_user_register_usecase.go
 │   │   │   │   ├── dm_user_register_usecase_test.go
@@ -52,7 +57,9 @@ go-webdb-template/
 │   │   │   ├── api_key_service.go
 │   │   │   ├── api_key_service_test.go
 │   │   │   ├── generate_sample_service.go
-│   │   │   └── generate_sample_service_test.go
+│   │   │   ├── generate_sample_service_test.go
+│   │   │   ├── delay_print_service.go
+│   │   │   └── delay_print_service_test.go
 │   │   ├── repository/         # データベース処理層
 │   │   │   ├── user_repository.go
 │   │   │   ├── user_repository_test.go
