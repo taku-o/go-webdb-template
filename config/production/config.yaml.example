@@ -19,6 +19,11 @@ admin:
   session:
     lifetime: 3600
 
+jobqueue:
+  port: 8082
+  read_timeout: 30s
+  write_timeout: 30s
+
 logging:
   level: warn
   format: json

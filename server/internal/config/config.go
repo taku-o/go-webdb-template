@@ -14,6 +14,7 @@ import (
 type Config struct {
 	Server      ServerConfig      `mapstructure:"server"`
 	Admin       AdminConfig       `mapstructure:"admin"`
+	JobQueue    JobQueueConfig    `mapstructure:"jobqueue"` // JobQueueサーバー設定
 	Database    DatabaseConfig    `mapstructure:"database"`
 	Logging     LoggingConfig     `mapstructure:"logging"`
 	CORS        CORSConfig        `mapstructure:"cors"`
@@ -178,6 +179,13 @@ type AuthConfig struct {
 // SessionConfig はセッション設定
 type SessionConfig struct {
 	Lifetime int `mapstructure:"lifetime"`
+}
+
+// JobQueueConfig はJobQueueサーバー設定
+type JobQueueConfig struct {
+	Port         int           `mapstructure:"port"`
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout time.Duration `mapstructure:"write_timeout"`
 }
 
 // UploadConfig はアップロード機能の設定

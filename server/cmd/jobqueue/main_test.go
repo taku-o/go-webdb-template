@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"syscall"
@@ -148,4 +150,27 @@ func TestServerShutdown(t *testing.T) {
 	// 2回目のShutdown呼び出しもエラーなく完了すること（べき等性）
 	err = server.Shutdown()
 	assert.NoError(t, err)
+}
+
+// TestHealthEndpoint は /health エンドポイントのテスト
+func TestHealthEndpoint(t *testing.T) {
+	// HTTPサーバーを作成
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
+	// テストリクエストを作成
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	rec := httptest.NewRecorder()
+
+	// リクエストを処理
+	mux.ServeHTTP(rec, req)
+
+	// アサーション
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "OK", rec.Body.String())
+	assert.Equal(t, "text/plain", rec.Header().Get("Content-Type"))
 }

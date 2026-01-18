@@ -40,6 +40,27 @@ cd server
 APP_ENV=develop go run ./cmd/jobqueue/main.go
 ```
 
+The JobQueue server runs an HTTP server (port 8082) and an Asynq server in parallel.
+
+### Health Check
+
+The JobQueue server provides a `/health` endpoint.
+
+**Endpoint**: `GET http://localhost:8082/health`
+
+**Authentication**: Not required
+
+**Response**:
+- Status Code: `200 OK`
+- Response Body: `"OK"` (string)
+- Content-Type: `text/plain`
+
+**Example**:
+```bash
+curl http://localhost:8082/health
+# Expected output: OK
+```
+
 ## Registering Jobs via API
 
 ### Endpoint
