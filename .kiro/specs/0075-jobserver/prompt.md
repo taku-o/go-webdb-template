@@ -77,9 +77,11 @@ server/cmd/jobqueue/main.go
 
 いったんgit commitしてください。
 
+/compact
 
 /kiro:spec-impl 0075-jobserver 4
 
+いったんgit commitしてください。
 
 
 
