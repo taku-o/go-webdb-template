@@ -203,20 +203,20 @@ curl http://localhost:3000/health
 
 ---
 
-### Phase 4: テスト（オプション）
+### Phase 4: テスト
 
-#### - [ ] タスク 4.1: 単体テストの実装（オプション）
-**目的**: `/health`エンドポイントの単体テストを実装する（オプション）。
+#### - [ ] タスク 4.1: 単体テストの実装
+**目的**: `/health`エンドポイントの単体テストを実装する。
 
 **作業内容**:
-- `client/src/__tests__/api/health-route.test.ts`ファイルを作成
+- `client/src/__tests__/routes/health-route.test.ts`ファイルを作成
 - `GET`関数をインポート
 - ステータスコード、レスポンスボディ、Content-Typeを確認するテストを実装
 - 認証不要であることを確認するテストを実装
 
 **実装コード**:
 ```typescript
-// client/src/__tests__/api/health-route.test.ts
+// client/src/__tests__/routes/health-route.test.ts
 import { GET } from '@/app/health/route'
 
 describe('GET /health', () => {
@@ -316,8 +316,8 @@ npm test
 3. **Phase 3: 一貫性の確認**
    - タスク 3.1: 他のサーバーとの一貫性確認
 
-4. **Phase 4: テスト（オプション）**
-   - タスク 4.1: 単体テストの実装（オプション）
+4. **Phase 4: テスト**
+   - タスク 4.1: 単体テストの実装
    - タスク 4.2: 既存テストの確認
 
 ---
@@ -332,7 +332,6 @@ npm test
 - 認証不要でアクセス可能にする
 
 ### テスト時の注意事項
-- 単体テストはオプション（設計書でオプションとされている）
 - 既存のテストが全て失敗しないことを確認する
 - 必要に応じて、Playwrightテストを追加することも可能
 

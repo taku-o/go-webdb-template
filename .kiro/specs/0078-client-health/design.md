@@ -181,12 +181,12 @@ export async function GET() {
 ### 4.1 単体テスト
 
 #### 4.1.1 テストファイル
-- **ファイル**: `client/src/__tests__/api/health-route.test.ts`（新規作成）
+- **ファイル**: `client/src/__tests__/routes/health-route.test.ts`（新規作成）
 
 #### 4.1.2 テスト内容
 
 ```typescript
-// client/src/__tests__/api/health-route.test.ts
+// client/src/__tests__/routes/health-route.test.ts
 import { GET } from '@/app/health/route'
 import { NextRequest } from 'next/server'
 
@@ -216,9 +216,9 @@ describe('GET /health', () => {
 - **Content-Type**: `text/plain`を返すことを確認
 - **認証**: 認証不要であることを確認
 
-### 4.2 統合テスト（オプション）
+### 4.2 統合テスト
 
-#### 4.2.1 Playwrightテスト（オプション）
+#### 4.2.1 Playwrightテスト
 起動サーバー一覧表示機能（0077-listapp）で使用されるため、統合テストは不要と判断。必要に応じて、Playwrightテストを追加することも可能。
 
 ## 5. 動作確認設計
@@ -301,7 +301,7 @@ OK
 ### 7.1 新規作成するファイル
 
 - `client/app/health/route.ts`: `/health`エンドポイントの実装
-- `client/src/__tests__/api/health-route.test.ts`: 単体テスト（オプション）
+- `client/src/__tests__/routes/health-route.test.ts`: 単体テスト
 
 ### 7.2 変更不要なファイル
 
