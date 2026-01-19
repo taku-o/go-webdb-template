@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net"
-	"os"
 	"sync"
 	"time"
 )
@@ -106,7 +105,4 @@ func main() {
 
 	// 結果を表形式で表示
 	printResults(results)
-
-	// 正常終了
-	os.Exit(0)
 }

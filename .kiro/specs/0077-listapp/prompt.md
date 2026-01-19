@@ -68,4 +68,19 @@ https://github.com/taku-o/go-webdb-template/issues/157 に
 /review 160
 
 
+この2点は修正したいです。
+>  2. main.go:109-112 - os.Exit(0) は不要
+>  func main() {
+>      results := checkAllServers(servers, connectionTimeout)
+>      printResults(results)
+>      os.Exit(0)  // ← 削除可能
+>  }
+>  mainが正常終了すれば自動的にexit code 0になるため、明示的な os.Exit(0) は不要です。
+>
+>  3. main_test.go:46-48 - ポートのパース
+>  portInt := 0
+>  fmt.Sscanf(port, "%d", &portInt)
+>  strconv.Atoi の方がGoらしい書き方です：
+>  portInt, _ := strconv.Atoi(port)
 
+/review 160

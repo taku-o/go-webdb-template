@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -43,8 +44,7 @@ func TestCheckServerStatus(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		host, port, _ := net.SplitHostPort(address)
-		portInt := 0
-		fmt.Sscanf(port, "%d", &portInt)
+		portInt, _ := strconv.Atoi(port)
 
 		server := ServerInfo{
 			Name:    "TestServer",
