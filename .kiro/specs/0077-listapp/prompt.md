@@ -48,6 +48,24 @@ _serena_indexing
 
 /kiro:spec-impl 0077-listapp
 
+実行バイナリは
+server/bin
+に出力してください。
+
+タスク外の作業なのですが、
+./scripts/start-cloudbeaver.sh を修正して、
+./scriptsディレクトリの他のスクリプトと挙動を合わせて、
+
+./scripts/start-cloudbeaver.sh start
+./scripts/start-cloudbeaver.sh stop
+が機能するように修正してください。
+
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/157 に
+対してpull requestを作成してください。
+
+/review 160
 
 
 

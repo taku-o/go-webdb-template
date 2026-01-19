@@ -752,6 +752,34 @@ APP_ENV=develop ./bin/list-users --limit 50
 TSV（タブ区切り）形式で、以下の項目を出力します：
 - ID, Name, Email, CreatedAt, UpdatedAt
 
+### サーバー状態確認（server-status）
+
+開発環境の13個のサーバーの起動状態を確認し、結果を表形式で表示します。
+
+#### 実行
+
+```bash
+cd server
+go run cmd/server-status/main.go
+```
+
+#### 出力形式
+
+サーバー名、ポート、状態（起動中/停止中）を表形式で表示します。
+
+```
+サーバー          | ポート | 状態
+------------------|-------|--------
+API               | 8080  | 起動中
+Client            | 3000  | 停止中
+Admin             | 8081  | 起動中
+...
+```
+
+#### 確認対象サーバー
+
+API (8080)、Client (3000)、Admin (8081)、JobQueue (8082)、PostgreSQL (5432)、MySQL (3306)、Redis (6379)、Redis Cluster (7100)、Mailpit (8025)、CloudBeaver (8978)、Superset (8088)、Metabase (8970)、Redis Insight (8001)
+
 ## Sharding戦略
 
 テーブルベースシャーディング（32分割、8論理シャード）を採用しています。

@@ -20,11 +20,15 @@ server/
 │   ├── list-users/
 │   │   ├── main.go          # CLI tool main
 │   │   └── main_test.go     # Unit tests
-│   └── generate-sample-data/
-│       └── main.go          # Sample data generation tool
+│   ├── generate-sample-data/
+│   │   └── main.go          # Sample data generation tool
+│   └── server-status/
+│       ├── main.go          # Server status check tool
+│       └── main_test.go     # Unit tests
 └── bin/                      # Built executables (.gitignore target)
     ├── list-users
-    └── generate-sample-data
+    ├── generate-sample-data
+    └── server-status
 ```
 
 ## Build Methods
@@ -258,6 +262,76 @@ CLI tools reuse the existing layered architecture. Like the API server, they cal
 | Service Layer | internal/service/ | Domain logic, cross-shard operations |
 | Repository Layer | internal/repository/ | Data access abstraction |
 | DB Layer | internal/db/ | Sharding strategy, connection management |
+
+## server-status Command
+
+### Overview
+
+A tool to check the status of servers running in the development environment. It attempts TCP connections to the ports of 13 servers (API, Client, Admin, JobQueue, PostgreSQL, MySQL, Redis, Redis Cluster, Mailpit, CloudBeaver, Superset, Metabase, Redis Insight), determines their running status, and displays the results in a table format.
+
+### Usage
+
+```bash
+# Direct execution
+go run ./cmd/server-status/main.go
+
+# Build and execute
+go build -o ./bin/server-status ./cmd/server-status
+./bin/server-status
+```
+
+### Output Format
+
+Displays the following information in a table format.
+
+```
+サーバー          | ポート | 状態
+------------------|-------|--------
+API               | 8080  | 起動中
+Client            | 3000  | 停止中
+Admin             | 8081  | 起動中
+JobQueue          | 8082  | 停止中
+PostgreSQL        | 5432  | 起動中
+MySQL             | 3306  | 停止中
+Redis             | 6379  | 起動中
+Redis Cluster     | 7100  | 停止中
+Mailpit           | 8025  | 起動中
+CloudBeaver       | 8978  | 停止中
+Superset          | 8088  | 起動中
+Metabase          | 8970  | 停止中
+Redis Insight     | 8001  | 起動中
+```
+
+| Field | Description |
+|-------|-------------|
+| サーバー (Server) | Server name |
+| ポート (Port) | Port number used by the server |
+| 状態 (Status) | "起動中" (Running) or "停止中" (Stopped) |
+
+### Target Servers
+
+| Server | Port | Description |
+|--------|------|-------------|
+| API | 8080 | API Server |
+| Client | 3000 | Next.js Development Server |
+| Admin | 8081 | Admin Server |
+| JobQueue | 8082 | Job Queue Server |
+| PostgreSQL | 5432 | PostgreSQL Database |
+| MySQL | 3306 | MySQL Database |
+| Redis | 6379 | Redis Cache/Job Queue |
+| Redis Cluster | 7100 | Redis Cluster (first port) |
+| Mailpit | 8025 | Mail Testing Tool |
+| CloudBeaver | 8978 | Database Management Tool |
+| Superset | 8088 | Data Visualization Tool |
+| Metabase | 8970 | BI Tool |
+| Redis Insight | 8001 | Redis Management Tool |
+
+### Technical Specifications
+
+- **Check Method**: TCP connection (`net.DialTimeout`)
+- **Timeout**: 1 second
+- **Parallel Execution**: Uses goroutines to check all servers in parallel
+- **External Dependencies**: None (uses only standard library)
 
 ## Related Documentation
 
