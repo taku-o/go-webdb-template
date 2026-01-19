@@ -734,6 +734,34 @@ APP_ENV=develop ./bin/list-users --limit 50
 TSV (tab-separated) format with the following fields:
 - ID, Name, Email, CreatedAt, UpdatedAt
 
+### Server Status Check (server-status)
+
+Checks the status of 13 servers in the development environment and displays the results in a table format.
+
+#### Execution
+
+```bash
+cd server
+go run cmd/server-status/main.go
+```
+
+#### Output Format
+
+Displays server name, port, and status (Running/Stopped) in a table format.
+
+```
+サーバー          | ポート | 状態
+------------------|-------|--------
+API               | 8080  | 起動中
+Client            | 3000  | 停止中
+Admin             | 8081  | 起動中
+...
+```
+
+#### Target Servers
+
+API (8080), Client (3000), Admin (8081), JobQueue (8082), PostgreSQL (5432), MySQL (3306), Redis (6379), Redis Cluster (7100), Mailpit (8025), CloudBeaver (8978), Superset (8088), Metabase (8970), Redis Insight (8001)
+
 ## Sharding Strategy
 
 Uses table-based sharding (32 partitions, 8 logical shards).
