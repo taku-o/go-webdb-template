@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/taku-o/go-webdb-template/internal/service"
+	"github.com/taku-o/go-webdb-template/internal/usecase/cli"
 )
 
 // startMockServer はテスト用のTCPサーバーを起動する
@@ -35,7 +38,9 @@ func startMockServer(t *testing.T) (string, func()) {
 	return address, stop
 }
 
-func TestCheckServerStatus(t *testing.T) {
+func TestServerStatusService_CheckServerStatus(t *testing.T) {
+	serverStatusService := service.NewServerStatusService()
+
 	t.Run("起動中のサーバー", func(t *testing.T) {
 		address, stop := startMockServer(t)
 		defer stop()
@@ -46,45 +51,69 @@ func TestCheckServerStatus(t *testing.T) {
 		host, port, _ := net.SplitHostPort(address)
 		portInt, _ := strconv.Atoi(port)
 
-		server := ServerInfo{
-			Name:    "TestServer",
-			Port:    portInt,
-			Address: host,
+		servers := []service.ServerInfo{
+			{
+				Name:    "TestServer",
+				Port:    portInt,
+				Address: host,
+			},
 		}
 
-		result := checkServerStatus(server, 1*time.Second)
+		results, err := serverStatusService.ListServerStatus(servers)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
 
-		if result.Status != "起動中" {
-			t.Errorf("Expected status '起動中', got '%s'", result.Status)
+		if len(results) != 1 {
+			t.Fatalf("Expected 1 result, got %d", len(results))
+		}
+
+		if results[0].Status != "起動中" {
+			t.Errorf("Expected status '起動中', got '%s'", results[0].Status)
 		}
 	})
 
 	t.Run("停止中のサーバー", func(t *testing.T) {
-		server := ServerInfo{
-			Name:    "TestServer",
-			Port:    99999, // 使用されていないポート
-			Address: "localhost",
+		servers := []service.ServerInfo{
+			{
+				Name:    "TestServer",
+				Port:    99999, // 使用されていないポート
+				Address: "localhost",
+			},
 		}
 
-		result := checkServerStatus(server, 1*time.Second)
+		results, err := serverStatusService.ListServerStatus(servers)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
 
-		if result.Status != "停止中" {
-			t.Errorf("Expected status '停止中', got '%s'", result.Status)
+		if len(results) != 1 {
+			t.Fatalf("Expected 1 result, got %d", len(results))
+		}
+
+		if results[0].Status != "停止中" {
+			t.Errorf("Expected status '停止中', got '%s'", results[0].Status)
 		}
 	})
 }
 
-func TestCheckAllServers(t *testing.T) {
+func TestServerStatusService_CheckAllServers(t *testing.T) {
+	serverStatusService := service.NewServerStatusService()
+
 	t.Run("並列実行の確認", func(t *testing.T) {
-		testServers := []ServerInfo{
+		testServers := []service.ServerInfo{
 			{Name: "Server1", Port: 99991, Address: "localhost"},
 			{Name: "Server2", Port: 99992, Address: "localhost"},
 			{Name: "Server3", Port: 99993, Address: "localhost"},
 		}
 
 		start := time.Now()
-		results := checkAllServers(testServers, 1*time.Second)
+		results, err := serverStatusService.ListServerStatus(testServers)
 		duration := time.Since(start)
+
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
 
 		if len(results) != len(testServers) {
 			t.Errorf("Expected %d results, got %d", len(testServers), len(results))
@@ -97,13 +126,17 @@ func TestCheckAllServers(t *testing.T) {
 	})
 
 	t.Run("順序の維持", func(t *testing.T) {
-		testServers := []ServerInfo{
+		testServers := []service.ServerInfo{
 			{Name: "Server1", Port: 99991, Address: "localhost"},
 			{Name: "Server2", Port: 99992, Address: "localhost"},
 			{Name: "Server3", Port: 99993, Address: "localhost"},
 		}
 
-		results := checkAllServers(testServers, 1*time.Second)
+		results, err := serverStatusService.ListServerStatus(testServers)
+
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
 
 		for i, result := range results {
 			if result.Server.Name != testServers[i].Name {
@@ -115,13 +148,13 @@ func TestCheckAllServers(t *testing.T) {
 }
 
 func TestPrintResults(t *testing.T) {
-	results := []ServerStatus{
+	results := []service.ServerStatus{
 		{
-			Server: ServerInfo{Name: "API", Port: 8080, Address: "localhost"},
+			Server: service.ServerInfo{Name: "API", Port: 8080, Address: "localhost"},
 			Status: "起動中",
 		},
 		{
-			Server: ServerInfo{Name: "Client", Port: 3000, Address: "localhost"},
+			Server: service.ServerInfo{Name: "Client", Port: 3000, Address: "localhost"},
 			Status: "停止中",
 		},
 	}
@@ -133,7 +166,17 @@ func TestPrintResults(t *testing.T) {
 	// このテストは主にコンパイルエラーがないことを確認する
 }
 
-func TestServersDefinition(t *testing.T) {
+func TestServerStatusUsecase_ServersDefinition(t *testing.T) {
+	// MockServerStatusServiceを使用してusecaseをテスト
+	mockService := &mockServerStatusService{}
+	usecase := cli.NewServerStatusUsecase(mockService)
+
+	// ListServerStatusを呼び出してサーバーリストを確認
+	_, _ = usecase.ListServerStatus()
+
+	// mockServiceに渡されたサーバーリストを確認
+	servers := mockService.receivedServers
+
 	t.Run("サーバー数の確認", func(t *testing.T) {
 		expectedCount := 13
 		if len(servers) != expectedCount {
@@ -195,4 +238,22 @@ func TestServersDefinition(t *testing.T) {
 			}
 		}
 	})
+}
+
+// mockServerStatusService はテスト用のモック
+type mockServerStatusService struct {
+	receivedServers []service.ServerInfo
+}
+
+func (m *mockServerStatusService) ListServerStatus(servers []service.ServerInfo) ([]service.ServerStatus, error) {
+	m.receivedServers = servers
+	results := make([]service.ServerStatus, len(servers))
+	for i, server := range servers {
+		results[i] = service.ServerStatus{
+			Server: server,
+			Status: "停止中",
+			Error:  nil,
+		}
+	}
+	return results, nil
 }
