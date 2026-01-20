@@ -50,6 +50,100 @@
 
 ## アーキテクチャパターン
 
+### 標準レイヤー構造
+
+**重要**: APIサーバー、Adminサーバー、CLIコードのすべてにおいて、以下の標準レイヤー構造を必ず使用すること。
+
+```
+Controller/Handler/Page → Usecase → Service → Repository → DB
+```
+
+#### レイヤー構成の詳細
+
+1. **Controller/Handler/Page層** (エントリーポイント)
+   - **APIサーバー**: `internal/api/handler/` (HTTP Handler)
+   - **Adminサーバー**: `internal/admin/pages/` (GoAdmin Page Handler)
+   - **CLIコード**: `cmd/*/main.go` (CLIエントリーポイント)
+   - **責務**: 入出力制御、リクエスト/レスポンスの変換、エラーハンドリング
+
+2. **Usecase層** (`internal/usecase/`)
+   - **API用**: `internal/usecase/api/`
+   - **Admin用**: `internal/usecase/admin/`
+   - **CLI用**: `internal/usecase/cli/`
+   - **責務**: アプリケーション固有のビジネスロジック、Service層へのパラメータ準備、Service層からの結果の変換
+
+3. **Service層** (`internal/service/`)
+   - **責務**: ドメインロジック、ビジネスルール、トランザクション管理、クロスシャード操作
+
+4. **Repository層** (`internal/repository/`)
+   - **責務**: データアクセスの抽象化、SQLクエリ構築、CRUD操作
+
+5. **DB層** (`internal/db/`)
+   - **責務**: データベース接続管理、シャーディング戦略、接続プール管理
+
+#### 実装例
+
+**APIサーバーの例**:
+```go
+// Handler層 (internal/api/handler/dm_user_handler.go)
+type DmUserHandler struct {
+    dmUserUsecase *usecaseapi.DmUserUsecase
+}
+
+// Usecase層 (internal/usecase/api/dm_user_usecase.go)
+type DmUserUsecase struct {
+    dmUserService DmUserServiceInterface
+}
+
+// Service層 (internal/service/dm_user_service.go)
+type DmUserService struct {
+    dmUserRepo repository.DmUserRepositoryInterface
+}
+
+// Repository層 (internal/repository/dm_user_repository.go)
+type DmUserRepository struct {
+    groupManager *db.GroupManager
+}
+```
+
+**Adminサーバーの例**:
+```go
+// Page層 (internal/admin/pages/dm_user_register.go)
+func DmUserRegisterPage(ctx *context.Context, dmUserRegisterUsecase *admin.DmUserRegisterUsecase)
+
+// Usecase層 (internal/usecase/admin/dm_user_register_usecase.go)
+type DmUserRegisterUsecase struct {
+    dmUserService usecaseapi.DmUserServiceInterface
+}
+
+// Service層 (internal/service/dm_user_service.go) - 共通
+// Repository層 (internal/repository/dm_user_repository.go) - 共通
+```
+
+**CLIコードの例**:
+```go
+// CLI層 (cmd/list-dm-users/main.go)
+func main() {
+    usecase := cli.NewListDmUsersUsecase(dmUserService)
+    users, err := usecase.ListDmUsers(ctx, limit, offset)
+}
+
+// Usecase層 (internal/usecase/cli/list_dm_users_usecase.go)
+type ListDmUsersUsecase struct {
+    dmUserService usecaseapi.DmUserServiceInterface
+}
+
+// Service層 (internal/service/dm_user_service.go) - 共通
+// Repository層 (internal/repository/dm_user_repository.go) - 共通
+```
+
+#### 設計時の注意事項
+
+- **必ずUsecase層を経由する**: Controller/Handler/Page層から直接Service層を呼び出さない
+- **Service層は共通化**: API、Admin、CLIで同じService層を使用する
+- **インターフェースの使用**: Usecase層でService層のインターフェースを定義し、テスト容易性を確保
+- **依存関係の方向**: Controller → Usecase → Service → Repository → DB の一方向のみ
+
 ### レイヤードアーキテクチャ
 
 ```
@@ -98,33 +192,39 @@
 
 ### レイヤー責務
 
-#### 1. API Layer (`internal/api/`)
-- HTTPリクエスト/レスポンスの処理
-- ルーティング定義
-- バリデーション
-- エラーハンドリングとHTTPステータスコードマッピング
+#### 1. Controller/Handler/Page層
+- **APIサーバー** (`internal/api/handler/`): HTTPリクエスト/レスポンスの処理、ルーティング定義、バリデーション、エラーハンドリングとHTTPステータスコードマッピング
+- **Adminサーバー** (`internal/admin/pages/`): HTMLフォームの処理、リクエスト/レスポンスの変換、エラーハンドリング
+- **CLIコード** (`cmd/*/main.go`): 入出力制御、コマンドライン引数の解析、結果の表示
 
-#### 2. Service Layer (`internal/service/`)
-- ビジネスロジックの実装
+#### 2. Usecase層 (`internal/usecase/`)
+- **API用** (`internal/usecase/api/`): API固有のビジネスロジック、Service層へのパラメータ準備
+- **Admin用** (`internal/usecase/admin/`): Admin固有のビジネスロジック、Service層へのパラメータ準備
+- **CLI用** (`internal/usecase/cli/`): CLI固有のビジネスロジック、Service層へのパラメータ準備
+- **共通責務**: Service層の呼び出し、結果の変換、エラーハンドリング
+
+#### 3. Service層 (`internal/service/`)
+- ドメインロジックの実装
+- ビジネスルールの実装
 - トランザクション管理
 - クロスシャード操作
 - データ変換
 - メール送信処理（`email/`）
 - ジョブキュー処理（`jobqueue/`）
 
-#### 3. Repository Layer (`internal/repository/`)
+#### 4. Repository層 (`internal/repository/`)
 - データアクセスの抽象化
 - SQLクエリ構築
 - CRUD操作
 - ドメインモデルへの結果マッピング
 
-#### 4. DB Layer (`internal/db/`)
+#### 5. DB層 (`internal/db/`)
 - データベース接続管理
 - シャーディング戦略の実装
 - 接続プール管理
 - シャードルーティング
 
-#### 5. Config Layer (`internal/config/`)
+#### 6. Config層 (`internal/config/`)
 - 環境別設定ファイルの読み込み
 - 設定値のバリデーション
 - DBシャード設定の管理
