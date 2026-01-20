@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -33,8 +32,7 @@ func main() {
 	serverStatusUsecase := cli.NewServerStatusUsecase(serverStatusService)
 
 	// サーバー状態の確認
-	ctx := context.Background()
-	results, err := serverStatusUsecase.ListServerStatus(ctx)
+	results, err := serverStatusUsecase.ListServerStatus()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

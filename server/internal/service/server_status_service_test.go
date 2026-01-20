@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -26,9 +25,8 @@ func TestServerStatusService_ListServerStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			service := NewServerStatusService()
-			ctx := context.Background()
 
-			results, err := service.ListServerStatus(ctx, tt.servers)
+			results, err := service.ListServerStatus(tt.servers)
 
 			if tt.wantErr {
 				assert.Error(t, err)

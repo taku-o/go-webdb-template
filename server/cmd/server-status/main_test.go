@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"strconv"
@@ -60,8 +59,7 @@ func TestServerStatusService_CheckServerStatus(t *testing.T) {
 			},
 		}
 
-		ctx := context.Background()
-		results, err := serverStatusService.ListServerStatus(ctx, servers)
+		results, err := serverStatusService.ListServerStatus(servers)
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
 		}
@@ -84,8 +82,7 @@ func TestServerStatusService_CheckServerStatus(t *testing.T) {
 			},
 		}
 
-		ctx := context.Background()
-		results, err := serverStatusService.ListServerStatus(ctx, servers)
+		results, err := serverStatusService.ListServerStatus(servers)
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
 		}
@@ -110,9 +107,8 @@ func TestServerStatusService_CheckAllServers(t *testing.T) {
 			{Name: "Server3", Port: 99993, Address: "localhost"},
 		}
 
-		ctx := context.Background()
 		start := time.Now()
-		results, err := serverStatusService.ListServerStatus(ctx, testServers)
+		results, err := serverStatusService.ListServerStatus(testServers)
 		duration := time.Since(start)
 
 		if err != nil {
@@ -136,8 +132,7 @@ func TestServerStatusService_CheckAllServers(t *testing.T) {
 			{Name: "Server3", Port: 99993, Address: "localhost"},
 		}
 
-		ctx := context.Background()
-		results, err := serverStatusService.ListServerStatus(ctx, testServers)
+		results, err := serverStatusService.ListServerStatus(testServers)
 
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
@@ -177,8 +172,7 @@ func TestServerStatusUsecase_ServersDefinition(t *testing.T) {
 	usecase := cli.NewServerStatusUsecase(mockService)
 
 	// ListServerStatusを呼び出してサーバーリストを確認
-	ctx := context.Background()
-	_, _ = usecase.ListServerStatus(ctx)
+	_, _ = usecase.ListServerStatus()
 
 	// mockServiceに渡されたサーバーリストを確認
 	servers := mockService.receivedServers
@@ -251,7 +245,7 @@ type mockServerStatusService struct {
 	receivedServers []service.ServerInfo
 }
 
-func (m *mockServerStatusService) ListServerStatus(ctx context.Context, servers []service.ServerInfo) ([]service.ServerStatus, error) {
+func (m *mockServerStatusService) ListServerStatus(servers []service.ServerInfo) ([]service.ServerStatus, error) {
 	m.receivedServers = servers
 	results := make([]service.ServerStatus, len(servers))
 	for i, server := range servers {

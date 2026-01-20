@@ -1,14 +1,12 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/taku-o/go-webdb-template/internal/service"
 )
 
 // ServerStatusServiceInterface はServerStatusServiceのインターフェース
 type ServerStatusServiceInterface interface {
-	ListServerStatus(ctx context.Context, servers []service.ServerInfo) ([]service.ServerStatus, error)
+	ListServerStatus(servers []service.ServerInfo) ([]service.ServerStatus, error)
 }
 
 // ServerStatusUsecase はCLI用のサーバー状態確認usecase
@@ -43,7 +41,7 @@ func (u *ServerStatusUsecase) getServers() []service.ServerInfo {
 }
 
 // ListServerStatus は全サーバーの状態を確認して返す
-func (u *ServerStatusUsecase) ListServerStatus(ctx context.Context) ([]service.ServerStatus, error) {
+func (u *ServerStatusUsecase) ListServerStatus() ([]service.ServerStatus, error) {
 	servers := u.getServers()
-	return u.serverStatusService.ListServerStatus(ctx, servers)
+	return u.serverStatusService.ListServerStatus(servers)
 }

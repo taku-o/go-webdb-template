@@ -87,6 +87,12 @@ https://github.com/taku-o/go-webdb-template/issues/161 に
 /review 162
 
 
+今使ってないならctxパラメータを消しましょう。
+>  1. Context未使用 (軽微)
+>
+>  ファイル: server/internal/service/server_status_service.go:82
+>
+>  ctxを受け取っているがcheckAllServers内で使用していない。将来的にキャンセル処理を追加する場合に備えた設計と理解できる。
 
 
 

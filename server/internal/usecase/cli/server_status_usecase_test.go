@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,12 +9,12 @@ import (
 
 // MockServerStatusService はServerStatusServiceInterfaceのモック
 type MockServerStatusService struct {
-	ListServerStatusFunc func(ctx context.Context, servers []service.ServerInfo) ([]service.ServerStatus, error)
+	ListServerStatusFunc func(servers []service.ServerInfo) ([]service.ServerStatus, error)
 }
 
-func (m *MockServerStatusService) ListServerStatus(ctx context.Context, servers []service.ServerInfo) ([]service.ServerStatus, error) {
+func (m *MockServerStatusService) ListServerStatus(servers []service.ServerInfo) ([]service.ServerStatus, error) {
 	if m.ListServerStatusFunc != nil {
-		return m.ListServerStatusFunc(ctx, servers)
+		return m.ListServerStatusFunc(servers)
 	}
 	return nil, nil
 }
@@ -29,7 +28,7 @@ func TestServerStatusUsecase_ListServerStatus(t *testing.T) {
 		{
 			name: "正常系: serviceから結果を受け取る",
 			mock: &MockServerStatusService{
-				ListServerStatusFunc: func(ctx context.Context, servers []service.ServerInfo) ([]service.ServerStatus, error) {
+				ListServerStatusFunc: func(servers []service.ServerInfo) ([]service.ServerStatus, error) {
 					return []service.ServerStatus{
 						{
 							Server: service.ServerInfo{Name: "Test", Port: 8080, Address: "localhost"},
@@ -46,9 +45,8 @@ func TestServerStatusUsecase_ListServerStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			usecase := NewServerStatusUsecase(tt.mock)
-			ctx := context.Background()
 
-			results, err := usecase.ListServerStatus(ctx)
+			results, err := usecase.ListServerStatus()
 
 			if tt.wantErr {
 				assert.Error(t, err)

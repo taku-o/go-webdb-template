@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"sync"
@@ -80,7 +79,7 @@ func (s *ServerStatusService) checkAllServers(servers []ServerInfo, timeout time
 }
 
 // ListServerStatus は指定されたサーバーリストの状態を確認して返す
-func (s *ServerStatusService) ListServerStatus(ctx context.Context, servers []ServerInfo) ([]ServerStatus, error) {
+func (s *ServerStatusService) ListServerStatus(servers []ServerInfo) ([]ServerStatus, error) {
 	results := s.checkAllServers(servers, connectionTimeout)
 	return results, nil
 }
