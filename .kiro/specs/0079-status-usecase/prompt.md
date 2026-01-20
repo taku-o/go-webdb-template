@@ -70,5 +70,23 @@ _serena_indexing
 
 /kiro:spec-impl 0079-status-usecase
 
+タスクリストを承認します。
+
+/kiro:spec-impl 0079-status-usecase
+
+リファクタリングしたなら、
+リファクタリングしたコードに合わせたテストに直して。
+server/cmd/server-status/main_test.go
+
+実装の削除は駄目だよ。
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/161 に
+対してpull requestを作成してください。
+
+/review 162
+
+
+
 
 
