@@ -50,4 +50,55 @@ _serena_indexing
 
 /kiro:spec-impl 0080-job-docker
 
+今動いている
+APIサーバー
+Clientサーバー
+Adminサーバー
+JobQueueサーバーを
+を止めてください。
+
+その後、
+APIサーバー
+Clientサーバー
+JobQueueサーバーのDocker版を起動してください。
+
+
+healthチェックで http://localhost:3000/healthでなく、http://localhost:3000/ にリクエストを送信した。
+この情報はどこから取得した？
+古い情報が残っていそうだ。更新したい。
+>⏺ Bash(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ && echo "")
+>  ⎿  eval export HOMEBREW_PREFIX=/opt/homebrew
+>     200
+
+
+お願いします。
+>  追加で、docker-compose.client.ymlにはhealthcheck設定がありませんが、API/JobQueueには設定されています。一貫性のためClientにもhealthcheckを
+>  追加しますか？
+
+JobQueueサーバーをいったん止めて。
+
+JobQueueサーバーが生きてるかも。JobQueueサーバーのportは使われていないのだが、
+Redisにキーを登録しているJobQueueサーバーが確かに居る。
+
+APIサーバーを止めてみて。
+
+おそらく、APIサーバーのビルドしたイメージのバージョンが古い。
+ビルドしなおして。
+
+
+Docker版のAPIサーバーを起動して。
+Docker版のJobQueueサーバーを起動して。
+
+APIサーバー、Clientサーバー、JobQueueサーバーを止めて。
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/163 に
+対してpull requestを作成してください。
+
+/review 164
+
+
+
+
+
 

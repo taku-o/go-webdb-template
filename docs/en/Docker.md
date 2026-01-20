@@ -6,7 +6,7 @@ This document explains the Docker environment for this project.
 
 ## Overview
 
-The API server, Admin server, and Client server can run on Docker containers.
+The API server, Admin server, JobQueue server, and Client server can run on Docker containers.
 
 ### Supported Environments
 
@@ -17,12 +17,12 @@ The API server, Admin server, and Client server can run on Docker containers.
 ### Architecture
 
 ```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  Client      │    │  API Server  │    │ Admin Server │
-│  (Port 3000) │───▶│  (Port 8080) │    │ (Port 8081)  │
-└──────────────┘    └───────┬──────┘    └───────┬──────┘
-                            │                    │
-                    ┌───────┴────────────────────┘
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  Client      │    │  API Server  │    │ Admin Server │    │ JobQueue     │
+│  (Port 3000) │───▶│  (Port 8080) │    │ (Port 8081)  │    │ (Port 8082)  │
+└──────────────┘    └───────┬──────┘    └───────┬──────┘    └───────┬──────┘
+                            │                    │                    │
+                    ┌───────┴────────────────────┴────────────────────┘
                     ▼
             ┌──────────────┐    ┌──────────────┐
             │  PostgreSQL  │    │    Redis     │
@@ -39,6 +39,7 @@ The API server, Admin server, and Client server can run on Docker containers.
 - Following ports must be available:
   - 8080 (API server)
   - 8081 (Admin server)
+  - 8082 (JobQueue server)
   - 3000 (Client server)
   - 5432 (PostgreSQL)
   - 6379 (Redis)
@@ -53,6 +54,7 @@ The API server, Admin server, and Client server can run on Docker containers.
 |------|---------|-----|------------|
 | `server/Dockerfile` | All environments (develop/staging/production) | 0 | golang:1.24-alpine → alpine:latest |
 | `server/Dockerfile.admin` | All environments (develop/staging/production) | 0 | golang:1.24-alpine → alpine:latest |
+| `server/Dockerfile.jobqueue` | All environments (develop/staging/production) | 0 | golang:1.24-alpine → alpine:latest |
 
 ### Client Side (Next.js)
 
@@ -71,6 +73,7 @@ The API server, Admin server, and Client server can run on Docker containers.
 |------|----------|-------------|
 | `docker-compose.api.yml` | API Server | develop |
 | `docker-compose.admin.yml` | Admin Server | develop |
+| `docker-compose.jobqueue.yml` | JobQueue Server | develop |
 | `docker-compose.client.yml` | Client | develop |
 
 ### Volume Mounts
@@ -100,21 +103,25 @@ The API server, Admin server, and Client server can run on Docker containers.
 # Build
 docker-compose -f docker-compose.api.yml build
 docker-compose -f docker-compose.admin.yml build
+docker-compose -f docker-compose.jobqueue.yml build
 docker-compose -f docker-compose.client.yml build
 
 # Start
 docker-compose -f docker-compose.api.yml up -d
 docker-compose -f docker-compose.admin.yml up -d
+docker-compose -f docker-compose.jobqueue.yml up -d
 docker-compose -f docker-compose.client.yml up -d
 
 # Stop
 docker-compose -f docker-compose.api.yml down
 docker-compose -f docker-compose.admin.yml down
+docker-compose -f docker-compose.jobqueue.yml down
 docker-compose -f docker-compose.client.yml down
 
 # View logs
 docker-compose -f docker-compose.api.yml logs -f
 docker-compose -f docker-compose.admin.yml logs -f
+docker-compose -f docker-compose.jobqueue.yml logs -f
 docker-compose -f docker-compose.client.yml logs -f
 ```
 
@@ -139,7 +146,8 @@ docker-compose -f docker-compose.redis.yml up -d
 1. Start PostgreSQL and Redis containers
 2. Start API server
 3. Start Admin server
-4. Start Client server
+4. Start JobQueue server
+5. Start Client server
 
 ### Inter-service Communication
 
@@ -148,6 +156,7 @@ docker-compose -f docker-compose.redis.yml up -d
 | API Server | PostgreSQL | postgres:5432 |
 | API Server | Redis | redis:6379 |
 | Admin Server | PostgreSQL | postgres:5432 |
+| JobQueue Server | Redis | redis:6379 |
 | Client | API Server | api:8080 |
 
 ---
