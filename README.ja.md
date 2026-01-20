@@ -456,6 +456,10 @@ docker-compose -f docker-compose.api.yml up -d
 docker-compose -f docker-compose.admin.yml build
 docker-compose -f docker-compose.admin.yml up -d
 
+# JobQueueサーバーのビルドと起動
+docker-compose -f docker-compose.jobqueue.yml build
+docker-compose -f docker-compose.jobqueue.yml up -d
+
 # クライアントサーバーのビルドと起動
 docker-compose -f docker-compose.client.yml build
 docker-compose -f docker-compose.client.yml up -d
@@ -464,6 +468,7 @@ docker-compose -f docker-compose.client.yml up -d
 **起動後のアクセス先**:
 - APIサーバー: http://localhost:8080
 - Adminサーバー: http://localhost:8081/admin
+- JobQueueサーバー: http://localhost:8082/health
 - クライアント: http://localhost:3000
 
 詳細は [Docker.md](docs/Docker.md) を参照してください。

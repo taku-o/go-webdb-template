@@ -6,7 +6,7 @@
 
 ## 概要
 
-APIサーバー、Adminサーバー、クライアントサーバーをDockerコンテナ上で動作させることができます。
+APIサーバー、Adminサーバー、JobQueueサーバー、クライアントサーバーをDockerコンテナ上で動作させることができます。
 
 ### 対応環境
 
@@ -17,12 +17,12 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 ### アーキテクチャ
 
 ```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  Client      │    │  API Server  │    │ Admin Server │
-│  (Port 3000) │───▶│  (Port 8080) │    │ (Port 8081)  │
-└──────────────┘    └───────┬──────┘    └───────┬──────┘
-                            │                    │
-                    ┌───────┴────────────────────┘
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  Client      │    │  API Server  │    │ Admin Server │    │ JobQueue     │
+│  (Port 3000) │───▶│  (Port 8080) │    │ (Port 8081)  │    │ (Port 8082)  │
+└──────────────┘    └───────┬──────┘    └───────┬──────┘    └───────┬──────┘
+                            │                    │                    │
+                    ┌───────┴────────────────────┴────────────────────┘
                     ▼
             ┌──────────────┐    ┌──────────────┐
             │  PostgreSQL  │    │    Redis     │
@@ -39,6 +39,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 - 以下のポートが使用可能であること：
   - 8080（APIサーバー）
   - 8081（Adminサーバー）
+  - 8082（JobQueueサーバー）
   - 3000（クライアントサーバー）
   - 5432（PostgreSQL）
   - 6379（Redis）
@@ -53,6 +54,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 |---------|------|-----|---------------|
 | `server/Dockerfile` | 全環境（develop/staging/production） | 0 | golang:1.24-alpine → alpine:latest |
 | `server/Dockerfile.admin` | 全環境（develop/staging/production） | 0 | golang:1.24-alpine → alpine:latest |
+| `server/Dockerfile.jobqueue` | 全環境（develop/staging/production） | 0 | golang:1.24-alpine → alpine:latest |
 
 ### クライアント側（Next.js）
 
@@ -71,6 +73,7 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 |---------|---------|------|
 | `docker-compose.api.yml` | APIサーバー | develop |
 | `docker-compose.admin.yml` | Adminサーバー | develop |
+| `docker-compose.jobqueue.yml` | JobQueueサーバー | develop |
 | `docker-compose.client.yml` | クライアント | develop |
 
 ### ボリュームマウント
@@ -100,21 +103,25 @@ APIサーバー、Adminサーバー、クライアントサーバーをDockerコ
 # ビルド
 docker-compose -f docker-compose.api.yml build
 docker-compose -f docker-compose.admin.yml build
+docker-compose -f docker-compose.jobqueue.yml build
 docker-compose -f docker-compose.client.yml build
 
 # 起動
 docker-compose -f docker-compose.api.yml up -d
 docker-compose -f docker-compose.admin.yml up -d
+docker-compose -f docker-compose.jobqueue.yml up -d
 docker-compose -f docker-compose.client.yml up -d
 
 # 停止
 docker-compose -f docker-compose.api.yml down
 docker-compose -f docker-compose.admin.yml down
+docker-compose -f docker-compose.jobqueue.yml down
 docker-compose -f docker-compose.client.yml down
 
 # ログ確認
 docker-compose -f docker-compose.api.yml logs -f
 docker-compose -f docker-compose.admin.yml logs -f
+docker-compose -f docker-compose.jobqueue.yml logs -f
 docker-compose -f docker-compose.client.yml logs -f
 ```
 
@@ -139,7 +146,8 @@ docker-compose -f docker-compose.redis.yml up -d
 1. PostgreSQL、Redisコンテナを起動
 2. APIサーバーを起動
 3. Adminサーバーを起動
-4. クライアントサーバーを起動
+4. JobQueueサーバーを起動
+5. クライアントサーバーを起動
 
 ### サービス間通信
 
@@ -148,6 +156,7 @@ docker-compose -f docker-compose.redis.yml up -d
 | APIサーバー | PostgreSQL | postgres:5432 |
 | APIサーバー | Redis | redis:6379 |
 | Adminサーバー | PostgreSQL | postgres:5432 |
+| JobQueueサーバー | Redis | redis:6379 |
 | クライアント | APIサーバー | api:8080 |
 
 ---

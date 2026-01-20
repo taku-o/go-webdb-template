@@ -1,0 +1,42 @@
+# ビルドステージ
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /build
+
+# 依存関係をコピー
+COPY go.mod go.sum ./
+RUN go mod download
+
+# ソースコードをコピー
+COPY . .
+
+# ビルド
+RUN CGO_ENABLED=0 go build -o jobqueue ./cmd/jobqueue/main.go
+
+# 実行ステージ
+FROM alpine:latest
+
+# 必要なパッケージをインストール
+RUN apk add --no-cache ca-certificates tzdata wget
+
+# 非rootユーザーを作成（Alpine用コマンド）
+RUN addgroup -g 1000 appuser && \
+    adduser -u 1000 -G appuser -D appuser
+
+# ディレクトリ構造を作成（server/から起動される想定）
+# /app/server/ - バイナリ配置・作業ディレクトリ
+# /app/config/ - 設定ファイル（../config/でアクセス）
+# /app/logs/   - ログファイル（../logs/でアクセス）
+RUN mkdir -p /app/server/data /app/config /app/logs && \
+    chown -R appuser:appuser /app
+
+WORKDIR /app/server
+
+# ビルド成果物をコピー
+COPY --from=builder /build/jobqueue .
+
+USER appuser
+
+EXPOSE 8082
+
+CMD ["./jobqueue"]

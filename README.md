@@ -438,6 +438,10 @@ docker-compose -f docker-compose.api.yml up -d
 docker-compose -f docker-compose.admin.yml build
 docker-compose -f docker-compose.admin.yml up -d
 
+# Build and start JobQueue server
+docker-compose -f docker-compose.jobqueue.yml build
+docker-compose -f docker-compose.jobqueue.yml up -d
+
 # Build and start client server
 docker-compose -f docker-compose.client.yml build
 docker-compose -f docker-compose.client.yml up -d
@@ -446,6 +450,7 @@ docker-compose -f docker-compose.client.yml up -d
 **Access URLs after startup**:
 - API Server: http://localhost:8080
 - Admin Server: http://localhost:8081/admin
+- JobQueue Server: http://localhost:8082/health
 - Client: http://localhost:3000
 
 For details, see [docs/en/Docker.md](docs/en/Docker.md).
