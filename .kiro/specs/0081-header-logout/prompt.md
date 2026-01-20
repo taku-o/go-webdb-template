@@ -24,7 +24,18 @@ client/components/auth/auth-buttons.tsxを使う実装にして。
 _serena_indexing
 /serena-initialize
 
-/kiro:spec-impl 0080-job-docker
+/kiro:spec-impl 0081-header-logout
 
+テストを無効化したり、スキップしたりするような修正でなければOK。
+テストを修正してください。
+> E2Eテストを修正してよろしいですか？
+
+確認OK
+
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/166 に
+対してpull requestを作成してください。
+
+/review 167
 
 

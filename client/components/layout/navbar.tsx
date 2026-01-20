@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { auth, signIn, signOut } from "@/auth";
-import { Button } from "@/components/ui/button";
+import { auth } from "@/auth";
+import { AuthButtons } from "@/components/auth/auth-buttons";
 import NavBarClient from "./navbar-client";
 
 export default async function NavBar() {
@@ -23,29 +23,7 @@ export default async function NavBar() {
               <p>Precedent</p>
             </Link>
             <div className="flex items-center gap-4">
-              {session?.user ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">{session.user.name}</span>
-                    {session.user.email && (
-                      <span className="text-xs text-gray-600">{session.user.email}</span>
-                    )}
-                  </div>
-                  <form action={async () => {
-                    "use server"
-                    await signOut()
-                  }}>
-                    <Button type="submit" variant="outline">ログアウト</Button>
-                  </form>
-                </>
-              ) : (
-                <form action={async () => {
-                  "use server"
-                  await signIn('auth0')
-                }}>
-                  <Button type="submit" aria-label="ナビゲーションバーからログイン">ログイン</Button>
-                </form>
-              )}
+              <AuthButtons user={session?.user ?? null} />
             </div>
           </div>
         </NavBarClient>

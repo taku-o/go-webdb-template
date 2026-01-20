@@ -7,18 +7,18 @@ test.describe('NextAuth Login Flow', () => {
 
   test('should display login button when not authenticated', async ({ page }) => {
     // ログインボタンが表示されることを確認（ナビゲーションバーのボタン）
-    const loginButton = page.getByRole('button', { name: 'ナビゲーションバーからログイン' })
+    const loginButton = page.getByRole('button', { name: 'ログイン' }).first()
     await expect(loginButton).toBeVisible()
   })
 
   test('should display "ログインしていません" message when not authenticated', async ({ page }) => {
     // 未ログインメッセージが表示されることを確認
-    await expect(page.getByText('ログインしていません')).toBeVisible()
+    await expect(page.getByText('ログインしていません').first()).toBeVisible()
   })
 
   test('should redirect to NextAuth login when clicking login button', async ({ page }) => {
     // ログインボタンをクリック（ナビゲーションバーのボタン）
-    const loginButton = page.getByRole('button', { name: 'ナビゲーションバーからログイン' })
+    const loginButton = page.getByRole('button', { name: 'ログイン' }).first()
     await loginButton.click()
 
     // NextAuthのログインページにリダイレクトされることを確認
@@ -48,14 +48,14 @@ test.describe('NextAuth Logout Flow', () => {
     // ログイン済みかどうかを確認
     await page.goto('/')
 
-    const logoutButton = page.getByRole('button', { name: 'ログアウト' })
+    const logoutButton = page.getByRole('button', { name: 'ログアウト' }).first()
     const isLoggedIn = await logoutButton.isVisible().catch(() => false)
 
     if (isLoggedIn) {
       await expect(logoutButton).toBeVisible()
     } else {
       // 未ログインの場合、ログインボタンが表示されることを確認（ナビゲーションバーのボタン）
-      const loginButton = page.getByRole('button', { name: 'ナビゲーションバーからログイン' })
+      const loginButton = page.getByRole('button', { name: 'ログイン' }).first()
       await expect(loginButton).toBeVisible()
     }
   })
