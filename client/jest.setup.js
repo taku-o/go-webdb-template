@@ -51,7 +51,7 @@ jest.mock('next-auth', () => {
 
 // Mock auth.ts module (must be before any imports that use it)
 jest.mock('@/auth', () => {
-  const mockAuth = jest.fn(() => null)
+  const mockAuth = jest.fn(() => Promise.resolve(null))
   return {
     handlers: {
       GET: {},
