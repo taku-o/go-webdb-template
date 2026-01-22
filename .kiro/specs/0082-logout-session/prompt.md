@@ -24,6 +24,27 @@ AUTH0_ISSUERから計算して取ろうか。
 
 要件定義書を承認します。
 
+cd client
+npm run type-check 2>&1
+でエラーが出るみたい。
+
+問題が発生したときに、コメントアウトする、削除する、無視するなどの対応を行ってはいけません。それを対応と見なしません。ユーザーの許可なく、発見した作業をタスク外の作業と判断してはいけません。詳しいルールは CLAUDE.local.mdを確認してください。
+というルールがあるので、
+これもこのタスクで直して。
+
+ちょっと待ってくれるかな？
+今は要件定義をしている所なんだ。
+別の作業をしないで欲しい。
+
+この問題は、どのように直すかの計画を建てて欲しいの。
+それを要件定義書に追加する。
+>cd client
+>npm run type-check 2>&1
+>でエラーが出るみたい。
+think.
+
+馬鹿げた記述があったんで直しておきました。
+
 /kiro:spec-design 0082-logout-session
 
 設計書を承認します。
@@ -38,56 +59,42 @@ AUTH0_ISSUERから計算して取ろうか。
 
 /kiro:spec-impl 0082-logout-session 1
 
+/kiro:spec-impl 0082-logout-session 2 3
 
-問題が発生したときに、コメントアウトする、削除する、無視するなどの対応を行ってはいけません。それを対応と見なしません。ユーザーの許可なく、発見した作業をタスク外の作業と判断してはいけません。詳しいルールは CLAUDE.local.mdを確認してください。
-> ⏺ 型チェックエラーが出ていますが、これは今回の修正とは関係のない既存のテストファイルに起因するエラーです。
+Auth0はセキュリティのため、ログアウト後に戻る先のURLを厳格に管理しています。
+Auth0 Dashboard にログインします。
+Applications > Applications を開き、現在使用しているアプリケーションを選択します。
+Settings タブを開きます。
+Application Settings セクションの中にある Allowed Logout URLs を見つけます。
+そこに、ログアウト後に遷移させたいURL（signOut の redirectTo に指定したURL）を追加します。
+例: http://localhost:3000 （ローカル開発時）
+例: https://your-domain.com （本番環境）
+※ 複数ある場合はカンマ , で区切ります
 
+https://dev-oaa5vtzmld4dsxtd.jp.auth0.com/v2/logout?returnTo=http%3A%2F%2Flocalhost%3A3000
+だったら、
+http://localhost:3000
+で良いはずだよね。
 
->  問題の原因:
->  page-page.test.tsxでconst mockAuth = auth as jest.MockedFunction<typeof
->  auth>としていますが、auth関数の型がjest.MockedFunctionとの互換性がないため、TypeScriptが型エラーを報告しています。
->
->  エラーの詳細:
->  - mockAuth.mockResolvedValueOnce(null)の引数nullがnever型に代入できない
->  - 同様に、セッションオブジェクトもnever型に代入できない
->
->  修正方法:
->  page-page.test.tsxのモック定義を修正する必要があります。具体的には：
->  1. auth関数のモック型定義を明示的に行う
->  2. または、jest.setup.jsでグローバルにモックされているものを使用するように修正する
-
-こちらで対応
->  2. または、jest.setup.jsでグローバルにモックされているものを使用するように修正する
-
-
-設計書どおりに作れ。
-> NextAuth v5ではcallbackUrlではなくredirectToがパラメータ名のため、実装を調整しました。
-
-なおして。バグだし。
-
-client/node_modules/next-auth/react.jsでcallbackUrlパラメータを使用している。
-
-その誤ったNextAuth v5の型定義はどこで定義されている？
+> 提示されたURL https://.../v2/logout?returnTo=... には client_id が含まれていません。
+> Auth0の新しい仕様では、returnTo パラメータを使用する場合、どのアプリケーションの設定を参照すべきか判断するために client_id が必須です。これがないと、Auth0は「どの許可リストを確認すればいいかわからない」ため、エラーを出します。
+> 修正後のURLイメージ: https://[ドメイン]/v2/logout?client_id=YOUR_CLIENT_ID&returnTo=http%3A%2F%2Flocalhost%3A3000
 
 
-そこだね。
-だから動かせないんだね。
-本当に正しいパラメータはcallbackUrlなんだ。
-redirectToは読まれない。
-型定義を直すにはどうすればいい？
+動作するコードに修正しました。
+タスク4はこれでOKです。
 
-これしてください。
->client/types/next-auth.d.tsなどに型定義を追加
+client/lib/actions/auth-actions.ts の
+コードを直した結果、テストの修正が必要なら対応して。
 
-と実装を見てみたが、
-signOut(options)のoptions
-redirectパラメータ要らなかったわ。
+/kiro:spec-impl 0082-logout-session 5
 
-client/types/next-auth.d.ts
-間違ってたので、少し直した。
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template/issues/168 に
+対してpull requestを作成してください。
 
+/review 169
 
-npm run type-check 2>&1
 
 
 

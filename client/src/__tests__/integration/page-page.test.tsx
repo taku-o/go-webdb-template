@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import Home from '@/app/page'
 import { auth } from '@/auth'
+import type { Session } from 'next-auth'
 
 // Mock auth function
-const mockAuth = auth as jest.MockedFunction<typeof auth>
+const mockAuth = auth as unknown as jest.MockedFunction<() => Promise<Session | null>>
 
 // Mock AuthButtons component to avoid Server Actions warning
 jest.mock('@/components/auth/auth-buttons', () => ({
