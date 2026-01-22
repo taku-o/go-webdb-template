@@ -1,0 +1,26 @@
+{
+  "feature": "0082-logout-session",
+  "language": "ja",
+  "phase": "tasks",
+  "created_at": "2026-01-17T00:00:00Z",
+  "updated_at": "2026-01-22T15:53:00Z",
+  "requirements_approved_at": "2026-01-22T15:36:20Z",
+  "design_generated_at": "2026-01-22T15:47:13Z",
+  "design_approved_at": "2026-01-22T15:50:00Z",
+  "tasks_generated_at": "2026-01-22T15:51:58Z",
+  "tasks_approved_at": "2026-01-22T15:53:00Z",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  }
+}
