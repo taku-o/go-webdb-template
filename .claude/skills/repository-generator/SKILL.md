@@ -180,13 +180,22 @@ func (r *DmUserRepository) Update(ctx context.Context, id string, req *model.Upd
         return nil, fmt.Errorf("failed to get sharding connection: %w", err)
     }
 
-    result := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(map[string]interface{}{
-        "name":       req.Name,
-        "email":      req.Email,
-        "updated_at": time.Now(),
+    updates := make(map[string]interface{})
+    if req.Name != "" {
+        updates["name"] = req.Name
+    }
+    if req.Email != "" {
+        updates["email"] = req.Email
+    }
+    updates["updated_at"] = time.Now()
+
+    var result *gorm.DB
+    err = db.ExecuteWithRetry(func() error {
+        result = conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Updates(updates)
+        return result.Error
     })
-    if result.Error != nil {
-        return nil, fmt.Errorf("failed to update user: %w", result.Error)
+    if err != nil {
+        return nil, fmt.Errorf("failed to update user: %w", err)
     }
     if result.RowsAffected == 0 {
         return nil, fmt.Errorf("user not found: %s", id)
@@ -210,9 +219,13 @@ func (r *DmUserRepository) Delete(ctx context.Context, id string) error {
         return fmt.Errorf("failed to get sharding connection: %w", err)
     }
 
-    result := conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Delete(&model.DmUser{})
-    if result.Error != nil {
-        return fmt.Errorf("failed to delete user: %w", result.Error)
+    var result *gorm.DB
+    err = db.ExecuteWithRetry(func() error {
+        result = conn.DB.WithContext(ctx).Table(tableName).Where("id = ?", id).Delete(&model.DmUser{})
+        return result.Error
+    })
+    if err != nil {
+        return fmt.Errorf("failed to delete user: %w", err)
     }
     if result.RowsAffected == 0 {
         return fmt.Errorf("user not found: %s", id)

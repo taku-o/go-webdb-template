@@ -60,7 +60,7 @@ atlas migrate diff {migration_name} \
 atlas migrate diff {migration_name} \
     --dir "file://db/migrations/master-mysql" \
     --to "file://db/schema/master-mysql" \
-    --dev-url "mysql://..."
+    --dev-url "mysql://root:password@localhost:3306/dev"
 
 # シャーディングDB用（.hcl スキーマの場合、4つ全てに適用）
 for i in 1 2 3 4; do
@@ -68,6 +68,14 @@ for i in 1 2 3 4; do
         --dir "file://db/migrations/sharding_$i" \
         --to "file://db/schema/sharding_$i" \
         --dev-url "sqlite://file?mode=memory"
+done
+
+# シャーディングDB用（MySQL の場合、4つ全てに適用）
+for i in 1 2 3 4; do
+    atlas migrate diff {migration_name} \
+        --dir "file://db/migrations/sharding_${i}-mysql" \
+        --to "file://db/schema/sharding_${i}_mysql" \
+        --dev-url "mysql://root:password@localhost:3306/dev"
 done
 ```
 

@@ -51,6 +51,24 @@ https://github.com/taku-o/go-webdb-template に
 /review 170
 
 
+これについて詳しく教えて。SKILLSの記載が不完全、ということ？
+>  軽微な指摘
+>  2. repository-generator: Update メソッドで db.ExecuteWithRetry が使われていない（Create/GetByID
+>  では使用）。一貫性の観点から検討の余地あり（ただし SKILL の例としては許容範囲）。
+
+ということであれば、SKILLの方に修正をいれてください。
+> SKILL を参考にして新しい Repository を作成した場合、Update/Delete で ExecuteWithRetry を付け忘れる可能性がある。
+
+こちらのPRレビューの指摘も取り込んでください。
+>  軽微な指摘
+>  3. migration-helper: .hcl への更新は良いが、MySQL 向けの --dev-url 例が mysql://... と省略されている。実際の接続文字列例があると親切。
+
+stagingに上がっている修正をcommitして、
+pull requestを更新してください。
+
+/review 170
+
+
 
 
 
