@@ -36,7 +36,15 @@ think.
 
 /kiro:spec-tasks 0083-skills-updates
 
+一部の「必要に応じて」の記載は、作業が必要なので「必要に応じて」の部分を消しました。
+
 タスクリストを承認します。
+
+/sdd-fix-plan
+
+/kiro:spec-impl 0083-skills-updates
+
+
 
 
 
