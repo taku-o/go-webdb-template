@@ -44,6 +44,12 @@ think.
 
 /kiro:spec-impl 0083-skills-updates
 
+stagingに上がっている修正をcommitして、
+https://github.com/taku-o/go-webdb-template に
+対してpull requestを作成してください。
+
+/review 170
+
 
 
 

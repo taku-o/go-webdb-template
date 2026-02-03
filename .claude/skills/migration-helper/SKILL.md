@@ -10,15 +10,23 @@ allowed-tools: Read, Bash(atlas:*), Bash(./scripts/migrate.sh:*)
 
 ## ディレクトリ構成
 
+スキーマは `db/schema/` に **.hcl** 形式で定義されている。`db/migrations/` には master / master-mysql / view_master / view_master-mysql および sharding_1..4 / sharding_1..4-mysql など、環境別・用途別のマイグレーションがある。
+
 ```
+db/schema/
+├── master.hcl              # マスタースキーマ（.hcl）
+├── master-mysql/          # マスター（MySQL向け .hcl）
+│   └── master.hcl
+├── sharding_1/ .. sharding_4/   # シャード別 .hcl（_schema.hcl + dm_*.hcl）
+└── sharding_*_mysql/      # シャード別 MySQL 向け .hcl
+
 db/migrations/
-├── master/           # マスターDB用（news, goadminテーブル等）
-│   ├── atlas.sum
-│   └── *.sql
-├── sharding_1/       # シャーディングDB 1用
-├── sharding_2/       # シャーディングDB 2用
-├── sharding_3/       # シャーディングDB 3用
-└── sharding_4/       # シャーディングDB 4用
+├── master/                 # マスターDB用
+├── master-mysql/           # マスターDB用（MySQL）
+├── view_master/            # ビュー用（マスター）
+├── view_master-mysql/      # ビュー用（マスター・MySQL）
+├── sharding_1/ .. sharding_4/   # シャーディングDB用
+└── sharding_*_mysql/      # シャーディングDB用（MySQL）
 ```
 
 ## マイグレーションツール
@@ -39,20 +47,26 @@ db/migrations/
 
 ### 1. 新しいマイグレーションファイルの作成
 
-Atlas CLIで差分を生成:
+Atlas CLIで差分を生成。スキーマが **.hcl** の場合は `--to` に .hcl ファイルまたは .hcl があるディレクトリを指定する。
 
 ```bash
-# マスターDB用
+# マスターDB用（.hcl スキーマの場合）
 atlas migrate diff {migration_name} \
     --dir "file://db/migrations/master" \
-    --to "file://db/schema/master.sql" \
+    --to "file://db/schema/master.hcl" \
     --dev-url "sqlite://file?mode=memory"
 
-# シャーディングDB用（4つ全てに適用）
+# マスターDB用（master-mysql ディレクトリの .hcl の場合）
+atlas migrate diff {migration_name} \
+    --dir "file://db/migrations/master-mysql" \
+    --to "file://db/schema/master-mysql" \
+    --dev-url "mysql://..."
+
+# シャーディングDB用（.hcl スキーマの場合、4つ全てに適用）
 for i in 1 2 3 4; do
     atlas migrate diff {migration_name} \
         --dir "file://db/migrations/sharding_$i" \
-        --to "file://db/schema/sharding.sql" \
+        --to "file://db/schema/sharding_$i" \
         --dev-url "sqlite://file?mode=memory"
 done
 ```
